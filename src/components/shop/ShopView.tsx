@@ -4,7 +4,8 @@ import { useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { SlidersHorizontal, X, Search } from "lucide-react";
-import { getProducts, queryProducts, sortOptions, type SortKey } from "@/lib/data/catalogue";
+import { queryProducts, sortOptions, type SortKey } from "@/lib/data/catalogue";
+import { useCatalogue } from "@/lib/state/catalogue";
 import { categories, collections, purities } from "@/lib/data/categories";
 import type { CategorySlug, Purity } from "@/lib/data/types";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -32,6 +33,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
   const router = useRouter();
   const pathname = usePathname();
   const [, startTransition] = useTransition();
+  const { products } = useCatalogue();
   const [drawer, setDrawer] = useState(false);
   useScrollLock(drawer);
   useEscape(drawer, () => setDrawer(false));
@@ -48,9 +50,9 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
   };
 
   const results = useMemo(
-    () => queryProducts(state, getProducts()),
+    () => queryProducts(state, products),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [params, preset.category, preset.collection],
+    [params, preset.category, preset.collection, products],
   );
 
   const update = (patch: Record<string, string | null>) => {
@@ -86,7 +88,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
       state={state}
       onToggle={toggleIn}
       onUpdate={update}
-      countFor={(patch) => queryProducts({ ...state, ...patch }, getProducts()).length}
+      countFor={(patch) => queryProducts({ ...state, ...patch }, products).length}
     />
   );
 

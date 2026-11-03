@@ -5,7 +5,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowRight, Search, X } from "lucide-react";
-import { getProducts, queryProducts } from "@/lib/data/catalogue";
+import { queryProducts } from "@/lib/data/catalogue";
+import { useCatalogue } from "@/lib/state/catalogue";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { Price } from "@/components/product/Price";
 
@@ -15,7 +16,8 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
   const [q, setQ] = useState("");
   const input = useRef<HTMLInputElement>(null);
   const router = useRouter();
-  const results = useMemo(() => (q.trim().length > 1 ? queryProducts({ q }, getProducts()).slice(0, 6) : []), [q]);
+  const { products } = useCatalogue();
+  const results = useMemo(() => (q.trim().length > 1 ? queryProducts({ q }, products).slice(0, 6) : []), [q, products]);
 
   useEffect(() => {
     if (open) window.setTimeout(() => input.current?.focus(), 60);

@@ -9,9 +9,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
   try {
-    const input = validateOrder(body);
+    const input = await validateOrder(body);
     const reference = `LLG-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
-    const order = buildOrder(input, reference, new Date().toISOString());
+    const order = await buildOrder(input, reference, new Date().toISOString());
     await saveOrder(order);
     return NextResponse.json({ reference, status: order.status, subtotalAED: order.subtotalAED, hasPriceOnRequest: order.hasPriceOnRequest }, { status: 201 });
   } catch (err) {

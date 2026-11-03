@@ -1,31 +1,14 @@
-import { products } from "./products";
 import type { Availability, CategorySlug, Product, Purity } from "./types";
 
 /*
- * Catalogue access layer. Components only talk to these functions, so the
- * static sample data can be swapped for a database or headless commerce
- * backend (e.g. Shopify, Medusa, Sanity) without touching the UI.
+ * Pure catalogue helpers (search, filter, sort). The product list itself comes from
+ * the database: on the server via `getCatalogue()` (src/lib/data/store-catalogue.ts),
+ * in client components via `useCatalogue()` (src/lib/state/catalogue.tsx).
  */
 
-export function getProducts(): Product[] {
-  return products;
-}
-
-export function getProduct(slug: string): Product | undefined {
-  return products.find((p) => p.slug === slug);
-}
-
-export function getProductById(id: string): Product | undefined {
-  return products.find((p) => p.id === id);
-}
-
-export function getFeaturedProducts(limit = 8): Product[] {
-  return products.filter((p) => p.featured).slice(0, limit);
-}
-
-export function getRelatedProducts(product: Product, limit = 4): Product[] {
-  const same = products.filter((p) => p.id !== product.id && p.category === product.category);
-  const shared = products.filter(
+export function getRelatedProducts(product: Product, source: Product[], limit = 4): Product[] {
+  const same = source.filter((p) => p.id !== product.id && p.category === product.category);
+  const shared = source.filter(
     (p) => p.id !== product.id && p.category !== product.category && p.collections.some((c) => product.collections.includes(c)),
   );
   return [...same, ...shared].slice(0, limit);
@@ -79,7 +62,7 @@ export function searchScore(p: Product, q: string): number {
   return score;
 }
 
-export function queryProducts(query: ProductQuery, source: Product[] = products): Product[] {
+export function queryProducts(query: ProductQuery, source: Product[]): Product[] {
   let list = source.filter((p) => {
     if (query.categories?.length && !query.categories.includes(p.category)) return false;
     if (query.collections?.length && !p.collections.some((c) => query.collections!.includes(c))) return false;
@@ -118,7 +101,7 @@ export const availabilityLabel: Record<Availability, string> = {
   out_of_stock: "Currently unavailable",
 };
 
-export function priceBounds(list: Product[] = products) {
+export function priceBounds(list: Product[]) {
   const prices = list.map((p) => p.priceAED).filter((x): x is number => x != null);
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }

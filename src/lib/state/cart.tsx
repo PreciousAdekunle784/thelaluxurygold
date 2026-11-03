@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
-import { getProductById } from "@/lib/data/catalogue";
+import { useCatalogue } from "./catalogue";
 import type { Product } from "@/lib/data/types";
 import { usePersistentState } from "./persisted";
 import { unitPrice } from "./cart-math";
@@ -46,16 +46,17 @@ export { unitPrice };
 export function CartProvider({ children }: { children: ReactNode }) {
   const [raw, setRaw, hydrated] = usePersistentState<CartLine[]>("llg.cart.v1", []);
   const [isOpen, setOpen] = useState(false);
+  const { byId } = useCatalogue();
 
   const lines = useMemo<ResolvedLine[]>(
     () =>
       raw.flatMap((l) => {
-        const product = getProductById(l.productId);
+        const product = byId(l.productId);
         if (!product) return [];
         const u = unitPrice(product, l.variant);
         return [{ ...l, product, unitPriceAED: u, lineTotalAED: u == null ? null : u * l.quantity }];
       }),
-    [raw],
+    [raw, byId],
   );
 
   const add = useCallback<CartContextValue["add"]>(

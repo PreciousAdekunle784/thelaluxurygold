@@ -30,7 +30,7 @@ npm run typecheck
 ## Project structure
 
 ```
-src/app/                 Routes: home, shop, collections/[slug], gold-bars, product/[slug],
+src/app/(store)/         Storefront routes: home, shop, collections/[slug], gold-bars, product/[slug],
                          cart, checkout, wishlist, account, about, contact, faq, shipping,
                          returns, privacy, terms, api/{orders,newsletter,contact}, sitemap, robots
 src/components/          brand · layout · home · shop · product · cart · forms · ui
@@ -39,6 +39,10 @@ src/lib/data/            Catalogue (products.ts), categories & collections, test
 src/lib/data/catalogue.ts   Data-access layer (search, filter, sort). Swap the data source here.
 src/lib/state/           Cart, wishlist and currency providers (persisted to localStorage)
 src/lib/server/          Order validation & persistence, webhook forwarding
+src/lib/db, src/lib/repo Database client (Postgres / SQLite), schema & data access
+src/lib/auth/            Admin session signing & guards
+src/app/admin/           Admin panel (dashboard, visitors, orders, buyers, products…)
+src/proxy.ts             Protects /admin and /api/admin
 src/lib/payments/        Payment-gateway interface (no provider connected)
 tools/render/            The 3D studio renderer used to create the placeholder imagery
 tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
@@ -68,20 +72,55 @@ Products reference images by key (e.g. `products/aurelia-band-1`) in `src/lib/da
 
 ## Configuration
 
+Copy `.env.example` to `.env.local` and fill it in.
+
 | Env var | Purpose |
 | --- | --- |
+| `ADMIN_PASSWORD` | Password for `/admin` (admin is disabled until set) |
+| `ADMIN_SESSION_SECRET` | Optional secret for signing admin sessions |
+| `DATABASE_URL` | PostgreSQL connection string (required on serverless hosts); omit for local SQLite |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata, sitemap and structured data |
 | `NEXT_PUBLIC_SAMPLE_CATALOGUE` | Set to `false` once verified products are loaded (enables indexing, removes labels) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
-| `ORDER_WEBHOOK_URL` | Receives order requests as JSON (CRM, email automation, Make/Zapier, Sheets…) |
+| `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
 | `CONTACT_WEBHOOK_URL` | Receives contact-form messages |
 
-Without webhooks, submissions are validated and logged on the server.
+Orders, messages and sign-ups are always saved to the database and shown in the admin. Webhooks are optional extras.
 
 * **Currency**: AED is the base currency. USD, EUR, GBP and SAR are defined in `store.ts` with `rate: null`. Give one a rate (ideally from a rates service) and it appears automatically in the currency layer.
 * **Shipping**: methods are defined in `store.ts`. Rates and delivery estimates are `null` (shown as "confirmed by our team") until you set them. No rates or timelines were invented.
 * **WhatsApp**: the main number `08149734675` is used in international format (`+234 814 973 4675`, assumed Nigerian). UAE `+971 50 625 9597` and secondary `+234 814 966 6013` are listed on the contact page and in the footer. Change these in `store.contact`.
+
+## Admin panel (`/admin`)
+
+A private dashboard for running the store. Sign in at **`/admin`** with the password set in `ADMIN_PASSWORD`. The admin is disabled until that variable is set.
+
+| Section | What it shows / does |
+| --- | --- |
+| **Dashboard** | Visitors on the site right now (updates every ~8 s), visitors and page views today and this week, revenue received, value of all orders, buyers and average paid order. Also: 14-day charts, a live activity stream, latest orders, and top pages, referrers, countries and devices. |
+| **Visitors** | Today / 7 / 30-day traffic and a full visit log: time, page, anonymous visitor ID, new or returning, country, device, browser and source. |
+| **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
+| **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
+| **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
+| **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
+
+**New-order alerts.** When a customer places an order, every open admin page shows a pop-up and plays a soft chime. Click **Enable order alerts** in the sidebar to also get desktop notifications.
+
+**Money.** No payment gateway is connected, so orders arrive as "Awaiting confirmation". "Revenue received" counts only orders you mark **Paid**, **Shipped** or **Delivered**. "Value of all orders" counts everything except cancelled orders.
+
+**Visitor tracking** is first-party and anonymous: a random ID in the visitor's browser, with no IP addresses, cookies or third-party scripts. Bots and your own visits while signed in are ignored. Country appears when your host sends a location header (Vercel and Cloudflare do).
+
+### Data storage
+
+| Setting | Storage |
+| --- | --- |
+| `DATABASE_URL` set | **PostgreSQL** (Neon, Supabase, Railway, RDS…). **Required on Vercel and other serverless hosts.** |
+| not set | A local **SQLite** file at `.data/llg.sqlite`, built into Node 22.13+. Fine for development or a single server; back the file up. |
+
+The tables are created automatically, and the sample catalogue is copied into the database on first run. From then on, products are managed in the admin, and `src/lib/data/products.ts` is only the initial seed. Uploaded images are stored in the database and served from `/media/<id>`.
+
+**Security.** Admin pages and APIs are protected twice: by `src/proxy.ts`, and again inside every page and action. Sessions are signed, HTTP-only cookies lasting 12 hours. Login attempts are rate-limited. Use a long, unique `ADMIN_PASSWORD`. Optionally set `ADMIN_SESSION_SECRET`; changing it signs every session out.
 
 ## Checkout & payments
 
@@ -98,8 +137,11 @@ Customer accounts have a UI only. Connect an auth provider in `src/components/fo
 
 ```bash
 npm run build && npm start   # port 3000; or: npx next start -p 3100
-BASE=http://localhost:3000 node tests/e2e.cjs   # requires Playwright with Chromium
+BASE=http://localhost:3000 node tests/e2e.cjs                               # storefront (49 checks)
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin (28 checks)
 ```
+
+Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.
 
 The suite covers 49 checks:
 
@@ -114,6 +156,7 @@ The suite covers 49 checks:
 - [ ] Replace sample products, prices and imagery; set `NEXT_PUBLIC_SAMPLE_CATALOGUE=false`
 - [ ] Confirm the WhatsApp/phone country codes and add a contact email
 - [ ] Confirm shipping rates and timelines and the policy texts (legal review)
-- [ ] Connect a payment gateway and order webhook / database
+- [ ] Set `ADMIN_PASSWORD` and a production `DATABASE_URL` (PostgreSQL)
+- [ ] Connect a payment gateway
 - [ ] Add verified testimonials (with permission) or remove the section
 - [ ] Set `NEXT_PUBLIC_SITE_URL` and add analytics/cookie consent if required

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { getProducts, queryProducts } from "@/lib/data/catalogue";
+import { queryProducts } from "@/lib/data/catalogue";
+import { getCatalogue } from "@/lib/data/store-catalogue";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { ProductCard } from "@/components/product/ProductCard";
 import { Reveal } from "@/components/ui/Reveal";
@@ -14,8 +15,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/gold-bars" },
 };
 
-export default function GoldBarsPage() {
-  const bars = queryProducts({ categories: ["gold-bars"], sort: "price-asc" }, getProducts());
+export default async function GoldBarsPage() {
+  const bars = queryProducts({ categories: ["gold-bars"], sort: "price-asc" }, await getCatalogue());
   return (
     <>
       <section className="relative overflow-hidden bg-[#141c18] text-ivory">

@@ -1,10 +1,10 @@
 import { MediaImage } from "@/components/ui/MediaImage";
 import { ImageReveal, Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
-import { getProducts } from "@/lib/data/catalogue";
+import { getCatalogue } from "@/lib/data/store-catalogue";
 
-export function GoldInvestment() {
-  const weights = getProducts()
+export async function GoldInvestment() {
+  const weights = (await getCatalogue())
     .filter((p) => p.category === "gold-bars" && p.weightGrams)
     .map((p) => p.weightGrams!)
     .sort((a, b) => a - b);
@@ -44,7 +44,7 @@ export function GoldInvestment() {
                 <div className="border-l border-line-light px-4 py-6">
                   <dt className="eyebrow text-ivory/50">Weights</dt>
                   <dd className="mt-2 font-display text-3xl">
-                    {weights[0]}–{weights[weights.length - 1]} g
+                    {weights.length ? `${weights[0]}–${weights[weights.length - 1]} g` : "—"}
                   </dd>
                 </div>
                 <div className="border-l border-line-light py-6 pl-4">

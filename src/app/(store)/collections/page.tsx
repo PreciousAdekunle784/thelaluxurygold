@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { categories, collections } from "@/lib/data/categories";
-import { getProducts, queryProducts } from "@/lib/data/catalogue";
+import { queryProducts } from "@/lib/data/catalogue";
+import { getCatalogue } from "@/lib/data/store-catalogue";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { Reveal } from "@/components/ui/Reveal";
 import { PageIntro } from "@/components/shop/PageIntro";
@@ -12,8 +13,8 @@ export const metadata: Metadata = {
   alternates: { canonical: "/collections" },
 };
 
-export default function CollectionsPage() {
-  const all = getProducts();
+export default async function CollectionsPage() {
+  const all = await getCatalogue();
   return (
     <>
       <PageIntro

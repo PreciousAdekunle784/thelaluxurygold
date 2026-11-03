@@ -1,14 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Cormorant_Garamond, Manrope } from "next/font/google";
 import "./globals.css";
-import { Providers } from "@/lib/state/providers";
-import { AnnouncementBar } from "@/components/layout/AnnouncementBar";
-import { Header } from "@/components/layout/Header";
-import { Footer } from "@/components/layout/Footer";
-import { CartDrawer } from "@/components/cart/CartDrawer";
-import { WhatsAppButton } from "@/components/layout/WhatsAppButton";
 import { store } from "@/lib/config/store";
-import { organizationJsonLd, JsonLd } from "@/lib/seo";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
@@ -56,21 +49,7 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${display.variable} ${sans.variable}`}>
-      <body className="flex min-h-screen flex-col">
-        <a href="#main" className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:bg-ink focus:px-4 focus:py-2 focus:text-ivory">
-          Skip to content
-        </a>
-        <JsonLd data={organizationJsonLd()} />
-        <Providers>
-          <AnnouncementBar />
-          <Header />
-          <main id="main" className="flex-1">
-            {children}
-          </main>
-          <Footer />
-          <CartDrawer />
-          <WhatsAppButton />
-        </Providers>
+      <body className="flex min-h-screen flex-col">{children}
       </body>
     </html>
   );

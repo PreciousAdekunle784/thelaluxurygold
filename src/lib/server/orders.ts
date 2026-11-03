@@ -1,5 +1,7 @@
 import "server-only";
-import { getProductById } from "@/lib/data/catalogue";
+import { listProductRows } from "@/lib/repo/products";
+import { insertOrder } from "@/lib/repo/orders";
+import type { Product } from "@/lib/data/types";
 import { paymentOptions, shippingMethods, shippingMethodsFor } from "@/lib/config/store";
 import { unitPrice } from "@/lib/state/cart-math";
 
@@ -31,7 +33,14 @@ export class ValidationError extends Error {
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-export function validateOrder(body: unknown): OrderInput {
+/** Live product list straight from the database (never cached) so prices and availability are always current. */
+async function liveCatalogue() {
+  return (await listProductRows()).map((r) => r.product);
+}
+
+export async function validateOrder(body: unknown): Promise<OrderInput> {
+  const catalogue = await liveCatalogue();
+  const getProductById = (id: string) => catalogue.find((p) => p.id === id);
   const b = (body ?? {}) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   const errors: Record<string, string> = {};
   const customer = {
@@ -69,14 +78,19 @@ export function validateOrder(body: unknown): OrderInput {
       quantity: Math.max(1, Math.min(10, Math.floor(Number(l?.quantity) || 0))),
       variant: l?.variant && typeof l.variant === "object" ? { name: str((l.variant as Record<string, unknown>).name, 40), value: str((l.variant as Record<string, unknown>).value, 40) } : undefined,
     }))
-    .filter((l: { productId: string }) => !!getProductById(l.productId));
+    .filter((l: { productId: string }) => {
+      const p = getProductById(l.productId);
+      return !!p && p.availability !== "out_of_stock";
+    });
   if (!cleanLines.length) errors.lines = "Your bag is empty.";
 
   if (Object.keys(errors).length) throw new ValidationError(errors);
   return { customer, shipping, shippingMethodId, paymentMethod, notes: str(b.notes, 1000), lines: cleanLines };
 }
 
-export function buildOrder(input: OrderInput, reference: string, createdAt: string): OrderRecord {
+export async function buildOrder(input: OrderInput, reference: string, createdAt: string): Promise<OrderRecord> {
+  const catalogue = await liveCatalogue();
+  const getProductById = (id: string): Product | undefined => catalogue.find((p) => p.id === id);
   const resolvedLines = input.lines.map((l) => {
     const p = getProductById(l.productId)!;
     return { productId: p.id, name: p.name, quantity: l.quantity, variant: l.variant, unitPriceAED: unitPrice(p, l.variant) };
@@ -96,15 +110,16 @@ export function buildOrder(input: OrderInput, reference: string, createdAt: stri
 }
 
 /**
- * Persist / forward the order. Connect a database here, or set ORDER_WEBHOOK_URL to
- * forward orders to an automation (CRM, email, Google Sheets, Make, Zapier…).
+ * Persist the order (visible in /admin) and optionally forward it to ORDER_WEBHOOK_URL
+ * (CRM, email automation, Google Sheets, Make, Zapier…).
  */
 export async function saveOrder(order: OrderRecord) {
+  await insertOrder(order);
   const hook = process.env.ORDER_WEBHOOK_URL;
   if (hook) {
     const res = await fetch(hook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "order.requested", order }) });
     if (!res.ok) throw new Error(`Order webhook failed (${res.status})`);
     return;
   }
-  console.info(`[orders] ${order.reference} received (no ORDER_WEBHOOK_URL configured)`, JSON.stringify({ ...order, customer: { ...order.customer, email: "[redacted]", phone: "[redacted]" } }));
+  console.info(`[orders] ${order.reference} saved`);
 }

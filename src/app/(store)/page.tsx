@@ -8,14 +8,15 @@ import { Campaign } from "@/components/home/Campaign";
 import { Testimonials } from "@/components/home/Testimonials";
 import { SocialGrid } from "@/components/home/SocialGrid";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
-import { getProducts } from "@/lib/data/catalogue";
+import { getCatalogue } from "@/lib/data/store-catalogue";
 
-export default function HomePage() {
+export default async function HomePage() {
+  const products = await getCatalogue();
   return (
     <>
       <Hero />
       <CategoryShowcase />
-      <FeaturedCollection products={getProducts()} />
+      <FeaturedCollection products={products} />
       <BrandStory />
       <GoldInvestment />
       <WhyChooseUs />

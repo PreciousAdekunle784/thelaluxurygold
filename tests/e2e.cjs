@@ -20,7 +20,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     const seenLinks = new Set();
     let badImages = 0, pagesOk = 0;
     for (const u of [...new Set([...urls.map((x) => x || '/'), ...extra])]) {
-      const r = await p.goto(BASE + u, { waitUntil: 'networkidle' });
+      const r = await p.goto(BASE + u, { waitUntil: 'load' });
+      await p.waitForTimeout(700);
       const status = r.status();
       if (u === '/does-not-exist') ok('404 page returns 404', status === 404);
       else if (status === 200) pagesOk++;
@@ -56,7 +57,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
   {
     const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
     const p = await ctx.newPage();
-    await p.goto(BASE + '/shop', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     const count = async () => p.locator('main ul.grid > li:visible').count();
     const total = await count();
     ok('shop lists all products', total === 19, `${total}`);
@@ -68,23 +70,29 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForURL(/purity=18K/);
     await p.waitForTimeout(700);
     ok('purity filter (rings + 18K) → 2', (await count()) === 2, `${await count()}`);
-    await p.goto(BASE + '/shop?purity=24K', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?purity=24K', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     ok('purity 24K → 5 gold bars', (await count()) === 5, `${await count()}`);
-    await p.goto(BASE + '/shop?max=2000', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?max=2000', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     const under = await p.$$eval('main ul.grid > li', (lis) => lis.map((li) => li.textContent));
     ok('price filter max 2000 → 4 items', under.length === 4, `${under.length}`);
-    await p.goto(BASE + '/shop?sort=price-asc', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?sort=price-asc', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     const prices = await p.$$eval('main ul.grid > li', (lis) => lis.map((li) => { const m = li.textContent.match(/AED ([\d,]+)/); return m ? Number(m[1].replace(/,/g, '')) : Infinity; }));
     ok('sort price low→high is ascending', prices.every((v, i) => i === 0 || v >= prices[i - 1]), prices.slice(0, 6).join(','));
-    await p.goto(BASE + '/shop?stock=1', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?stock=1', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     ok('availability filter hides 3 made-to-order', (await count()) === 16, `${await count()}`);
-    await p.goto(BASE + '/shop?purity=24K&category=rings', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?purity=24K&category=rings', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     ok('empty state shown for no results', await p.locator('text=No pieces match your selection').isVisible());
     await p.locator('button:has-text("Clear filters")').click();
     await p.waitForTimeout(800);
     ok('clear filters restores all', (await count()) === 19, `${await count()}`);
     // header search
-    await p.goto(BASE + '/', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('header button[aria-label="Search"]').last().click();
     await p.fill('#site-search', 'hoops');
     await p.waitForTimeout(400);
@@ -93,10 +101,12 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForURL(/\/shop\?q=hoops/);
     await p.waitForTimeout(700);
     ok('search results page filters by query', (await count()) === 2 && (await p.locator('main ul.grid > li:visible').first().textContent()).includes('Classic Gold Hoops'), `${await count()}`);
-    await p.goto(BASE + '/shop?q=medaille', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop?q=medaille', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     ok('search is accent-insensitive (medaille → Médaille)', (await count()) === 1);
     // mega menu
-    await p.goto(BASE + '/shop', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('nav[aria-label=Main] a:has-text("Collections")').hover();
     await p.waitForTimeout(600);
     ok('collections mega menu opens on hover', await p.locator('text=Curated collections').isVisible());
@@ -107,7 +117,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
   {
     const ctx = await b.newContext({ viewport: { width: 1440, height: 900 } });
     const p = await ctx.newPage();
-    await p.goto(BASE + '/product/maison-signet-ring', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/product/maison-signet-ring', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     ok('PDP shows 3 gallery images', (await p.locator('main button[aria-label^="Enlarge image"]').count()) === 3);
     const ld = await p.$$eval('script[type="application/ld+json"]', (s) => s.map((x) => JSON.parse(x.textContent)));
     ok('PDP has Product structured data with AED offer', ld.some((d) => d['@type'] === 'Product' && d.offers?.priceCurrency === 'AED'));
@@ -122,14 +133,16 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.keyboard.press('Escape');
     await p.waitForTimeout(700);
     ok('Escape closes cart drawer', !(await p.locator('[role=dialog][aria-label="Shopping bag"]').isVisible()));
-    await p.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('main button:has-text("Add to bag")').click();
     await p.waitForTimeout(400);
     await p.keyboard.press('Escape');
     await p.waitForTimeout(700);
     // wishlist
     await p.locator('main button[aria-label^="Add Classic Gold Hoops to wishlist"]').first().click();
-    await p.goto(BASE + '/cart', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/cart', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.waitForTimeout(400);
     ok('cart persists across pages (2 lines)', (await p.locator('main li:has(a[href^="/product/"])').count()) === 2);
     const subtotal1 = await p.locator('aside dd').first().textContent();
@@ -138,18 +151,21 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(300);
     const subtotal2 = await p.locator('aside dd').first().textContent();
     ok('quantity increase recalculates subtotal', subtotal2.includes('8,750'), subtotal2);
-    await p.reload({ waitUntil: 'networkidle' });
+    await p.reload({ waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.waitForTimeout(400);
     const subtotal3 = await p.locator('aside dd').first().textContent();
     ok('cart persists after reload', subtotal3.includes('8,750'), subtotal3);
     await p.locator('main button:has-text("Remove")').last().click();
     await p.waitForTimeout(300);
     ok('remove line', (await p.locator('main li:has(a[href^="/product/"])').count()) === 1);
-    await p.goto(BASE + '/wishlist', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/wishlist', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.waitForTimeout(300);
     ok('wishlist shows saved item', await p.locator('main >> text=Classic Gold Hoops').first().isVisible());
     // checkout
-    await p.goto(BASE + '/checkout', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/checkout', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('button:has-text("Submit order request")').click();
     ok('checkout validates required fields', await p.locator('text=Enter a valid email address.').isVisible());
     await p.fill('input[name=email]', 'test@example.com');
@@ -176,7 +192,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     const bad = await p.request.post(BASE + '/api/orders', { data: { lines: [{ productId: 'nope', quantity: 1 }] } });
     ok('order API rejects invalid payload (422)', bad.status() === 422);
     // newsletter + contact
-    await p.goto(BASE + '/', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     const nl = p.locator('section[aria-labelledby=newsletter]');
     await nl.scrollIntoViewIfNeeded();
     await nl.locator('input[type=email]').fill('hello@example.com');
@@ -187,7 +204,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await nl.locator('button:has-text("Subscribe")').click();
     await p.waitForTimeout(800);
     ok('newsletter subscribe success', await nl.locator("text=you're on the list").isVisible());
-    await p.goto(BASE + '/contact', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/contact', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.fill('input[name=name]', 'Test');
     await p.fill('input[name=email]', 'test@example.com');
     await p.fill('textarea[name=message]', 'I would like to ask about ring sizes.');
@@ -201,7 +219,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
   {
     const ctx = await b.newContext({ ...devices['iPhone 13'] });
     const p = await ctx.newPage();
-    await p.goto(BASE + '/', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     const overflow = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     ok('mobile home has no horizontal overflow', overflow <= 0, `${overflow}px`);
     await p.locator('button[aria-label="Open menu"]').click();
@@ -211,7 +230,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForURL(/collections\/rings/);
     await p.waitForTimeout(1000);
     ok('mobile menu navigates & closes', !(await p.locator('nav[aria-label=Mobile]').isVisible()));
-    await p.goto(BASE + '/shop', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/shop', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('button:has-text("Filters")').click();
     await p.waitForTimeout(600);
     await p.locator('[role=dialog][aria-label=Filters] label:has-text("Earrings")').click();
@@ -219,13 +239,15 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(600);
     ok('mobile filter drawer filters (earrings → 3)', (await p.locator('main ul.grid > li:visible').count()) === 3);
     for (const u of ['/shop', '/product/medaille-coin-pendant', '/checkout', '/gold-bars', '/about', '/contact', '/collections']) {
-      await p.goto(BASE + u, { waitUntil: 'networkidle' });
+      await p.goto(BASE + u, { waitUntil: 'load' });
+    await p.waitForTimeout(700);
       const o = await p.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
       if (o > 0) ok(`mobile ${u} no horizontal overflow`, false, `${o}px`);
     }
     ok('mobile pages checked for overflow', true);
     // quick add on mobile
-    await p.goto(BASE + '/collections/earrings', { waitUntil: 'networkidle' });
+    await p.goto(BASE + '/collections/earrings', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
     await p.locator('button:has-text("Quick add"):visible').first().click();
     await p.waitForTimeout(800);
     ok('mobile quick add opens cart drawer', await p.locator('[role=dialog][aria-label="Shopping bag"]').isVisible());

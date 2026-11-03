@@ -13,7 +13,10 @@ export default function PrivacyPage() {
         <li>Contact and delivery details you provide when placing an order request or contacting us (name, email, telephone, address).</li>
         <li>Your email address if you subscribe to our newsletter.</li>
         <li>Your bag, wishlist and currency preference, stored locally in your browser.</li>
-        <li>[Analytics and cookies — to be confirmed once tools are selected.]</li>
+        <li>
+          Anonymous visit statistics: the pages you view, the website that referred you, your device type and browser, and your country where our
+          host provides it. These are linked to a random identifier stored in your browser, not to your name, and we do not store IP addresses.
+        </li>
       </ul>
       <h2>How we use it</h2>
       <ul>

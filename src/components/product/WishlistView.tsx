@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { Heart } from "lucide-react";
 import { useWishlist } from "@/lib/state/wishlist";
-import { getProductById } from "@/lib/data/catalogue";
+import { useCatalogue } from "@/lib/state/catalogue";
 import { buttonClass } from "@/components/ui/Button";
 import { ProductCard } from "./ProductCard";
 
 export function WishlistView() {
   const { ids, hydrated } = useWishlist();
-  const items = ids.map((id) => getProductById(id)).filter((p): p is NonNullable<typeof p> => !!p);
+  const { byId } = useCatalogue();
+  const items = ids.map((id) => byId(id)).filter((p): p is NonNullable<typeof p> => !!p);
 
   if (!hydrated) return <div className="container-luxe grid grid-cols-2 gap-6 pb-28 md:grid-cols-4">{[0, 1, 2, 3].map((i) => <div key={i} className="aspect-[4/5] animate-pulse bg-sand" />)}</div>;
 

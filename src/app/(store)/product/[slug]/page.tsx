@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getProduct, getProducts, getRelatedProducts } from "@/lib/data/catalogue";
+import { getRelatedProducts } from "@/lib/data/catalogue";
+import { getCatalogue, getCatalogueProduct } from "@/lib/data/store-catalogue";
 import { getCategory } from "@/lib/data/categories";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
@@ -12,13 +13,13 @@ import { SectionHeading } from "@/components/ui/SectionHeading";
 import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import { media } from "@/lib/data/media";
 
-export function generateStaticParams() {
-  return getProducts().map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  return (await getCatalogue()).map((p) => ({ slug: p.slug }));
 }
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
   const { slug } = await params;
-  const p = getProduct(slug);
+  const p = await getCatalogueProduct(slug);
   if (!p) return { title: "Product not found" };
   const img = media(p.images[0].media);
   return {
@@ -31,11 +32,12 @@ export async function generateMetadata({ params }: PageProps<"/product/[slug]">)
 
 export default async function ProductPage({ params }: PageProps<"/product/[slug]">) {
   const { slug } = await params;
-  const product = getProduct(slug);
+  const catalogue = await getCatalogue();
+  const product = catalogue.find((p) => p.slug === slug);
   if (!product) notFound();
   const category = getCategory(product.category)!;
   const categoryHref = product.category === "gold-bars" ? "/gold-bars" : `/collections/${product.category}`;
-  const related = getRelatedProducts(product, 4);
+  const related = getRelatedProducts(product, catalogue, 4);
   const crumbs = [
     { name: "Home", href: "/" },
     { name: category.name, href: categoryHref },

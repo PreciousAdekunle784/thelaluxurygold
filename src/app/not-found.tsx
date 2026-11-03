@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Monogram } from "@/components/brand/Logo";
 import { buttonClass } from "@/components/ui/Button";
+import { StoreChrome } from "@/components/layout/StoreChrome";
 
 export default function NotFound() {
   return (
+    <StoreChrome>
     <section className="container-luxe flex min-h-[70vh] flex-col items-center justify-center py-24 text-center">
       <Monogram className="h-20 w-auto" />
       <p className="eyebrow mt-10 text-champagne">Error 404</p>
@@ -16,5 +18,6 @@ export default function NotFound() {
         <Link href="/shop" className={buttonClass("outline", "lg")}>Shop the collection</Link>
       </div>
     </section>
+    </StoreChrome>
   );
 }

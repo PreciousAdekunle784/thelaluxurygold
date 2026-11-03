@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { forward } from "@/lib/server/forward";
+import { addMessage } from "@/lib/repo/misc";
 
 const s = (v: unknown, n: number) => (typeof v === "string" ? v.trim().slice(0, n) : "");
 
@@ -13,6 +14,7 @@ export async function POST(request: Request) {
   if (data.message.length < 10) fields.message = "Please add a few more details.";
   if (Object.keys(fields).length) return NextResponse.json({ error: "Please check the highlighted fields.", fields }, { status: 422 });
   try {
+    await addMessage(data);
     await forward("CONTACT_WEBHOOK_URL", "contact.message", data);
     return NextResponse.json({ message: "Thank you — our team will be in touch shortly." }, { status: 201 });
   } catch (err) {
