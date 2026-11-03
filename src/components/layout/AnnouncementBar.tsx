@@ -22,7 +22,7 @@ export function AnnouncementBar() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-            className="text-center text-[0.62rem] font-medium uppercase tracking-[0.3em] text-ivory/90"
+            className="truncate text-center text-[0.56rem] font-medium uppercase tracking-[0.18em] text-ivory/90 sm:text-[0.62rem] sm:tracking-[0.3em]"
             aria-live="polite"
           >
             {items[i]}

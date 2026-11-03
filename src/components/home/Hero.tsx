@@ -20,7 +20,7 @@ export function Hero() {
           <img {...rest} className="absolute inset-0 h-full w-full object-cover object-[70%_50%] md:object-[60%_50%]" />
         </picture>
       </HeroMotion>
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(27,42,35,0.55)_0%,rgba(27,42,35,0)_45%)] md:bg-[linear-gradient(90deg,rgba(27,42,35,0.7)_0%,rgba(27,42,35,0.15)_48%,rgba(27,42,35,0)_70%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(27,42,35,0.94)_0%,rgba(27,42,35,0.82)_42%,rgba(27,42,35,0.15)_72%,rgba(27,42,35,0)_100%)] md:bg-[linear-gradient(90deg,rgba(27,42,35,0.7)_0%,rgba(27,42,35,0.15)_48%,rgba(27,42,35,0)_70%)]" />
 
       <div className="container-luxe relative flex w-full flex-col pb-10 pt-[calc(var(--header-h)+2.5rem)] md:justify-center md:pb-16">
         <div className="max-w-[50rem]">
@@ -29,7 +29,7 @@ export function Hero() {
               <span className="h-px w-10 bg-current" /> Fine gold jewellery · Dubai
             </p>
           </HeroFade>
-          <h1 className="display text-[3.3rem] uppercase leading-[0.9] sm:text-[4.6rem] lg:text-[6.2rem] xl:text-[7rem]">
+          <h1 className="display text-[2.9rem] uppercase leading-[0.9] sm:text-[4.6rem] lg:text-[6.2rem] xl:text-[7rem]">
             <HeroLine delay={0.6}>The art of</HeroLine>
             <HeroLine delay={0.72}>
               <span className="font-light italic normal-case text-gold-pale">timeless</span>
@@ -37,15 +37,15 @@ export function Hero() {
             <HeroLine delay={0.84}>gold.</HeroLine>
           </h1>
           <HeroFade delay={1.1}>
-            <p className="mt-7 max-w-[26rem] text-[0.95rem] leading-relaxed text-ivory/80 md:mt-9 md:text-base">
+            <p className="mt-5 max-w-[26rem] text-[0.92rem] leading-relaxed text-ivory/80 md:mt-9 md:text-base">
               Discover exceptional gold jewellery crafted to celebrate every moment, every milestone and every legacy.
             </p>
           </HeroFade>
-          <HeroFade delay={1.25} className="mt-9 flex flex-col gap-3 sm:flex-row md:mt-11">
-            <ButtonLink href="/shop" variant="light" size="lg">
+          <HeroFade delay={1.25} className="mt-7 flex flex-col gap-3 sm:flex-row md:mt-11">
+            <ButtonLink href="/shop" variant="light" size="lg" className="max-sm:h-12">
               Explore the collection
             </ButtonLink>
-            <ButtonLink href="/about" variant="outline-light" size="lg">
+            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-12">
               Discover LA Luxury Gold
             </ButtonLink>
           </HeroFade>

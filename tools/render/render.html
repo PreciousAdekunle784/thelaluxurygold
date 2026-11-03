@@ -1,0 +1,44 @@
+<!doctype html><html><head><meta charset="utf-8">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&display=block" rel="stylesheet">
+<script type="importmap">{"imports":{"three":"/node_modules/three/build/three.module.js","three/addons/":"/node_modules/three/examples/jsm/"}}</script>
+<style>body{margin:0;background:#222}</style></head><body>
+<script type="module">
+import * as THREE from 'three';
+import { jobs } from './scenes.js';
+await document.fonts.load('500 40px "Cormorant Garamond"');
+await document.fonts.load('400 40px "Cormorant Garamond"');
+window.jobNames = Object.keys(jobs);
+function post(src, w, h, o = {}) {
+  const { vignette = 0.22, grain = 4, lift = 0 } = o;
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const x = c.getContext('2d'); x.imageSmoothingEnabled = true; x.imageSmoothingQuality = 'high';
+  x.drawImage(src, 0, 0, w, h);
+  if (vignette > 0) {
+    const g = x.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.62);
+    g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${vignette})`);
+    x.fillStyle = g; x.fillRect(0, 0, w, h);
+  }
+  if (grain > 0) {
+    const id = x.getImageData(0, 0, w, h); const d = id.data;
+    for (let i = 0; i < d.length; i += 4) { const n = (Math.random() + Math.random() + Math.random() - 1.5) * grain; d[i] += n + lift; d[i + 1] += n + lift; d[i + 2] += n + lift; }
+    x.putImageData(id, 0, 0);
+  }
+  return c.toDataURL('image/jpeg', 0.9);
+}
+window.renderJob = async (name, scale = 1, ss = 1.5) => {
+  const job = jobs[name];
+  const w = Math.round(job.w * scale), h = Math.round(job.h * scale);
+  const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+  renderer.setPixelRatio(1); renderer.setSize(Math.round(w * ss), Math.round(h * ss));
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = job.exposure ?? 1;
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  const { scene, camera, post: po } = await job.build(renderer, w, h);
+  if (scene.userData.env) scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.metalness > 0.5 || m.userData.env) { m.envMap = scene.userData.env; m.needsUpdate = true; } });
+  renderer.render(scene, camera);
+  const url = post(renderer.domElement, w, h, po || {});
+  renderer.dispose(); renderer.forceContextLoss();
+  return url;
+};
+window.ready = true;
+</script></body></html>
