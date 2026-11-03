@@ -54,23 +54,88 @@ function sqliteDb(): Db {
 
 export class DatabaseConfigError extends Error {}
 
-/** Catch the most common Supabase mistake: pasting the project URL instead of the connection string. */
-export function checkDatabaseUrl(url: string) {
+export interface ParsedDbUrl {
+  user: string;
+  password: string;
+  host: string;
+  port: number;
+  database: string;
+  issues: string[];
+}
+
+/**
+ * Parse a PostgreSQL connection string by hand (splitting on the LAST "@"), so passwords
+ * containing @ # / ? : % work without URL-encoding. Also collects human-readable problems
+ * for the admin — never including the password itself.
+ */
+export function parseDatabaseUrl(input: string): ParsedDbUrl {
+  const url = input.trim().replace(/^["']|["']$/g, "");
   if (/^https?:\/\//i.test(url)) {
     throw new DatabaseConfigError(
-      "DATABASE_URL is set to a web address (like https://xxxx.supabase.co). It must be the PostgreSQL connection string from Supabase → Project Settings → Database → Connection string → Transaction pooler, starting with postgresql://",
+      "DATABASE_URL is set to a web address (like https://xxxx.supabase.co). It must be the PostgreSQL connection string from Supabase → Connect → Transaction pooler, starting with postgresql://",
     );
   }
-  if (!/^postgres(ql)?:\/\//i.test(url)) throw new DatabaseConfigError("DATABASE_URL must start with postgresql://");
-  if (/\[YOUR-PASSWORD\]/i.test(url)) throw new DatabaseConfigError("DATABASE_URL still contains [YOUR-PASSWORD] — replace it with your Supabase database password.");
+  const m = /^postgres(?:ql)?:\/\/(.*)$/i.exec(url);
+  if (!m) throw new DatabaseConfigError("DATABASE_URL must start with postgresql://");
+  const raw = m[1];
+  const at = raw.lastIndexOf("@");
+  if (at < 0) throw new DatabaseConfigError("DATABASE_URL has no user/password part (expected postgresql://user:password@host:port/postgres).");
+  const userinfo = raw.slice(0, at);
+  const rest = raw.slice(at + 1);
+  const colon = userinfo.indexOf(":");
+  const user = colon < 0 ? userinfo : userinfo.slice(0, colon);
+  let password = colon < 0 ? "" : userinfo.slice(colon + 1);
+  const hp = /^([^:/?#]+)(?::(\d+))?(?:\/([^?#]*))?/.exec(rest);
+  if (!hp) throw new DatabaseConfigError("DATABASE_URL host is not valid.");
+  const host = hp[1];
+  const port = Number(hp[2] ?? 5432);
+  const database = decodeURIComponent(hp[3] || "postgres");
+
+  const issues: string[] = [];
+  if (/\[YOUR-PASSWORD\]/i.test(password)) throw new DatabaseConfigError("DATABASE_URL still contains [YOUR-PASSWORD] — replace it (including the square brackets) with your Supabase database password.");
+  if (!password) issues.push("There is no password in DATABASE_URL (expected postgresql://user:PASSWORD@host…).");
+  if (password.startsWith("[") && password.endsWith("]")) {
+    issues.push("Your password is wrapped in square brackets [ ]. Remove the brackets — they were only part of the [YOUR-PASSWORD] placeholder.");
+  }
+  if (/\.pooler\.supabase\.com$/i.test(host) && !user.includes(".")) {
+    issues.push('For the Supabase pooler the username must be "postgres.<your-project-ref>" (e.g. postgres.fzudfnxhrdcoeprflooj), not just "postgres".');
+  }
+  if (/\.pooler\.supabase\.com$/i.test(host) && port !== 6543 && port !== 5432) issues.push("Supabase pooler ports are 6543 (transaction) or 5432 (session).");
+  if (/^db\.[a-z0-9]+\.supabase\.co$/i.test(host)) issues.push("This is the direct connection address. Many hosts (including Vercel) cannot reach it — use the Transaction pooler string instead.");
+  // Accept URL-encoded passwords (e.g. %40 for @) as well as raw ones.
+  if (/%[0-9a-f]{2}/i.test(password)) {
+    try {
+      password = decodeURIComponent(password);
+    } catch {
+      /* keep raw */
+    }
+  }
+  return { user: decodeURIComponent(user), password, host, port, database, issues };
+}
+
+/** Kept for callers that only need validation. */
+export function checkDatabaseUrl(url: string) {
+  parseDatabaseUrl(url);
 }
 
 async function postgresDb(url: string): Promise<Db> {
-  checkDatabaseUrl(url);
+  const cfg = parseDatabaseUrl(url);
   const { default: postgres } = await import("postgres");
-  const local = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);
+  const local = /^(localhost|127\.0\.0\.1)$/.test(cfg.host);
   // prepare:false is required for Supabase's transaction pooler (port 6543); SSL for hosted databases.
-  const sql = postgres(url, { max: 5, idle_timeout: 20, prepare: false, ssl: local ? false : "require", types: { bigint: postgres.BigInt } });
+  const sql = postgres({
+    host: cfg.host,
+    port: cfg.port,
+    database: cfg.database,
+    username: cfg.user,
+    password: cfg.password,
+    max: 5,
+    idle_timeout: 20,
+    connect_timeout: 15,
+    prepare: false,
+    ssl: local ? false : "require",
+    types: { bigint: postgres.BigInt },
+  });
   const norm = (params: unknown[] = []) => params.map((p) => (p === undefined ? null : p)) as never[];
   const fix = <T,>(rows: T[]) =>
     rows.map((r) => {
@@ -110,12 +175,17 @@ export function getDb(): Promise<Db> {
 }
 
 /** Live connection check for the admin (never exposes the password). */
-export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect; host: string; message?: string }> {
+export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect; host: string; user?: string; message?: string; hints: string[] }> {
   const url = process.env.DATABASE_URL;
   let host = "local SQLite file";
+  let user: string | undefined;
+  let hints: string[] = [];
   if (url) {
     try {
-      host = new URL(url).hostname;
+      const p = parseDatabaseUrl(url);
+      host = p.host;
+      user = p.user;
+      hints = p.issues;
     } catch {
       host = "invalid DATABASE_URL";
     }
@@ -123,10 +193,20 @@ export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect;
   try {
     const db = await getDb();
     await db.get("SELECT 1 AS ok");
-    return { ok: true, dialect: db.dialect, host };
+    return { ok: true, dialect: db.dialect, host, user, hints: [] };
   } catch (err) {
     const message = err instanceof Error ? err.message.replace(/postgres(ql)?:\/\/[^\s]+/gi, "[connection string]") : String(err);
-    return { ok: false, dialect: url ? "postgres" : "sqlite", host, message };
+    if (/password authentication failed/i.test(message) && !hints.length) {
+      hints = [
+        "The username and address are fine, but Supabase rejected the password.",
+        "Use the DATABASE password (Supabase → Project Settings → Database), not your Supabase account password.",
+        "Easiest fix: click “Reset database password”, choose one with only letters and numbers, paste it into DATABASE_URL, save, and redeploy.",
+      ];
+    }
+    if (/tenant or user not found/i.test(message)) hints.push('Supabase could not find the project: check the username is "postgres.<your-project-ref>" and the region in the address matches your project.');
+    if (/ENOTFOUND|getaddrinfo/i.test(message)) hints.push("The database address could not be found — copy the connection string again from Supabase → Connect.");
+    if (/timeout|ETIMEDOUT|ECONNREFUSED/i.test(message)) hints.push("The connection timed out — use the Transaction pooler string (port 6543).");
+    return { ok: false, dialect: url ? "postgres" : "sqlite", host, user, message, hints };
   }
 }
 

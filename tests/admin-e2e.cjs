@@ -17,7 +17,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   const s = await shopper.newPage();
   const a = await admin.newPage();
   const errors = [];
-  a.on('pageerror', (e) => errors.push(e.message));
+  a.on('pageerror', (e) => errors.push(a.url().replace(BASE, '') + ': ' + e.message.slice(0, 60)));
 
   // ---------------------------------------------------------------- auth
   const r = await a.goto(BASE + '/admin/orders');
