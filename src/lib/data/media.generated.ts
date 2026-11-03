@@ -31,6 +31,16 @@ export const mediaManifest: Record<string, [number, number, string]> = {
     1200,
     "data:image/webp;base64,UklGRnwAAABXRUJQVlA4IHAAAAAwBACdASoQABUAPu1iqU2ppaOiMAgBMB2JQBdmUAS1YcoawzKzsFGvBtAA5V6k0qYar4VX4xvD8KKz85dA70qaAP0LLhKK7ySDuh49AEmPBlknHFgvqEaw6tGTbJjFN+Qu/Wmxl8Ockd5L/C7Zm0AA"
   ],
+  "editorial/hero-loop-mobile": [
+    900,
+    1600,
+    "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABwAwCdASoQABwAPu1iqU2ppaOiMAgBMB2JZQCdACHZ667QESgA/ui7b0QTXKitUYPCgdC8FbKiVRptCMtM26jnKl/HdowSQwsd+nrt9oNjYrfH/RxUK3H8YAA="
+  ],
+  "editorial/hero-loop": [
+    1600,
+    900,
+    "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADQAQCdASoQAAkAA4BaJYwCdAD0jHkZwAD+8rSV9oX934RU/meLPTVhuyzGPVIigMgTCK/8oAuhs/ir8TjYqAAA"
+  ],
   "editorial/hero-mobile": [
     1080,
     1600,

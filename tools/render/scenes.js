@@ -198,8 +198,8 @@ for (const [slug, p] of Object.entries(products)) {
 }
 
 // ------------------------------------------------------------------ editorial
-function heroScene(R) {
-  const s = studio(R, { bg: C.forest, env: { floor: '#24342c' }, light: { key: 4.2, keyPos: [-45, 40, 30], area: 18, amb: 0.36, ground: '#2a3b31', spread: 10 } });
+export function heroScene(R, o = {}) {
+  const s = studio(R, { bg: C.forest, env: { floor: '#24342c' }, light: { key: 4.2, keyPos: [-45, 40, 30], area: 18, amb: 0.36, ground: '#2a3b31', spread: 10, soft: o.soft ?? 14 } });
   const tall = L.plinth(L.stoneMaterial(C.stoneWarm, 17), { r: 5, h: 10 }); tall.position.x = 9; tall.position.z = -3; s.add(tall);
   const low = L.plinth(L.stoneMaterial(C.stone, 23), { box: true, w: 9, h: 3.2, d: 7 }); low.position.set(19, 1.6, 2.5); s.add(low);
   const cx = 9, cz = -3, r = 5, top = 10, off = 0.13;
@@ -219,6 +219,7 @@ function heroScene(R) {
   pool.position.set(8, 40, 40); pool.target.position.set(13, 10, -34); s.add(pool); s.add(pool.target);
   const rim = new THREE.SpotLight('#fff0d8', 1.4, 0, 0.3, 1, 0);
   rim.position.set(30, 30, -20); rim.target.position.set(12, 4, 0); s.add(rim); s.add(rim.target);
+  s.userData.refs = { dome: dm, signet: sig, bar };
   return s;
 }
 job('editorial/hero', 2400, 1400, (R, w, h) => ({ scene: heroScene(R), camera: cam(w, h, { az: 5, el: 11, dist: 55, target: [7.4, 5.6, 1.5], fov: 22 }), post: { vignette: 0.32, grain: 5 } }));
@@ -331,3 +332,33 @@ job('editorial/social-6', 1000, 1000, (R, w, h) => {
   const c = L.coinPendant(G('21k')); let mh = -1e9; for (let i = 0; i < 16; i++) { const a = (i / 16) * PI * 2; mh = Math.max(mh, sk.H(Math.cos(a) * 1.1, Math.sin(a) * 1.1)); } c.position.set(0, mh + 0.1, 0); s.add(c);
   return { scene: s, camera: cam(w, h, { az: 0, el: 62, dist: 9.5, target: [0, 0, -0.2] }) };
 });
+
+// ------------------------------------------------------------------ films (seamless loops)
+// update(t) receives t in [0, 1); every motion is periodic so frame 0 follows the last frame.
+export const films = {};
+const TAU = Math.PI * 2;
+function heroFilm(w, h, c, amp = 6.5) {
+  return (R) => {
+    const scene = heroScene(R, { soft: 10 });
+    const cam0 = cam(w, h, c);
+    const golds = [];
+    scene.traverse((o) => { const ms = o.material ? (Array.isArray(o.material) ? o.material : [o.material]) : []; for (const m of ms) if (m.metalness > 0.5 && !golds.includes(m)) golds.push(m); });
+    const glint = new THREE.DirectionalLight('#fff4dc', 0);
+    scene.add(glint); scene.add(glint.target); glint.target.position.set(14, 4, 2);
+    const { dome } = scene.userData.refs;
+    const update = (t) => {
+      const a = Math.sin(TAU * t);
+      const camera = cam(w, h, { ...c, az: c.az + amp * a, el: c.el + 1.2 * Math.sin(TAU * t + 1.1), dist: c.dist * (1 - 0.035 * Math.cos(TAU * t)) });
+      cam0.position.copy(camera.position); cam0.quaternion.copy(camera.quaternion);
+      // reflections glide across the gold: rotate the studio environment
+      for (const m of golds) m.envMapRotation.set(0, 0.55 * Math.sin(TAU * t - 0.6), 0);
+      // a soft travelling glint
+      glint.position.set(14 + 40 * Math.cos(TAU * t), 28, 2 + 30 * Math.sin(TAU * t));
+      glint.intensity = 1.1 + 0.6 * Math.sin(TAU * t * 2);
+      dome.rotation.y = 0.5 + TAU * t;
+    };
+    return { scene, camera: cam0, update, post: { vignette: 0.32, grain: 2.5 } };
+  };
+}
+films['hero-desktop'] = { w: 1920, h: 1080, seconds: 12, fps: 24, build: heroFilm(1920, 1080, { az: 5, el: 11, dist: 66, target: [6.8, 5.4, 1.5], fov: 22 }, 4.0) };
+films['hero-mobile'] = { w: 1080, h: 1920, seconds: 12, fps: 24, build: heroFilm(1080, 1920, { az: 8, el: 15, dist: 122, target: [13.6, -3.2, 2], fov: 22 }, 3.0) };

@@ -57,6 +57,24 @@ Real product data was not supplied, so the catalogue is a **clearly labelled sam
 * While `NEXT_PUBLIC_SAMPLE_CATALOGUE` is not `"false"`, every page is `noindex` and `robots.txt` disallows crawling, so sample prices are never indexed.
 * Policy pages (shipping, returns, privacy, terms) are **drafts**. Bracketed items must be confirmed by the business and reviewed legally.
 
+### Hero film
+
+The homepage hero plays a **seamless 12-second loop**: a slow camera drift around the gold still life, with reflections gliding across the gold and the dome ring turning on its plinth. It was rendered with the same 3D studio as the stills (`tools/render`). There is a 16:9 version for desktop and a 9:16 version for phones (`public/videos/hero-desktop|hero-mobile.mp4/.webm`).
+
+* The first frame is served as an instant-loading poster, and the video fades in only once it is playing.
+* It is muted and plays inline, so phones autoplay it.
+* It pauses when off-screen or in a background tab.
+* It is replaced by the still for visitors who prefer reduced motion or have data saver enabled.
+
+To re-render it:
+
+```bash
+cd tools/render && npm i && node film-run.cjs hero-desktop film/d 0.8334 && node film-run.cjs hero-mobile film/m 0.8334
+cd ../.. && tools/render/encode-film.sh tools/render/film/d hero-desktop && tools/render/encode-film.sh tools/render/film/m hero-mobile
+```
+
+To use your own footage, replace the four files in `public/videos/` (keep the names) and the two posters `public/images/editorial/hero-loop*.webp`, then run `npm run media`.
+
 ### Imagery
 
 All photography is **placeholder still-life imagery rendered in a 3D studio** (`tools/render`): gold rings, chains, bangles, earrings and bars on travertine, silk and seamless backdrops. It contains no third-party stock or brand assets. Each product has three images: a studio shot, a styled shot (used for the hover swap) and a detail close-up.
@@ -103,7 +121,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
 | **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
-| **Homepage hero** | Upload the large background photo at the top of the homepage (desktop and, optionally, a separate portrait version for phones). Restore the default at any time. |
+| **Homepage hero** | By default the hero plays the looping brand film. Upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back to the film at any time. |
 | **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
 
 **New-order alerts.** When a customer places an order, every open admin page shows a pop-up and plays a soft chime. Click **Enable order alerts** in the sidebar to also get desktop notifications.

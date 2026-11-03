@@ -37,7 +37,7 @@ function Slot({ slot, title, hint, current, fallback, aspect }: { slot: SlotKey;
   const reset = () =>
     start(async () => {
       await setHeroImage(slot, null);
-      setMsg({ ok: true, text: "Restored the default image." });
+      setMsg({ ok: true, text: "Restored the looping brand film." });
       router.refresh();
     });
 
@@ -51,7 +51,7 @@ function Slot({ slot, title, hint, current, fallback, aspect }: { slot: SlotKey;
         <div className={`relative overflow-hidden bg-forest ${aspect}`}>
           <MediaImage mediaKey={current ?? fallback} alt="" sizes="600px" className="object-cover" />
           <span className="absolute left-3 top-3 bg-ink/70 px-2 py-1 text-[0.6rem] font-semibold uppercase tracking-wide text-ivory">
-            {current ? "Your image" : "Default image"}
+            {current ? "Your photo" : "Default: brand film"}
           </span>
         </div>
         <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" aria-label={`Upload ${title}`} onChange={(e) => upload(e.target.files?.[0])} />
@@ -61,7 +61,7 @@ function Slot({ slot, title, hint, current, fallback, aspect }: { slot: SlotKey;
           </button>
           {current && (
             <button type="button" disabled={busy} onClick={reset} className={adminBtnOutline}>
-              <RotateCcw size={14} /> Use default
+              <RotateCcw size={14} /> Use the brand film
             </button>
           )}
         </div>
@@ -79,15 +79,15 @@ export function HeroSettings({ desktop, mobile }: { desktop?: string; mobile?: s
         title="Hero background — desktop"
         hint="Landscape photo, at least 2400 px wide. The headline sits on the left, so keep the subject towards the right."
         current={desktop}
-        fallback="editorial/hero"
+        fallback="editorial/hero-loop"
         aspect="aspect-[12/7]"
       />
       <Slot
         slot="heroMobile"
         title="Hero background — phones (optional)"
-        hint="Portrait photo, at least 1080 × 1600 px. If empty, the desktop image is used. Keep the top third calm for the headline."
+        hint="Portrait photo, at least 1080 × 1600 px. If empty, the desktop image is used. The headline sits at the bottom on phones, so keep the subject in the upper half."
         current={mobile}
-        fallback={desktop ?? "editorial/hero-mobile"}
+        fallback={desktop ?? "editorial/hero-loop-mobile"}
         aspect="aspect-[27/40]"
       />
     </div>

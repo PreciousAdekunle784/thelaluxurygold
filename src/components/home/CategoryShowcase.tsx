@@ -8,7 +8,7 @@ const offsets = ["lg:mt-0", "lg:mt-20", "lg:mt-8", "lg:mt-28", "lg:mt-4"];
 
 export function CategoryShowcase() {
   return (
-    <section className="py-24 md:py-36" aria-labelledby="shop-by-category">
+    <section className="pb-24 pt-14 md:py-36" aria-labelledby="shop-by-category">
       <div className="container-luxe">
         <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
           <Reveal className="max-w-2xl">
