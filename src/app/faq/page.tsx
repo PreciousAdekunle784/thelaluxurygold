@@ -1,0 +1,35 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import { PageIntro } from "@/components/shop/PageIntro";
+import { AccordionItem } from "@/components/ui/Accordion";
+
+export const metadata: Metadata = { title: "Frequently Asked Questions", description: "Answers about gold purity, sizing, delivery, payment and care for LA Luxury Gold pieces.", alternates: { canonical: "/faq" } };
+
+const faqs: { q: string; a: React.ReactNode }[] = [
+  { q: "What gold purities do you offer?", a: "Our jewellery is offered in 18K, 21K and 22K gold, and our gold bars are 24K. The purity is shown on every product page and in your order summary." },
+  { q: "What is the difference between 18K, 21K, 22K and 24K?", a: "Karat describes how much of the metal is pure gold: 24K is pure gold, 22K is about 91.6% gold, 21K about 87.5% and 18K about 75%. Lower karats are alloyed with other metals, which makes them harder and more durable for everyday jewellery; higher karats have a richer colour." },
+  { q: "How do I find my ring size?", a: "Each ring lists the sizes available. If you are unsure, message us on WhatsApp and we will guide you through measuring at home." },
+  { q: "Do you deliver internationally?", a: <>Yes — we deliver within the UAE and worldwide with insured, tracked shipping. Duties and taxes may apply on arrival. See <Link href="/shipping" className="underline underline-offset-4">shipping information</Link>.</> },
+  { q: "How do I pay?", a: "Online card payments will be available once our secure payment gateway is connected. Until then, you can submit an order request at checkout and our team will contact you to confirm your order and arrange payment. No payment is taken when you submit a request." },
+  { q: "Which currency are prices shown in?", a: "Prices are shown in UAE Dirham (AED). Additional currencies will be displayed once they are enabled." },
+  { q: "How should I care for my gold jewellery?", a: "Store pieces separately in a soft pouch, remove them before swimming, exercising or using cleaning products, and clean gently with warm water, mild soap and a soft cloth." },
+  { q: "Can I return or exchange a piece?", a: <>Please see our <Link href="/returns" className="underline underline-offset-4">returns & exchange policy</Link>, or contact us for help.</> },
+];
+
+export default function FaqPage() {
+  return (
+    <>
+      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "FAQ" }]} eyebrow="Customer care" title={<>Questions <span className="font-light italic normal-case">& answers</span></>} />
+      <section className="container-luxe max-w-3xl pb-28">
+        {faqs.map((f, i) => (
+          <AccordionItem key={f.q} title={f.q} defaultOpen={i === 0}>
+            {f.a}
+          </AccordionItem>
+        ))}
+        <p className="mt-10 text-sm text-stone">
+          Can&rsquo;t find your answer? <Link href="/contact" className="underline underline-offset-4">Contact us</Link>.
+        </p>
+      </section>
+    </>
+  );
+}

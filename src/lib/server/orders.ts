@@ -1,0 +1,110 @@
+import "server-only";
+import { getProductById } from "@/lib/data/catalogue";
+import { paymentOptions, shippingMethods, shippingMethodsFor } from "@/lib/config/store";
+import { unitPrice } from "@/lib/state/cart-math";
+
+export interface OrderInput {
+  customer: { email: string; phone: string; firstName: string; lastName: string; marketing?: boolean };
+  shipping: { address1: string; address2?: string; city: string; region?: string; postalCode?: string; country: string };
+  shippingMethodId: string;
+  paymentMethod: string;
+  notes?: string;
+  lines: { productId: string; quantity: number; variant?: { name: string; value: string } }[];
+}
+
+export interface OrderRecord extends OrderInput {
+  reference: string;
+  createdAt: string;
+  status: "pending_confirmation";
+  currency: "AED";
+  resolvedLines: { productId: string; name: string; quantity: number; variant?: { name: string; value: string }; unitPriceAED: number | null }[];
+  subtotalAED: number;
+  shippingAED: number | null;
+  hasPriceOnRequest: boolean;
+}
+
+export class ValidationError extends Error {
+  constructor(public fields: Record<string, string>) {
+    super("Please check the highlighted fields.");
+  }
+}
+
+const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
+
+export function validateOrder(body: unknown): OrderInput {
+  const b = (body ?? {}) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+  const errors: Record<string, string> = {};
+  const customer = {
+    email: str(b.customer?.email, 160),
+    phone: str(b.customer?.phone, 40),
+    firstName: str(b.customer?.firstName, 80),
+    lastName: str(b.customer?.lastName, 80),
+    marketing: !!b.customer?.marketing,
+  };
+  const shipping = {
+    address1: str(b.shipping?.address1),
+    address2: str(b.shipping?.address2),
+    city: str(b.shipping?.city, 100),
+    region: str(b.shipping?.region, 100),
+    postalCode: str(b.shipping?.postalCode, 20),
+    country: str(b.shipping?.country, 2).toUpperCase(),
+  };
+  if (!/^\S+@\S+\.\S+$/.test(customer.email)) errors.email = "Enter a valid email address.";
+  if (customer.phone.replace(/\D/g, "").length < 7) errors.phone = "Enter a valid telephone number.";
+  if (!customer.firstName) errors.firstName = "Required.";
+  if (!customer.lastName) errors.lastName = "Required.";
+  if (!shipping.address1) errors.address1 = "Required.";
+  if (!shipping.city) errors.city = "Required.";
+  if (!/^[A-Z]{2}$/.test(shipping.country)) errors.country = "Select a country.";
+
+  const shippingMethodId = str(b.shippingMethodId, 60);
+  if (!shippingMethodsFor(shipping.country).some((m) => m.id === shippingMethodId)) errors.shippingMethodId = "Select a shipping method.";
+  const paymentMethod = str(b.paymentMethod, 40);
+  if (!paymentOptions.some((p) => p.id === paymentMethod && p.available)) errors.paymentMethod = "Select an available payment option.";
+
+  const lines = Array.isArray(b.lines) ? b.lines.slice(0, 50) : [];
+  const cleanLines = lines
+    .map((l: Record<string, unknown>) => ({
+      productId: str(l?.productId, 60),
+      quantity: Math.max(1, Math.min(10, Math.floor(Number(l?.quantity) || 0))),
+      variant: l?.variant && typeof l.variant === "object" ? { name: str((l.variant as Record<string, unknown>).name, 40), value: str((l.variant as Record<string, unknown>).value, 40) } : undefined,
+    }))
+    .filter((l: { productId: string }) => !!getProductById(l.productId));
+  if (!cleanLines.length) errors.lines = "Your bag is empty.";
+
+  if (Object.keys(errors).length) throw new ValidationError(errors);
+  return { customer, shipping, shippingMethodId, paymentMethod, notes: str(b.notes, 1000), lines: cleanLines };
+}
+
+export function buildOrder(input: OrderInput, reference: string, createdAt: string): OrderRecord {
+  const resolvedLines = input.lines.map((l) => {
+    const p = getProductById(l.productId)!;
+    return { productId: p.id, name: p.name, quantity: l.quantity, variant: l.variant, unitPriceAED: unitPrice(p, l.variant) };
+  });
+  const method = shippingMethods.find((m) => m.id === input.shippingMethodId);
+  return {
+    ...input,
+    reference,
+    createdAt,
+    status: "pending_confirmation",
+    currency: "AED",
+    resolvedLines,
+    subtotalAED: resolvedLines.reduce((n, l) => n + (l.unitPriceAED ?? 0) * l.quantity, 0),
+    shippingAED: method?.rateAED ?? null,
+    hasPriceOnRequest: resolvedLines.some((l) => l.unitPriceAED == null),
+  };
+}
+
+/**
+ * Persist / forward the order. Connect a database here, or set ORDER_WEBHOOK_URL to
+ * forward orders to an automation (CRM, email, Google Sheets, Make, Zapier…).
+ */
+export async function saveOrder(order: OrderRecord) {
+  const hook = process.env.ORDER_WEBHOOK_URL;
+  if (hook) {
+    const res = await fetch(hook, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ type: "order.requested", order }) });
+    if (!res.ok) throw new Error(`Order webhook failed (${res.status})`);
+    return;
+  }
+  console.info(`[orders] ${order.reference} received (no ORDER_WEBHOOK_URL configured)`, JSON.stringify({ ...order, customer: { ...order.customer, email: "[redacted]", phone: "[redacted]" } }));
+}

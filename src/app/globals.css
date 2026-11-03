@@ -1,0 +1,274 @@
+@import "tailwindcss";
+
+/* ------------------------------------------------------------------
+   LA LUXURY GOLD — design tokens
+   ------------------------------------------------------------------ */
+@theme {
+  --color-sage: #879681;
+  --color-sage-soft: #a2ac98;
+  --color-sage-mist: #dfe3d8;
+  --color-forest: #26382f;
+  --color-forest-deep: #1b2a23;
+  --color-champagne: #c6a15b;
+  --color-gold: #d4af69;
+  --color-gold-pale: #e9d5a8;
+  --color-burgundy: #4b1726;
+  --color-ink: #111111;
+  --color-ivory: #f7f4ed;
+  --color-sand: #ede7dc;
+  --color-linen: #f1ece3;
+  --color-stone: #6d6b64;
+  --color-line: rgb(17 17 17 / 0.12);
+  --color-line-light: rgb(247 244 237 / 0.18);
+
+  --font-display: var(--font-cormorant), "Cormorant Garamond", "Times New Roman", serif;
+  --font-sans: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
+
+  --text-eyebrow: 0.6875rem;
+  --text-eyebrow--letter-spacing: 0.28em;
+  --text-eyebrow--line-height: 1.4;
+
+  --ease-luxe: cubic-bezier(0.22, 1, 0.36, 1);
+  --breakpoint-3xl: 1720px;
+}
+
+@utility container-luxe {
+  width: 100%;
+  margin-inline: auto;
+  max-width: 1520px;
+  padding-inline: 1.25rem;
+  @media (width >= 768px) {
+    padding-inline: 2.5rem;
+  }
+  @media (width >= 1280px) {
+    padding-inline: 4rem;
+  }
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --header-h: 64px;
+  }
+  @media (min-width: 1024px) {
+    :root {
+      --header-h: 80px;
+    }
+  }
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background: var(--color-ivory);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "kern";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: var(--color-gold-pale);
+    color: var(--color-ink);
+  }
+  :focus-visible {
+    outline: 1px solid var(--color-champagne);
+    outline-offset: 3px;
+  }
+  button,
+  [role="button"] {
+    cursor: pointer;
+  }
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+  img {
+    -webkit-user-drag: none;
+  }
+}
+
+@layer components {
+  .eyebrow {
+    font-family: var(--font-sans);
+    font-size: var(--text-eyebrow);
+    letter-spacing: var(--text-eyebrow--letter-spacing);
+    line-height: var(--text-eyebrow--line-height);
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+
+  .display {
+    font-family: var(--font-display);
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 0.98;
+  }
+
+  .link-underline {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+  }
+  .link-underline::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -6px;
+    height: 1px;
+    background: currentColor;
+    transform-origin: right;
+    transform: scaleX(1);
+    transition: transform 0.7s var(--ease-luxe);
+  }
+  .link-underline:hover::after {
+    animation: underline-sweep 0.9s var(--ease-luxe);
+  }
+
+  .field {
+    width: 100%;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--color-line);
+    padding: 0.9rem 0;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease;
+    border-radius: 0;
+  }
+  .field:focus {
+    outline: none;
+    border-color: var(--color-ink);
+  }
+  .field::placeholder {
+    color: var(--color-stone);
+    opacity: 0.8;
+  }
+  .field-boxed {
+    width: 100%;
+    background: white;
+    border: 1px solid var(--color-line);
+    padding: 0.85rem 1rem;
+    font-size: 0.95rem;
+    border-radius: 0;
+    transition: border-color 0.3s ease;
+  }
+  .field-boxed:focus {
+    outline: none;
+    border-color: var(--color-ink);
+  }
+  .field-boxed[aria-invalid="true"] {
+    border-color: var(--color-burgundy);
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .hairline {
+    height: 1px;
+    background: var(--color-line);
+  }
+
+  .arch {
+    border-top-left-radius: 999px 46%;
+    border-top-right-radius: 999px 46%;
+  }
+
+  .prose-luxe p {
+    margin-bottom: 1.1em;
+    line-height: 1.8;
+  }
+  .prose-luxe h2 {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    line-height: 1.15;
+    margin: 2.2em 0 0.7em;
+  }
+  .prose-luxe h3 {
+    font-weight: 600;
+    font-size: 0.8rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin: 2em 0 0.8em;
+  }
+  .prose-luxe ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 1.2em;
+  }
+  .prose-luxe li {
+    position: relative;
+    padding-left: 1.4em;
+    margin-bottom: 0.55em;
+    line-height: 1.7;
+  }
+  .prose-luxe li::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.8em;
+    width: 0.6em;
+    height: 1px;
+    background: var(--color-champagne);
+  }
+  .prose-luxe a {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+    text-decoration-thickness: 1px;
+  }
+}
+
+@keyframes underline-sweep {
+  0% {
+    transform: scaleX(1);
+    transform-origin: right;
+  }
+  45% {
+    transform: scaleX(0);
+    transform-origin: right;
+  }
+  55% {
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  100% {
+    transform: scaleX(1);
+    transform-origin: left;
+  }
+}
+
+@keyframes marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes scrollcue {
+  0% {
+    transform: translateY(-100%);
+  }
+  60%,
+  100% {
+    transform: translateY(220%);
+  }
+}
