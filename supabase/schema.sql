@@ -70,6 +70,7 @@ create table if not exists page_views (
 );
 create index if not exists pv_ts  on page_views (ts);
 create index if not exists pv_day on page_views (day);
+create index if not exists pv_visitor on page_views (visitor_id);
 
 -- Newsletter sign-ups.
 create table if not exists subscribers (
@@ -99,6 +100,10 @@ create table if not exists media (
   bytes        bytea not null,
   created_at   bigint not null
 );
+
+-- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
+insert into meta (key, value) values ('schema_version', '2')
+on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
 -- Security: block Supabase's public Data API from every table.

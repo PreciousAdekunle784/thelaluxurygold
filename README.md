@@ -144,7 +144,9 @@ The **project URL** (`https://<ref>.supabase.co`) is *not* the connection string
 postgresql://postgres.<project-ref>:<db-password>@aws-0-<region>.pooler.supabase.com:6543/postgres
 ```
 
-The admin shows a **Database connected** line at the top of every page, or a clear error if the connection fails, for example a wrong password or the project URL pasted by mistake. The app connects server-side with SSL, using a driver configured for the pooler (no prepared statements). Uploaded images are stored in the `media` table. Payments are not connected yet.
+The admin shows a **Database connected** line at the top of every page, or a clear error if the connection fails, for example a wrong password or the project URL pasted by mistake. **Vercel region.** `vercel.json` runs the site's server functions in Dublin (`dub1`), next to a Supabase project in `eu-west-1`, so each database query is a short hop instead of a transatlantic round trip. If your Supabase project is in another region, change it to the nearest Vercel region.
+
+The app connects server-side with SSL, using a driver configured for the pooler (no prepared statements). Uploaded images are stored in the `media` table. Payments are not connected yet.
 
 ### Data storage
 

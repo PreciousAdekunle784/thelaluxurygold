@@ -136,6 +136,7 @@ async function postgresDb(url: string): Promise<Db> {
     max: 5,
     idle_timeout: 20,
     connect_timeout: 10,
+    onnotice: () => {}, // silence "already exists, skipping" notices from idempotent DDL
     prepare: false,
     ssl: local ? false : "require",
     types: { bigint: postgres.BigInt },
@@ -159,7 +160,8 @@ async function postgresDb(url: string): Promise<Db> {
       await sql.unsafe(q, norm(params));
     },
     async exec(q) {
-      await sql.unsafe(q);
+      // Simple protocol: allows several statements in one round trip (one implicit transaction).
+      await sql.unsafe(q).simple();
     },
   };
 }
@@ -216,8 +218,18 @@ export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect;
     }
   }
   try {
-    const db = await getDb();
-    await db.get("SELECT 1 AS ok");
+    let db: Db;
+    try {
+      db = await getDb();
+      await db.get("SELECT 1 AS ok");
+    } catch (first) {
+      // One retry for transient blips (pooler hiccup, a cold instance) before reporting.
+      if (!/timeout|terminat|ECONNRESET|reset/i.test(String(first))) throw first;
+      await new Promise((r) => setTimeout(r, 400));
+      g.__llgDbFailure = undefined;
+      db = await getDb();
+      await db.get("SELECT 1 AS ok");
+    }
     return { ok: true, dialect: db.dialect, host, user, hints: [] };
   } catch (err) {
     const message = err instanceof Error ? err.message.replace(/postgres(ql)?:\/\/[^\s]+/gi, "[connection string]") : String(err);
@@ -230,7 +242,11 @@ export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect;
     }
     if (/tenant or user not found/i.test(message)) hints.push('Supabase could not find the project: check the username is "postgres.<your-project-ref>" and the region in the address matches your project.');
     if (/ENOTFOUND|getaddrinfo/i.test(message)) hints.push("The database address could not be found — copy the connection string again from Supabase → Connect.");
-    if (/timeout|ETIMEDOUT|ECONNREFUSED/i.test(message)) hints.push("The connection timed out — use the Transaction pooler string (port 6543).");
+    if (/statement timeout/i.test(message)) {
+      hints.push("Supabase answered but a query took too long. This is usually temporary — reload in a few seconds. If it keeps happening, make sure the site's Vercel functions run in the same region as your database (this project sets Dublin, dub1, in vercel.json).");
+    } else if (/timeout|ETIMEDOUT|ECONNREFUSED/i.test(message)) {
+      hints.push("The connection timed out — use the Transaction pooler string (port 6543).");
+    }
     return { ok: false, dialect: url ? "postgres" : "sqlite", host, user, message, hints };
   }
 }
