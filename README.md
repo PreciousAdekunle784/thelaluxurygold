@@ -120,7 +120,13 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 4. Set it as **`DATABASE_URL`** in your hosting environment (Vercel: *Settings → Environment Variables*), together with `ADMIN_PASSWORD`, then redeploy.
 5. On first start the site copies the sample catalogue into `products`. Manage everything from `/admin` after that. The optional `product_overview` and `order_overview` views make the data easy to browse in Supabase's Table Editor.
 
-The app connects server-side with SSL, using a driver configured for the pooler (no prepared statements). Uploaded images are stored in the `media` table. Payments are not connected yet.
+The **project URL** (`https://<ref>.supabase.co`) is *not* the connection string. `DATABASE_URL` must look like:
+
+```
+postgresql://postgres.<project-ref>:<db-password>@aws-0-<region>.pooler.supabase.com:6543/postgres
+```
+
+The admin shows a **Database connected** line at the top of every page, or a clear error if the connection fails, for example a wrong password or the project URL pasted by mistake. The app connects server-side with SSL, using a driver configured for the pooler (no prepared statements). Uploaded images are stored in the `media` table. Payments are not connected yet.
 
 ### Data storage
 

@@ -2,11 +2,29 @@ import { Suspense } from "react";
 import { AdminShell } from "@/components/admin/AdminShell";
 import { LiveProvider } from "@/components/admin/LiveProvider";
 import { requireAdmin } from "@/lib/auth/admin";
-import { databaseInfo } from "@/lib/db/client";
+import { databaseInfo, databaseStatus } from "@/lib/db/client";
 
 async function Guard({ children }: { children: React.ReactNode }) {
   await requireAdmin();
-  return <>{children}</>;
+  const db = await databaseStatus();
+  if (!db.ok) {
+    return (
+      <div className="border-l-2 border-burgundy bg-white p-6">
+        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-burgundy">Database not connected</p>
+        <p className="mt-3 text-sm">The admin could not reach {db.dialect === "postgres" ? `PostgreSQL at ${db.host}` : "the local database"}.</p>
+        <p className="mt-2 break-words font-mono text-xs text-stone">{db.message}</p>
+        <p className="mt-4 text-sm text-stone">Check the <code>DATABASE_URL</code> environment variable on your host, then redeploy. See “Connecting Supabase” in the README.</p>
+      </div>
+    );
+  }
+  return (
+    <>
+      <p className="mb-6 flex items-center gap-2 text-xs text-stone">
+        <span className="h-2 w-2 rounded-full bg-forest" /> Database connected · {db.dialect === "postgres" ? (db.host.includes("supabase") ? `Supabase (${db.host})` : `PostgreSQL (${db.host})`) : "local SQLite file"}
+      </p>
+      {children}
+    </>
+  );
 }
 
 function Loading() {

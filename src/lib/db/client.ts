@@ -52,7 +52,21 @@ function sqliteDb(): Db {
   };
 }
 
+export class DatabaseConfigError extends Error {}
+
+/** Catch the most common Supabase mistake: pasting the project URL instead of the connection string. */
+export function checkDatabaseUrl(url: string) {
+  if (/^https?:\/\//i.test(url)) {
+    throw new DatabaseConfigError(
+      "DATABASE_URL is set to a web address (like https://xxxx.supabase.co). It must be the PostgreSQL connection string from Supabase → Project Settings → Database → Connection string → Transaction pooler, starting with postgresql://",
+    );
+  }
+  if (!/^postgres(ql)?:\/\//i.test(url)) throw new DatabaseConfigError("DATABASE_URL must start with postgresql://");
+  if (/\[YOUR-PASSWORD\]/i.test(url)) throw new DatabaseConfigError("DATABASE_URL still contains [YOUR-PASSWORD] — replace it with your Supabase database password.");
+}
+
 async function postgresDb(url: string): Promise<Db> {
+  checkDatabaseUrl(url);
   const { default: postgres } = await import("postgres");
   const local = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);
   // prepare:false is required for Supabase's transaction pooler (port 6543); SSL for hosted databases.
@@ -93,6 +107,27 @@ export function getDb(): Promise<Db> {
     });
   }
   return g.__llgDb;
+}
+
+/** Live connection check for the admin (never exposes the password). */
+export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect; host: string; message?: string }> {
+  const url = process.env.DATABASE_URL;
+  let host = "local SQLite file";
+  if (url) {
+    try {
+      host = new URL(url).hostname;
+    } catch {
+      host = "invalid DATABASE_URL";
+    }
+  }
+  try {
+    const db = await getDb();
+    await db.get("SELECT 1 AS ok");
+    return { ok: true, dialect: db.dialect, host };
+  } catch (err) {
+    const message = err instanceof Error ? err.message.replace(/postgres(ql)?:\/\/[^\s]+/gi, "[connection string]") : String(err);
+    return { ok: false, dialect: url ? "postgres" : "sqlite", host, message };
+  }
 }
 
 export function databaseInfo() {
