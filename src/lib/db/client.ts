@@ -22,7 +22,11 @@ export interface Db {
   exec(sql: string): Promise<void>;
 }
 
-const g = globalThis as unknown as { __llgDb?: Promise<Db> };
+const g = globalThis as unknown as { __llgDb?: Promise<Db>; __llgDbFailure?: { at: number; error: Error } };
+
+/** After a failed connection, fail fast for this long instead of hammering the database
+ *  (Supabase's pooler temporarily blocks clients after repeated failed logins). */
+const FAILURE_BACKOFF_MS = 30_000;
 
 function sqliteDb(): Db {
   // Loaded at runtime via getBuiltinModule so the bundler never tries to resolve it
@@ -131,7 +135,7 @@ async function postgresDb(url: string): Promise<Db> {
     password: cfg.password,
     max: 5,
     idle_timeout: 20,
-    connect_timeout: 15,
+    connect_timeout: 10,
     prepare: false,
     ssl: local ? false : "require",
     types: { bigint: postgres.BigInt },
@@ -161,17 +165,38 @@ async function postgresDb(url: string): Promise<Db> {
 }
 
 export function getDb(): Promise<Db> {
+  const failure = g.__llgDbFailure;
+  if (!g.__llgDb && failure && performance.now() - failure.at < FAILURE_BACKOFF_MS) return Promise.reject(failure.error);
   if (!g.__llgDb) {
     g.__llgDb = (async () => {
       const db = process.env.DATABASE_URL ? await postgresDb(process.env.DATABASE_URL) : sqliteDb();
       await migrate(db);
+      g.__llgDbFailure = undefined;
       return db;
     })().catch((err) => {
       g.__llgDb = undefined;
+      g.__llgDbFailure = { at: performance.now(), error: err instanceof Error ? err : new Error(String(err)) };
       throw err;
     });
   }
   return g.__llgDb;
+}
+
+/** Reject if `p` takes longer than `ms` (keeps prerendering well inside Next's 50 s limit). */
+export function withTimeout<T>(p: Promise<T>, ms: number, label = "database"): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} did not respond within ${ms / 1000}s`)), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      },
+    );
+  });
 }
 
 /** Live connection check for the admin (never exposes the password). */

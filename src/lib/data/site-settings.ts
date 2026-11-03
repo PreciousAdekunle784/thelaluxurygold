@@ -1,6 +1,7 @@
 import "server-only";
 import { cacheLife, cacheTag } from "next/cache";
 import { getSettings } from "@/lib/repo/settings";
+import { withTimeout } from "@/lib/db/client";
 
 export const SETTINGS_TAG = "site-settings";
 
@@ -13,13 +14,14 @@ export interface SiteSettings {
 
 export async function getSiteSettings(): Promise<SiteSettings> {
   "use cache";
-  cacheLife("hours");
   cacheTag(SETTINGS_TAG);
   try {
-    const s = await getSettings(["heroDesktop", "heroMobile"]);
+    const s = await withTimeout(getSettings(["heroDesktop", "heroMobile"]), 12_000);
+    cacheLife("hours");
     return { heroDesktop: s.heroDesktop || undefined, heroMobile: s.heroMobile || undefined };
   } catch (err) {
-    console.error("[settings] unavailable, using defaults", err);
+    console.error("[settings] database unavailable, using default hero:", err instanceof Error ? err.message : err);
+    cacheLife("minutes");
     return {};
   }
 }
