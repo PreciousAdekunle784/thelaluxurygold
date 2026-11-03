@@ -22,6 +22,7 @@
   --color-line-light: rgb(247 244 237 / 0.18);
 
   --font-display: var(--font-cormorant), "Cormorant Garamond", "Times New Roman", serif;
+  --font-script: var(--font-corinthia), "Corinthia", "Snell Roundhand", cursive;
   --font-sans: var(--font-manrope), "Manrope", ui-sans-serif, system-ui, sans-serif;
 
   --text-eyebrow: 0.6875rem;
@@ -43,6 +44,18 @@
   @media (width >= 1280px) {
     padding-inline: 4rem;
   }
+}
+
+/* Calligraphic accent: sits inside uppercase serif headlines, so it resets case and
+   tracking and is scaled up to match the optical size of the capitals. */
+@utility script {
+  font-family: var(--font-script);
+  font-weight: 700;
+  font-style: normal;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.45em;
+  line-height: 0.85;
 }
 
 @layer base {

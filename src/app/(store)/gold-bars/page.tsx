@@ -26,7 +26,7 @@ export default async function GoldBarsPage() {
             <Reveal className="mt-14 max-w-xl xl:ml-[8%]">
               <p className="eyebrow mb-6 text-gold">24K gold bars</p>
               <h1 className="display text-[3rem] uppercase sm:text-6xl lg:text-[5.2rem]">
-                Own something <span className="font-light italic normal-case text-gold-pale">that lasts.</span>
+                Own something <span className="script text-gold-pale">that lasts.</span>
               </h1>
               <p className="mt-8 max-w-md text-[1rem] leading-[1.85] text-ivory/70">
                 Explore our collection of 24K gold bars. A timeless way to own a piece of enduring value — for yourself, for the next generation,
@@ -44,7 +44,7 @@ export default async function GoldBarsPage() {
       <section className="container-luxe py-20 md:py-28" aria-labelledby="bars">
         <div className="mb-12 flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <h2 id="bars" className="display text-4xl uppercase md:text-5xl">
-            The <span className="font-light italic normal-case">bars</span>
+            The <span className="script">bars</span>
           </h2>
           <p className="max-w-md text-sm leading-relaxed text-stone">Minted bars with a polished, engraved face, and traditionally cast bars. Larger weights are available on request.</p>
         </div>
@@ -62,7 +62,7 @@ export default async function GoldBarsPage() {
           <div className="lg:col-span-4">
             <p className="eyebrow mb-5 text-champagne">Good to know</p>
             <h2 className="display text-4xl uppercase md:text-5xl">
-              Buying <span className="font-light italic normal-case">gold bars</span>
+              Buying <span className="script">gold bars</span>
             </h2>
             <a href={whatsappLink("Hello LA Luxury Gold, I would like to ask about your 24K gold bars.")} target="_blank" rel="noopener noreferrer" className="mt-10 inline-flex h-14 items-center gap-3 bg-ink px-8 text-[0.7rem] font-semibold uppercase tracking-[0.24em] text-ivory transition-colors hover:bg-forest">
               <WhatsAppIcon width={18} height={18} /> Speak with our team

@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Cormorant_Garamond, Manrope } from "next/font/google";
+import { Cormorant_Garamond, Corinthia, Manrope } from "next/font/google";
 import "./globals.css";
 import { store } from "@/lib/config/store";
 
@@ -8,6 +8,14 @@ const display = Cormorant_Garamond({
   weight: ["300", "400", "500", "600"],
   style: ["normal", "italic"],
   variable: "--font-cormorant",
+  display: "swap",
+});
+
+// Bold copperplate script for headline accent words ("timeless", "a legacy"…).
+const script = Corinthia({
+  subsets: ["latin"],
+  weight: ["700"],
+  variable: "--font-corinthia",
   display: "swap",
 });
 
@@ -48,7 +56,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${display.variable} ${sans.variable}`}>
+    <html lang="en" className={`${display.variable} ${script.variable} ${sans.variable}`}>
       <body className="flex min-h-screen flex-col">{children}
       </body>
     </html>

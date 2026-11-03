@@ -8,7 +8,7 @@ export const metadata: Metadata = { title: "Shipping & Delivery", description: "
 
 export default function ShippingPage() {
   return (
-    <LegalPage eyebrow="Shipping & delivery" title={<>Shipping <span className="font-light italic normal-case">& delivery</span></>} intro="Every LA Luxury Gold order is dispatched from Dubai with insured, tracked delivery — within the UAE and worldwide.">
+    <LegalPage eyebrow="Shipping & delivery" title={<>Shipping <span className="script">& delivery</span></>} intro="Every LA Luxury Gold order is dispatched from Dubai with insured, tracked delivery — within the UAE and worldwide.">
       <h2>Delivery options</h2>
       <ul>
         {shippingMethods.map((m) => (

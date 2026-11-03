@@ -12,7 +12,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
     <section className="container-luxe flex min-h-[60vh] flex-col items-center justify-center py-24 text-center">
       <p className="eyebrow text-champagne">Something went wrong</p>
       <h1 className="display mt-5 text-5xl uppercase md:text-6xl">
-        Please <span className="font-light italic normal-case">try again</span>
+        Please <span className="script">try again</span>
       </h1>
       <p className="mt-6 max-w-md text-sm leading-relaxed text-stone">We couldn&rsquo;t load this page. If the problem continues, please contact us on WhatsApp.</p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">

@@ -178,6 +178,20 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.click('button:has-text("Save changes")');
   await a.waitForSelector('text=Saved and published to the store.');
 
+  // ---------------------------------------------------------------- homepage hero
+  await a.goto(BASE + '/admin/settings', { waitUntil: 'load' });
+  await a.waitForTimeout(700);
+  await a.locator('input[aria-label="Upload Hero background — desktop"]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'editorial', 'campaign.webp'));
+  await a.waitForSelector('text=Published — the homepage now uses this image.', { timeout: 30000 });
+  let heroSrc = '';
+  for (let i = 0; i < 2 && !heroSrc.includes('%2Fmedia%2F'); i++) {
+    await s.goto(BASE + '/', { waitUntil: 'load' });
+    heroSrc = (await s.locator('section[aria-label=Introduction] picture img').first().getAttribute('src')) ?? '';
+  }
+  ok('uploaded hero image is used on the homepage', heroSrc.includes('%2Fmedia%2F'), heroSrc.slice(0, 80));
+  await a.click('button:has-text("Use default")');
+  await a.waitForSelector('text=Restored the default image.');
+
   // ---------------------------------------------------------------- logout
   await a.click('button:has-text("Sign out")');
   await a.waitForURL(/\/admin\/login/);

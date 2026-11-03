@@ -18,7 +18,7 @@ export default function ShopPage() {
         eyebrow="The collection"
         title={
           <>
-            Shop <span className="font-light italic normal-case">all</span> gold
+            Shop <span className="script">all</span> gold
           </>
         }
         intro="Rings, necklaces, bracelets and earrings in 18K to 22K gold, together with 24K gold bars. Filter by category, purity and price to find a piece made for you."

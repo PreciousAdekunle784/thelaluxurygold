@@ -20,7 +20,7 @@ export function HeroMotion({ children }: { children: ReactNode }) {
 
 export function HeroLine({ children, delay = 0 }: { children: ReactNode; delay?: number }) {
   return (
-    <span className="block overflow-hidden pb-[0.06em]">
+    <span className="block overflow-hidden pb-[0.14em] pt-[0.04em]">
       <motion.span className="block" initial={{ y: "105%" }} animate={{ y: 0 }} transition={{ duration: 1.3, ease, delay }}>
         {children}
       </motion.span>

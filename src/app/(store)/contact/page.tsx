@@ -17,7 +17,7 @@ export default function ContactPage() {
       <PageIntro
         crumbs={[{ name: "Home", href: "/" }, { name: "Contact" }]}
         eyebrow="Client services"
-        title={<>We&rsquo;re here <span className="font-light italic normal-case">to help</span></>}
+        title={<>We&rsquo;re here <span className="script">to help</span></>}
         intro="Whether you are choosing a gift, sizing a ring or asking about gold bars, our team will be glad to assist."
       />
       <section className="container-luxe grid gap-16 pb-28 lg:grid-cols-12 lg:gap-10">

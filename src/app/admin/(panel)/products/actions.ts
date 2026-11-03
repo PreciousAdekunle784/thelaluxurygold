@@ -96,6 +96,7 @@ export async function deleteProductAction(id: string) {
 }
 
 export async function uploadImageAction(form: FormData): Promise<{ ok: true; key: string } | { ok: false; error: string }> {
+  const large = form.get("purpose") === "hero";
   await requireAdmin();
   const file = form.get("file");
   if (!(file instanceof File) || !file.size) return { ok: false, error: "Choose an image to upload." };
@@ -104,7 +105,7 @@ export async function uploadImageAction(form: FormData): Promise<{ ok: true; key
   try {
     const { data, info } = await sharp(Buffer.from(await file.arrayBuffer()))
       .rotate()
-      .resize({ width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
+      .resize(large ? { width: 2800, height: 2800, fit: "inside", withoutEnlargement: true } : { width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
       .webp({ quality: 84 })
       .toBuffer({ resolveWithObject: true });
     const id = await saveMedia(data, "image/webp", info.width, info.height);

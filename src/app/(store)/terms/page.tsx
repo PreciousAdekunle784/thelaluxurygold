@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Terms & Conditions", alternates: { c
 
 export default function TermsPage() {
   return (
-    <LegalPage eyebrow="Terms & conditions" title={<>Terms <span className="font-light italic normal-case">& conditions</span></>} intro="The terms that apply when you use this website and order from LA Luxury Gold.">
+    <LegalPage eyebrow="Terms & conditions" title={<>Terms <span className="script">& conditions</span></>} intro="The terms that apply when you use this website and order from LA Luxury Gold.">
       <h2>About these terms</h2>
       <p>These terms apply to your use of this website and to orders placed with LA Luxury Gold ([legal entity, trade licence and registered address]).</p>
       <h2>Products & information</h2>

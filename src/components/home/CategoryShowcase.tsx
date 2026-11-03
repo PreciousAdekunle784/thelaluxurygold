@@ -16,7 +16,7 @@ export function CategoryShowcase() {
               <span className="h-px w-8 bg-current" /> Shop by category
             </p>
             <h2 id="shop-by-category" className="display text-[2.6rem] uppercase sm:text-5xl lg:text-[4.25rem]">
-              Gold for every <span className="font-light italic normal-case">moment</span>
+              Gold for every <span className="script">moment</span>
             </h2>
           </Reveal>
           <Reveal delay={0.1} className="max-w-sm md:pb-2">

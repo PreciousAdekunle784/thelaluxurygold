@@ -54,7 +54,9 @@ function sqliteDb(): Db {
 
 async function postgresDb(url: string): Promise<Db> {
   const { default: postgres } = await import("postgres");
-  const sql = postgres(url, { max: 5, idle_timeout: 20, prepare: false, types: { bigint: postgres.BigInt } });
+  const local = /@(localhost|127\.0\.0\.1)(:|\/)/.test(url);
+  // prepare:false is required for Supabase's transaction pooler (port 6543); SSL for hosted databases.
+  const sql = postgres(url, { max: 5, idle_timeout: 20, prepare: false, ssl: local ? false : "require", types: { bigint: postgres.BigInt } });
   const norm = (params: unknown[] = []) => params.map((p) => (p === undefined ? null : p)) as never[];
   const fix = <T,>(rows: T[]) =>
     rows.map((r) => {

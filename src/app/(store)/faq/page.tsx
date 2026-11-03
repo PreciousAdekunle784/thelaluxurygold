@@ -19,7 +19,7 @@ const faqs: { q: string; a: React.ReactNode }[] = [
 export default function FaqPage() {
   return (
     <>
-      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "FAQ" }]} eyebrow="Customer care" title={<>Questions <span className="font-light italic normal-case">& answers</span></>} />
+      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "FAQ" }]} eyebrow="Customer care" title={<>Questions <span className="script">& answers</span></>} />
       <section className="container-luxe max-w-3xl pb-28">
         {faqs.map((f, i) => (
           <AccordionItem key={f.q} title={f.q} defaultOpen={i === 0}>

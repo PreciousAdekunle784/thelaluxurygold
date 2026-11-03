@@ -22,7 +22,7 @@ export default async function EditProduct({ params, searchParams }: PageProps<"/
     <>
       <Link href="/admin/products" className="mb-4 inline-flex items-center gap-2 text-xs text-stone hover:text-ink"><ArrowLeft size={13} /> Products</Link>
       <PageHeader title={row.product.name} subtitle={sp.created ? "Product created and published." : row.archived ? "Hidden from the store" : "Live on the store"} />
-      <ProductForm key={row.updatedAt} initial={row.product} archived={row.archived} library={[...uploads.map((m) => `uploads/${m.id}`), ...builtInMediaKeys.filter((k) => k.startsWith("products/"))]} />
+      <ProductForm key={row.product.id} initial={row.product} archived={row.archived} library={[...uploads.map((m) => `uploads/${m.id}`), ...builtInMediaKeys.filter((k) => k.startsWith("products/"))]} />
     </>
   );
 }

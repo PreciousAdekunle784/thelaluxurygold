@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Privacy Policy", alternates: { canon
 
 export default function PrivacyPage() {
   return (
-    <LegalPage eyebrow="Privacy policy" title={<>Privacy <span className="font-light italic normal-case">policy</span></>} intro="How LA Luxury Gold collects, uses and protects your personal information.">
+    <LegalPage eyebrow="Privacy policy" title={<>Privacy <span className="script">policy</span></>} intro="How LA Luxury Gold collects, uses and protects your personal information.">
       <h2>Who we are</h2>
       <p>LA Luxury Gold ([registered legal entity and address]) is responsible for the personal information collected through this website.</p>
       <h2>Information we collect</h2>

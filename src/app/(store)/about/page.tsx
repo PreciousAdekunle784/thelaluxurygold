@@ -21,7 +21,7 @@ export default function AboutPage() {
           <Monogram className="mx-auto h-20 w-auto" />
           <p className="eyebrow mt-10 text-champagne">The house of LA Luxury Gold</p>
           <h1 className="display mt-6 text-[3rem] uppercase sm:text-6xl lg:text-[5.6rem]">
-            More than gold. <span className="font-light italic normal-case">A legacy.</span>
+            More than gold. <span className="script">A legacy.</span>
           </h1>
         </Reveal>
       </section>
@@ -35,7 +35,7 @@ export default function AboutPage() {
       <section className="container-luxe grid gap-14 py-24 md:py-36 lg:grid-cols-12">
         <Reveal className="lg:col-span-4">
           <p className="eyebrow text-champagne">Who we are</p>
-          <h2 className="display mt-5 text-4xl uppercase md:text-5xl">A jewellery house <span className="font-light italic normal-case">in Dubai</span></h2>
+          <h2 className="display mt-5 text-4xl uppercase md:text-5xl">A jewellery house <span className="script">in Dubai</span></h2>
         </Reveal>
         <Reveal delay={0.1} className="space-y-6 text-[1.05rem] leading-[1.9] text-ink/75 lg:col-span-6 lg:col-start-7">
           <p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
       <WhyChooseUs />
 
       <section className="container-luxe flex flex-col items-center py-24 text-center md:py-32">
-        <h2 className="display text-4xl uppercase md:text-6xl">Discover <span className="font-light italic normal-case">the collection</span></h2>
+        <h2 className="display text-4xl uppercase md:text-6xl">Discover <span className="script">the collection</span></h2>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <ButtonLink href="/shop" size="lg">Shop jewellery</ButtonLink>
           <ButtonLink href="/gold-bars" variant="outline" size="lg">Explore gold bars</ButtonLink>

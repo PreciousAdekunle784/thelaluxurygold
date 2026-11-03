@@ -24,7 +24,7 @@ export function SocialGrid() {
               <span className="h-px w-8 bg-current" /> {store.social.handle}
             </p>
             <h2 id="world-of" className="display max-w-3xl text-[2.4rem] uppercase sm:text-5xl lg:text-[4rem]">
-              The world of <span className="font-light italic normal-case">LA Luxury Gold</span>
+              The world of <span className="script">LA Luxury Gold</span>
             </h2>
           </Reveal>
           <Reveal delay={0.1}>

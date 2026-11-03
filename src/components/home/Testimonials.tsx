@@ -20,7 +20,7 @@ export function Testimonials() {
               <span className="h-px w-8 bg-current" /> Client words
             </p>
             <h2 id="testimonials" className="display text-[2.4rem] uppercase sm:text-5xl">
-              In their <span className="font-light italic normal-case">words</span>
+              In their <span className="script">words</span>
             </h2>
             {t.isSample && (
               <p className="mt-8 max-w-xs border-l border-forest/40 pl-4 text-[0.78rem] leading-relaxed text-forest/80">

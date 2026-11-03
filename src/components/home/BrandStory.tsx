@@ -27,7 +27,7 @@ export function BrandStory() {
             <h2 id="brand-story" className="display text-[2.6rem] uppercase sm:text-5xl lg:text-[4rem]">
               More than gold.
               <br />
-              <span className="font-light italic normal-case">A legacy.</span>
+              <span className="script">A legacy.</span>
             </h2>
           </Reveal>
           <Reveal delay={0.15} className="mt-10 max-w-lg space-y-5 text-[1rem] leading-[1.85] text-ink/75">

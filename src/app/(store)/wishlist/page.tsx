@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Wishlist", robots: { index: false } 
 export default function WishlistPage() {
   return (
     <>
-      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "Wishlist" }]} title={<>Your <span className="font-light italic normal-case">wishlist</span></>} />
+      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "Wishlist" }]} title={<>Your <span className="script">wishlist</span></>} />
       <WishlistView />
     </>
   );

@@ -28,7 +28,7 @@ export async function GoldInvestment() {
               <h2 id="gold-investment" className="display text-[2.7rem] uppercase sm:text-5xl lg:text-[4.4rem]">
                 Own something
                 <br />
-                <span className="font-light italic normal-case text-gold-pale">that lasts.</span>
+                <span className="script text-gold-pale">that lasts.</span>
               </h2>
               <p className="mt-8 max-w-md text-[1rem] leading-[1.85] text-ivory/70">
                 Explore our collection of 24K gold bars. A timeless way to own a piece of enduring value.

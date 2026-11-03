@@ -6,7 +6,7 @@ export const metadata: Metadata = { title: "Returns & Exchanges", description: "
 
 export default function ReturnsPage() {
   return (
-    <LegalPage eyebrow="Returns & exchanges" title={<>Returns <span className="font-light italic normal-case">& exchanges</span></>} intro="We want you to love every piece. If something isn't right, we are here to help.">
+    <LegalPage eyebrow="Returns & exchanges" title={<>Returns <span className="script">& exchanges</span></>} intro="We want you to love every piece. If something isn't right, we are here to help.">
       <h2>Eligibility</h2>
       <ul>
         <li>Requests must be made within [number] days of delivery.</li>

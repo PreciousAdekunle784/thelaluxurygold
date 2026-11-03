@@ -23,7 +23,7 @@ export function Campaign() {
             <span className="h-px w-8 bg-current" /> The campaign
           </p>
           <h2 id="campaign" className="display text-[2.9rem] uppercase sm:text-6xl lg:text-[5.4rem]">
-            Made to be <span className="font-light italic normal-case text-gold-pale">cherished.</span>
+            Made to be <span className="script text-gold-pale">cherished.</span>
           </h2>
           <p className="mt-7 max-w-md text-[1rem] leading-relaxed text-ivory/80">Celebrate the moments that matter with gold that never goes out of style.</p>
           <div className="mt-10">

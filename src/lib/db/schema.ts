@@ -34,7 +34,13 @@ CREATE TABLE IF NOT EXISTS media (
 export async function migrate(db: Db) {
   const ddl = tables(db.dialect === "postgres" ? "BYTEA" : "BLOB");
   if (db.dialect === "sqlite") await db.exec(ddl);
-  else for (const stmt of ddl.split(";").map((s) => s.trim()).filter(Boolean)) await db.exec(stmt);
+  else {
+    for (const stmt of ddl.split(";").map((s) => s.trim()).filter(Boolean)) await db.exec(stmt);
+    // Keep data private from Supabase's public Data API (the app connects server-side).
+    for (const t of ["meta", "products", "orders", "page_views", "subscribers", "messages", "media"]) {
+      await db.exec(`ALTER TABLE ${t} ENABLE ROW LEVEL SECURITY`);
+    }
+  }
 
   // Seed the catalogue once. A flag (rather than "table is empty") means deleting every
   // product in the admin does not bring the samples back.

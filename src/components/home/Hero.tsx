@@ -1,11 +1,15 @@
 import { getImageProps } from "next/image";
 import { media } from "@/lib/data/media";
+import { getSiteSettings } from "@/lib/data/site-settings";
 import { ButtonLink } from "@/components/ui/Button";
 import { HeroMotion, HeroLine, HeroFade } from "./HeroMotion";
 
-export function Hero() {
-  const d = media("editorial/hero");
-  const m = media("editorial/hero-mobile");
+export async function Hero() {
+  const settings = await getSiteSettings();
+  // Set in /admin/settings; falls back to the built-in campaign image.
+  const d = media(settings.heroDesktop ?? "editorial/hero");
+  const m = media(settings.heroMobile ?? settings.heroDesktop ?? "editorial/hero-mobile");
+  const custom = !!settings.heroDesktop;
   const common = { alt: "Gold rope chain draped over a travertine plinth beside signet rings and a 24K gold bar", sizes: "100vw", fetchPriority: "high" as const, loading: "eager" as const };
   const { props: { srcSet: desktop, ...rest } } = getImageProps({ ...common, src: d.src, width: d.width, height: d.height });
   const { props: { srcSet: mobile } } = getImageProps({ ...common, src: m.src, width: m.width, height: m.height });
@@ -17,7 +21,7 @@ export function Hero() {
           <source media="(max-width: 767px)" srcSet={mobile} />
           <source media="(min-width: 768px)" srcSet={desktop} />
           {/* eslint-disable-next-line jsx-a11y/alt-text -- alt is supplied via getImageProps */}
-          <img {...rest} className="absolute inset-0 h-full w-full object-cover object-[70%_50%] md:object-[60%_50%]" />
+          <img {...rest} className={custom ? "absolute inset-0 h-full w-full object-cover object-center" : "absolute inset-0 h-full w-full object-cover object-[70%_50%] md:object-[60%_50%]"} />
         </picture>
       </HeroMotion>
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(27,42,35,0.94)_0%,rgba(27,42,35,0.82)_42%,rgba(27,42,35,0.15)_72%,rgba(27,42,35,0)_100%)] md:bg-[linear-gradient(90deg,rgba(27,42,35,0.7)_0%,rgba(27,42,35,0.15)_48%,rgba(27,42,35,0)_70%)]" />
@@ -32,7 +36,7 @@ export function Hero() {
           <h1 className="display text-[2.9rem] uppercase leading-[0.9] sm:text-[4.6rem] lg:text-[6.2rem] xl:text-[7rem]">
             <HeroLine delay={0.6}>The art of</HeroLine>
             <HeroLine delay={0.72}>
-              <span className="font-light italic normal-case text-gold-pale">timeless</span>
+              <span className="script text-gold-pale">timeless</span>
             </HeroLine>
             <HeroLine delay={0.84}>gold.</HeroLine>
           </h1>

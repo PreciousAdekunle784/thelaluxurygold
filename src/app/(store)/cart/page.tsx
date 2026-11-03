@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Shopping Bag", robots: { index: fals
 export default function CartPage() {
   return (
     <>
-      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "Shopping bag" }]} title={<>Your <span className="font-light italic normal-case">bag</span></>} />
+      <PageIntro crumbs={[{ name: "Home", href: "/" }, { name: "Shopping bag" }]} title={<>Your <span className="script">bag</span></>} />
       <CartView />
     </>
   );

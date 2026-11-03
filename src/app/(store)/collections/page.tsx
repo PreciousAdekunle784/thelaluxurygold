@@ -22,7 +22,7 @@ export default async function CollectionsPage() {
         eyebrow="Discover"
         title={
           <>
-            The <span className="font-light italic normal-case">collections</span>
+            The <span className="script">collections</span>
           </>
         }
         intro="Explore by category, or discover our curated edits — each one a different way to wear, gift and keep gold."

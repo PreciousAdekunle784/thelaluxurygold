@@ -7,7 +7,7 @@ export const metadata: Metadata = { title: "Checkout", robots: { index: false } 
 export default function CheckoutPage() {
   return (
     <>
-      <PageIntro crumbs={[{ name: "Bag", href: "/cart" }, { name: "Checkout" }]} title={<>Secure <span className="font-light italic normal-case">checkout</span></>} />
+      <PageIntro crumbs={[{ name: "Bag", href: "/cart" }, { name: "Checkout" }]} title={<>Secure <span className="script">checkout</span></>} />
       <CheckoutView />
     </>
   );

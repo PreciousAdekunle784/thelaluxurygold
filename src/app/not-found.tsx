@@ -10,7 +10,7 @@ export default function NotFound() {
       <Monogram className="h-20 w-auto" />
       <p className="eyebrow mt-10 text-champagne">Error 404</p>
       <h1 className="display mt-5 text-5xl uppercase md:text-7xl">
-        This page has <span className="font-light italic normal-case">moved on</span>
+        This page has <span className="script">moved on</span>
       </h1>
       <p className="mt-6 max-w-md text-[0.98rem] leading-relaxed text-stone">The page you are looking for doesn&rsquo;t exist or is no longer available.</p>
       <div className="mt-10 flex flex-col gap-3 sm:flex-row">

@@ -23,7 +23,7 @@ npm run typecheck
 | `ink` | `#111111` | Text, primary buttons |
 | `ivory` / `linen` / `sand` | `#F7F4ED` / `#F1ECE3` / `#EDE7DC` | Page, section and product-image backgrounds |
 
-* **Type**: Cormorant Garamond for display (uppercase with italic lowercase accents); Manrope for UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
+* **Type**: Cormorant Garamond for display headlines (uppercase); **Corinthia Bold**, a bold calligraphic script, for the accent word in each headline ("*timeless*", "*a legacy*", "*cherished*") via the `script` utility class; Manrope for UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
 * **Logo**: a typographic wordmark ("LA LUXURY GOLD" with a "Dubai" line) and an **LG monogram set inside an arch**, a nod to Dubai architecture. It works on light and dark backgrounds: `src/components/brand/Logo.tsx`, plus `src/app/icon.png` and `apple-icon.png`.
 * **Components**: square-edged buttons, hairline dividers, arch-masked imagery used once, and restrained motion (fade-up reveals, slow image scale, mask-reveal hero type). Motion respects `prefers-reduced-motion`.
 
@@ -103,6 +103,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
 | **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
+| **Homepage hero** | Upload the large background photo at the top of the homepage (desktop and, optionally, a separate portrait version for phones). Restore the default at any time. |
 | **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
 
 **New-order alerts.** When a customer places an order, every open admin page shows a pop-up and plays a soft chime. Click **Enable order alerts** in the sidebar to also get desktop notifications.
@@ -110,6 +111,16 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 **Money.** No payment gateway is connected, so orders arrive as "Awaiting confirmation". "Revenue received" counts only orders you mark **Paid**, **Shipped** or **Delivered**. "Value of all orders" counts everything except cancelled orders.
 
 **Visitor tracking** is first-party and anonymous: a random ID in the visitor's browser, with no IP addresses, cookies or third-party scripts. Bots and your own visits while signed in are ignored. Country appears when your host sends a location header (Vercel and Cloudflare do).
+
+### Connecting Supabase
+
+1. Create a project at [supabase.com](https://supabase.com).
+2. In **SQL Editor → New query**, paste **`supabase/schema.sql`** and click **Run**. It creates every table and enables Row Level Security, so Supabase's public API keys cannot read your orders or customers. It is safe to run again.
+3. In **Project Settings → Database → Connection string**, copy the **Transaction pooler** URI (port `6543`) and replace `[YOUR-PASSWORD]`.
+4. Set it as **`DATABASE_URL`** in your hosting environment (Vercel: *Settings → Environment Variables*), together with `ADMIN_PASSWORD`, then redeploy.
+5. On first start the site copies the sample catalogue into `products`. Manage everything from `/admin` after that. The optional `product_overview` and `order_overview` views make the data easy to browse in Supabase's Table Editor.
+
+The app connects server-side with SSL, using a driver configured for the pooler (no prepared statements). Uploaded images are stored in the `media` table. Payments are not connected yet.
 
 ### Data storage
 

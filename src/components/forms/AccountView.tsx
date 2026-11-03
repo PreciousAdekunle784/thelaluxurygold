@@ -49,7 +49,7 @@ export function AccountView() {
 
       <div className="bg-linen p-8 md:p-12">
         <p className="eyebrow text-champagne">Your account</p>
-        <h2 className="display mt-4 text-4xl uppercase">A personal <span className="font-light italic normal-case">space</span></h2>
+        <h2 className="display mt-4 text-4xl uppercase">A personal <span className="script">space</span></h2>
         <ul className="mt-10 space-y-6 text-sm">
           <li className="flex gap-4"><Package size={20} strokeWidth={1.1} className="shrink-0 text-champagne" /> Track order requests and deliveries</li>
           <li className="flex gap-4"><Heart size={20} strokeWidth={1.1} className="shrink-0 text-champagne" /> Keep your wishlist across devices</li>

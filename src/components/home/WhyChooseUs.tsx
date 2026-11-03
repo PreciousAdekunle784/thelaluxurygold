@@ -58,7 +58,7 @@ export function WhyChooseUs() {
         <Reveal className="mb-16 flex flex-col items-center text-center md:mb-20">
           <p className="eyebrow mb-5 text-champagne">The LA Luxury Gold promise</p>
           <h2 id="why-choose" className="display max-w-3xl text-[2.3rem] uppercase sm:text-5xl lg:text-[3.6rem]">
-            Why choose <span className="font-light italic normal-case">LA Luxury Gold</span>
+            Why choose <span className="script">LA Luxury Gold</span>
           </h2>
         </Reveal>
         <ul className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
