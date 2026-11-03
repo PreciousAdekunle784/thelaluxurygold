@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { store } from "@/lib/config/store";
 
 export function AnnouncementBar() {
@@ -16,7 +16,7 @@ export function AnnouncementBar() {
     <div className="relative z-[60] bg-forest-deep text-ivory" role="region" aria-label="Announcements">
       <div className="container-luxe flex h-9 items-center justify-center overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
-          <motion.p
+          <m.p
             key={i}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
@@ -26,7 +26,7 @@ export function AnnouncementBar() {
             aria-live="polite"
           >
             {items[i]}
-          </motion.p>
+          </m.p>
         </AnimatePresence>
       </div>
     </div>

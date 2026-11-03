@@ -20,8 +20,10 @@ export function HeroVideo({ desktop, mobile }: { desktop: HeroVideoSource; mobil
 
   useEffect(() => {
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const saveData = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection?.saveData;
-    if (reduce.matches || saveData) return;
+    const conn = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string; downlink?: number } }).connection;
+    // Slow or metered connections keep the poster: the film is decoration, never a cost.
+    const slow = !!conn && (conn.saveData || /(^|-)2g|3g/.test(conn.effectiveType ?? "") || (conn.downlink != null && conn.downlink < 2));
+    if (reduce.matches || slow) return;
     const small = window.matchMedia("(max-width: 767px)");
     const pick = () => {
       const next = small.matches ? mobile : desktop;
@@ -31,9 +33,28 @@ export function HeroVideo({ desktop, mobile }: { desktop: HeroVideoSource; mobil
         return next;
       });
     };
-    pick();
+    // Start fetching only after the page has fully loaded and the browser is idle, so the
+    // video never competes with the page's own HTML, CSS, fonts and images.
+    let cancelled = false;
+    let idle: number | undefined;
+    const start = () => {
+      const run = () => !cancelled && pick();
+      const w = window as Window & typeof globalThis;
+      idle = typeof w.requestIdleCallback === "function" ? w.requestIdleCallback(run, { timeout: 2500 }) : w.setTimeout(run, 800);
+    };
+    if (document.readyState === "complete") start();
+    else window.addEventListener("load", start, { once: true });
     small.addEventListener("change", pick);
-    return () => small.removeEventListener("change", pick);
+    return () => {
+      cancelled = true;
+      window.removeEventListener("load", start);
+      const w = window as Window & typeof globalThis;
+      if (idle !== undefined) {
+        if (typeof w.cancelIdleCallback === "function") w.cancelIdleCallback(idle);
+        else w.clearTimeout(idle);
+      }
+      small.removeEventListener("change", pick);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- sources are static; compare by URL
   }, [desktop.mp4, mobile.mp4]);
 

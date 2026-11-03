@@ -30,7 +30,7 @@ export function Monogram({ className, tone = "ink", title }: { className?: strin
         y="62"
         textAnchor="middle"
         fill="currentColor"
-        style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 400, fontStyle: "italic" }}
+        style={{ fontFamily: "var(--font-display)", fontSize: 30, fontWeight: 400 }}
       >
         G
       </text>

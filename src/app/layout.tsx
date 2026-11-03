@@ -5,8 +5,9 @@ import { store } from "@/lib/config/store";
 
 const display = Cormorant_Garamond({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600"],
-  style: ["normal", "italic"],
+  // Only the weights the design uses (each extra weight/style is another font download).
+  weight: ["400", "500"],
+  style: ["normal"],
   variable: "--font-cormorant",
   display: "swap",
 });

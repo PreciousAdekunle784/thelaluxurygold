@@ -11,7 +11,7 @@ const features = [
       <svg viewBox="0 0 48 48" className={icon} aria-hidden>
         <circle cx="24" cy="24" r="17" {...stroke} />
         <circle cx="24" cy="24" r="13" {...stroke} strokeDasharray="1.5 2.5" />
-        <text x="24" y="28.5" textAnchor="middle" fill="currentColor" style={{ fontFamily: "var(--font-display)", fontSize: 13, fontStyle: "italic" }}>
+        <text x="24" y="28.5" textAnchor="middle" fill="currentColor" style={{ fontFamily: "var(--font-display)", fontSize: 13 }}>
           Au
         </text>
       </svg>

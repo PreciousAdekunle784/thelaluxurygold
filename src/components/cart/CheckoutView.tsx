@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { Check, Loader2, Lock, ShoppingBag } from "lucide-react";
 import { useCart } from "@/lib/state/cart";
 import { countries, countryName } from "@/lib/config/countries";
@@ -79,7 +79,7 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   return (
     <section className="border-t border-line pt-8 first:border-t-0 first:pt-0" aria-labelledby={`step-${n}`}>
       <h2 id={`step-${n}`} className="mb-7 flex items-baseline gap-4">
-        <span className="font-display text-2xl italic text-champagne">0{n}</span>
+        <span className="font-display text-2xl text-champagne">0{n}</span>
         <span className="eyebrow font-semibold">{title}</span>
       </h2>
       {children}
@@ -149,7 +149,7 @@ export function CheckoutView() {
 
   if (status === "done" && result) {
     return (
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="container-luxe flex flex-col items-center pb-32 pt-10 text-center">
+      <m.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} className="container-luxe flex flex-col items-center pb-32 pt-10 text-center">
         <span className="flex h-16 w-16 items-center justify-center rounded-full border border-champagne text-champagne">
           <Check size={26} strokeWidth={1.2} />
         </span>
@@ -172,7 +172,7 @@ export function CheckoutView() {
             Continue shopping
           </Link>
         </div>
-      </motion.div>
+      </m.div>
     );
   }
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import { motion, useScroll, useTransform } from "framer-motion";
+import { m, useScroll, useTransform } from "framer-motion";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
@@ -13,9 +13,9 @@ export function Campaign() {
 
   return (
     <section ref={ref} className="relative flex min-h-[620px] items-end overflow-hidden bg-burgundy text-ivory md:min-h-[760px] lg:h-[92vh] lg:max-h-[980px]" aria-labelledby="campaign">
-      <motion.div style={{ y }} className="absolute -inset-y-[8%] inset-x-0">
+      <m.div style={{ y }} className="absolute -inset-y-[8%] inset-x-0">
         <MediaImage mediaKey="editorial/campaign" alt="Gold rope chain and teardrop pendant resting on folds of burgundy silk" sizes="100vw" className="object-cover object-[35%_50%]" />
-      </motion.div>
+      </m.div>
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,rgba(43,10,20,0.85)_0%,rgba(43,10,20,0.15)_55%,transparent_100%)]" />
       <div className="container-luxe relative pb-14 md:pb-20">
         <Reveal className="max-w-2xl">

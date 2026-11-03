@@ -3,13 +3,16 @@
 import type { ReactNode } from "react";
 import type { Product } from "@/lib/data/types";
 import { CatalogueProvider } from "./catalogue";
-import { MotionConfig } from "framer-motion";
+import { LazyMotion, MotionConfig } from "framer-motion";
 import { CartProvider } from "./cart";
 import { CurrencyProvider } from "./currency";
 import { WishlistProvider } from "./wishlist";
 
+const loadMotion = () => import("@/lib/motion-features").then((r) => r.default);
+
 export function Providers({ children, products }: { children: ReactNode; products: Product[] }) {
   return (
+    <LazyMotion features={loadMotion}>
     <MotionConfig reducedMotion="user">
       <CatalogueProvider products={products}>
       <CurrencyProvider>
@@ -19,5 +22,6 @@ export function Providers({ children, products }: { children: ReactNode; product
       </CurrencyProvider>
       </CatalogueProvider>
     </MotionConfig>
+    </LazyMotion>
   );
 }

@@ -11,6 +11,19 @@ const nextConfig: NextConfig = {
       },
     },
   },
+  // Let browsers and the CDN reuse images and the hero film between visits
+  // (file names are stable, so a week plus background revalidation is a safe balance).
+  async headers() {
+    const longCache = [{ key: "Cache-Control", value: "public, max-age=604800, stale-while-revalidate=2592000" }];
+    return [
+      { source: "/videos/:path*", headers: longCache },
+      { source: "/images/:path*", headers: longCache },
+    ];
+  },
+  images: {
+    formats: ["image/avif", "image/webp"],
+    minimumCacheTTL: 2678400, // 31 days for optimised images
+  },
   experimental: {
     // Admin image uploads go through a Server Action (images are resized server-side).
     serverActions: { bodySizeLimit: "16mb" },

@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ArrowRight, Search, X } from "lucide-react";
 import { queryProducts } from "@/lib/data/catalogue";
 import { useCatalogue } from "@/lib/state/catalogue";
@@ -33,7 +33,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
     <AnimatePresence>
       {open && (
         <>
-          <motion.div
+          <m.div
             className="fixed inset-0 top-[calc(var(--header-h)+36px)] -z-10 bg-ink/30 backdrop-blur-[2px]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -41,7 +41,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
             onClick={onClose}
             aria-hidden
           />
-          <motion.div
+          <m.div
             role="dialog"
             aria-label="Search the collection"
             initial={{ opacity: 0, y: -10 }}
@@ -109,7 +109,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                 </div>
               )}
             </div>
-          </motion.div>
+          </m.div>
         </>
       )}
     </AnimatePresence>

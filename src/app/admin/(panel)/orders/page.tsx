@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Download, Search } from "lucide-react";
 import { Card, Empty, PageHeader, StatusPill, Table, Tabs, adminBtnOutline, DownloadLink, countryLabel } from "@/components/admin/ui";
-import { countOrders, listOrders, orderStatuses } from "@/lib/repo/orders";
+import { countOrdersByStatus, listOrders, orderStatuses } from "@/lib/repo/orders";
 import { formatDateTime } from "@/lib/time";
 import { formatMoney } from "@/lib/format";
 
@@ -17,11 +17,12 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
   const status = typeof sp.status === "string" && orderStatuses.some((s) => s.id === sp.status) ? sp.status : "";
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
   const page = Math.max(1, Number(sp.page) || 1);
-  const [orders, total, ...counts] = await Promise.all([
+  const [orders, byStatus] = await Promise.all([
     listOrders({ status: status || undefined, q: q || undefined, limit: PAGE + 1, offset: (page - 1) * PAGE }),
-    countOrders(),
-    ...orderStatuses.map((s) => countOrders({ status: s.id })),
+    countOrdersByStatus(),
   ]);
+  const total = byStatus.all;
+  const counts = orderStatuses.map((s) => byStatus[s.id] ?? 0);
   const rows = orders.slice(0, PAGE);
   const href = (p: Record<string, string | number>) => {
     const u = new URLSearchParams();

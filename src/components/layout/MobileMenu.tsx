@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Minus, Plus, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { socialIcon, WhatsAppIcon } from "@/components/ui/Icons";
@@ -25,8 +25,8 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
     <AnimatePresence>
       {open && (
         <div className="fixed inset-0 z-[80] xl:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <motion.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
-          <motion.nav
+          <m.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+          <m.nav
             initial={{ x: "-100%" }}
             animate={{ x: 0 }}
             exit={{ x: "-100%" }}
@@ -43,7 +43,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
 
             <ul className="flex-1 px-5 py-6">
               {mainNav.map((item, i) => (
-                <motion.li
+                <m.li
                   key={item.href}
                   initial={{ opacity: 0, x: -16 }}
                   animate={{ opacity: 1, x: 0 }}
@@ -63,7 +63,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                       </button>
                       <AnimatePresence initial={false}>
                         {expanded === item.menu && (
-                          <motion.ul
+                          <m.ul
                             initial={{ height: 0, opacity: 0 }}
                             animate={{ height: "auto", opacity: 1 }}
                             exit={{ height: 0, opacity: 0 }}
@@ -78,7 +78,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                               </li>
                             ))}
                             <li className="h-4" />
-                          </motion.ul>
+                          </m.ul>
                         )}
                       </AnimatePresence>
                     </>
@@ -87,7 +87,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                       {item.label}
                     </Link>
                   )}
-                </motion.li>
+                </m.li>
               ))}
             </ul>
 
@@ -116,7 +116,7 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
                 })}
               </div>
             </div>
-          </motion.nav>
+          </m.nav>
         </div>
       )}
     </AnimatePresence>

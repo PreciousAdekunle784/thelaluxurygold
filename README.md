@@ -170,6 +170,19 @@ To go live, implement `PaymentProvider` in `src/lib/payments` (e.g. Network Inte
 
 Customer accounts have a UI only. Connect an auth provider in `src/components/forms/AccountView.tsx`.
 
+## Performance
+
+The site is tuned for slow mobile connections. On a simulated 1.6 Mbps / 300 ms network with a 4× slower CPU, the main content appears in about **1.5–1.7 s** on every storefront page. Admin page changes show a placeholder within about **0.1 s**, and the content arrives in under a second. How:
+
+* Storefront pages are prerendered and served from the CDN.
+* The shop and collection grids arrive as ready-made HTML, so products appear before JavaScript loads.
+* Hero and scroll animations are pure CSS. The headline animates in on first paint, and the animation library loads in the background (`LazyMotion`).
+* Fonts are trimmed to the weights in use (Cormorant 400/500, Corinthia 700, Manrope).
+* Images are served as AVIF/WebP at the right size, with blur placeholders. Product hover photos load only on hover. Images and the film are cached between visits.
+* The hero film loads only after the page has finished and the browser is idle. It is skipped on slow, 2G/3G or data-saver connections, which keep the poster image.
+* Admin data is fetched in parallel. The connection check is reused for 30 s, and order counts come from one grouped query.
+* Server functions run next to the database (`vercel.json` → `dub1`).
+
 ## Testing
 
 ```bash

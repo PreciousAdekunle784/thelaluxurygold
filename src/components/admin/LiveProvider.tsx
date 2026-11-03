@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { Bell, ShoppingBag, X } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 
@@ -113,12 +113,13 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   };
 
   return (
+    <LazyMotion features={() => import("@/lib/motion-features").then((r) => r.default)}>
     <LiveContext.Provider value={{ ...state, notificationsEnabled, enableNotifications }}>
       {children}
       <div className="pointer-events-none fixed bottom-5 right-5 z-[100] flex w-[340px] max-w-[calc(100vw-2.5rem)] flex-col gap-3" aria-live="assertive">
         <AnimatePresence>
           {toasts.map((o) => (
-            <motion.div
+            <m.div
               key={o.reference}
               layout
               initial={{ opacity: 0, y: 20, scale: 0.97 }}
@@ -135,11 +136,12 @@ export function LiveProvider({ children }: { children: ReactNode }) {
               <button type="button" aria-label="Dismiss" onClick={() => setToasts((t) => t.filter((x) => x.reference !== o.reference))} className="text-ivory/60 hover:text-ivory">
                 <X size={14} />
               </button>
-            </motion.div>
+            </m.div>
           ))}
         </AnimatePresence>
       </div>
     </LiveContext.Provider>
+    </LazyMotion>
   );
 }
 

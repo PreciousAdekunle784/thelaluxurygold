@@ -58,7 +58,7 @@ export default function AboutPage() {
           <div className="container-luxe flex items-center py-20 lg:px-20">
             <Reveal className="max-w-lg">
               <p className="eyebrow text-gold-pale">What we believe</p>
-              <p className="display mt-6 text-[2.2rem] font-light leading-[1.15] md:text-[2.8rem]">
+              <p className="display mt-6 text-[2.2rem] font-normal leading-[1.15] md:text-[2.8rem]">
                 Gold represents milestones, memories, love and lasting value. Every piece should be worth keeping — and worth passing on.
               </p>
               <ul className="mt-12 space-y-5 border-t border-line-light pt-10 text-[0.95rem] text-ivory/80">

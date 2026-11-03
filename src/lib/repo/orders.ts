@@ -82,6 +82,18 @@ export async function countOrders(opts: { status?: string } = {}) {
   return Number(r?.n ?? 0);
 }
 
+/** Order counts for every status in one query: { all, pending_confirmation, paid, ... }. */
+export async function countOrdersByStatus() {
+  const db = await getDb();
+  const rows = await db.all<{ status: string; n: number }>("SELECT status, COUNT(*) AS n FROM orders GROUP BY status");
+  const counts: Record<string, number> = { all: 0 };
+  for (const r of rows) {
+    counts[r.status] = Number(r.n);
+    counts.all += Number(r.n);
+  }
+  return counts;
+}
+
 export async function getOrder(reference: string) {
   const db = await getDb();
   const r = await db.get<Raw>("SELECT * FROM orders WHERE reference = $1", [reference]);
@@ -99,7 +111,7 @@ export async function updateOrderStatus(reference: string, status: OrderStatus, 
 export async function orderStats(days: string[]) {
   const db = await getDb();
   const paidList = PAID_STATUSES.map((s) => `'${s}'`).join(",");
-  const totals = await db.get<Raw>(
+  const totalsP = db.get<Raw>(
     `SELECT COUNT(*) AS orders,
             COUNT(DISTINCT email) AS buyers,
             COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END), 0) AS requested,
@@ -109,9 +121,10 @@ export async function orderStats(days: string[]) {
        FROM orders`,
   );
   const ph = days.map((_, i) => `$${i + 1}`).join(",");
-  const byDay = days.length
-    ? await db.all<Raw>(`SELECT day, COUNT(*) AS orders, COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END),0) AS value FROM orders WHERE day IN (${ph}) GROUP BY day`, days)
-    : [];
+  const byDayP = days.length
+    ? db.all<Raw>(`SELECT day, COUNT(*) AS orders, COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END),0) AS value FROM orders WHERE day IN (${ph}) GROUP BY day`, days)
+    : Promise.resolve([] as Raw[]);
+  const [totals, byDay] = await Promise.all([totalsP, byDayP]);
   const map = new Map(byDay.map((r) => [String(r.day), { orders: Number(r.orders), value: Number(r.value) }]));
   return {
     orders: Number(totals?.orders ?? 0),

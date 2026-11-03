@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
 import { WhatsAppIcon } from "@/components/ui/Icons";
 import { useScrolled } from "@/lib/hooks/ui";
 import { whatsappLink, defaultWhatsappMessage } from "@/lib/whatsapp";
@@ -25,7 +25,7 @@ export function WhatsAppButton() {
   const hidden = phone && pathname === "/" && !scrolled;
 
   return (
-    <motion.a
+    <m.a
       href={whatsappLink(defaultWhatsappMessage)}
       target="_blank"
       rel="noopener noreferrer"
@@ -42,6 +42,6 @@ export function WhatsAppButton() {
       <span className="max-w-0 overflow-hidden whitespace-nowrap text-[0.62rem] font-semibold uppercase tracking-[0.2em] transition-[max-width] duration-500 ease-[var(--ease-luxe)] group-hover:max-w-[160px]">
         Ask a question
       </span>
-    </motion.a>
+    </m.a>
   );
 }

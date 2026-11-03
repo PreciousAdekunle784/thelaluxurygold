@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Heart, Menu, Search, ShoppingBag, User } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
 import { MediaImage } from "@/components/ui/MediaImage";
@@ -128,7 +128,7 @@ export function Header() {
               <ShoppingBag size={19} strokeWidth={1.2} />
               <AnimatePresence>
                 {hydrated && count > 0 && (
-                  <motion.span
+                  <m.span
                     key={count}
                     initial={{ scale: 0.4, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -137,7 +137,7 @@ export function Header() {
                     className="absolute right-0.5 top-0.5 flex h-[17px] min-w-[17px] items-center justify-center rounded-full bg-champagne px-1 text-[0.58rem] font-semibold text-ink"
                   >
                     {count}
-                  </motion.span>
+                  </m.span>
                 )}
               </AnimatePresence>
             </button>
@@ -147,7 +147,7 @@ export function Header() {
         {/* mega menus */}
         <AnimatePresence>
           {menu && (
-            <motion.div
+            <m.div
               key={menu}
               initial={{ opacity: 0, y: -8 }}
               animate={{ opacity: 1, y: 0 }}
@@ -158,7 +158,7 @@ export function Header() {
               onMouseLeave={scheduleClose}
             >
               {menu === "shop" ? <ShopMega /> : <CollectionsMega />}
-            </motion.div>
+            </m.div>
           )}
         </AnimatePresence>
 

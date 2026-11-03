@@ -50,7 +50,7 @@ export default async function CollectionPage({ params }: PageProps<"/collections
         title={r.name}
         intro={r.intro}
       />
-      <Suspense fallback={<ShopSkeleton />}>
+      <Suspense fallback={<ShopSkeleton preset={preset} />}>
         <ShopView preset={preset} />
       </Suspense>
     </>

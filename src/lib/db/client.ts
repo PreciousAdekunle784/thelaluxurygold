@@ -22,7 +22,7 @@ export interface Db {
   exec(sql: string): Promise<void>;
 }
 
-const g = globalThis as unknown as { __llgDb?: Promise<Db>; __llgDbFailure?: { at: number; error: Error } };
+const g = globalThis as unknown as { __llgDb?: Promise<Db>; __llgDbFailure?: { at: number; error: Error }; __llgDbOkAt?: number };
 
 /** After a failed connection, fail fast for this long instead of hammering the database
  *  (Supabase's pooler temporarily blocks clients after repeated failed logins). */
@@ -133,7 +133,7 @@ async function postgresDb(url: string): Promise<Db> {
     database: cfg.database,
     username: cfg.user,
     password: cfg.password,
-    max: 5,
+    max: 10,
     idle_timeout: 20,
     connect_timeout: 10,
     onnotice: () => {}, // silence "already exists, skipping" notices from idempotent DDL
@@ -217,6 +217,10 @@ export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect;
       host = "invalid DATABASE_URL";
     }
   }
+  // A recent successful check is reused for 30 s, saving a round trip on every admin page.
+  if (g.__llgDbOkAt && performance.now() - g.__llgDbOkAt < 30_000) {
+    return { ok: true, dialect: process.env.DATABASE_URL ? "postgres" : "sqlite", host, user, hints: [] };
+  }
   try {
     let db: Db;
     try {
@@ -230,6 +234,7 @@ export async function databaseStatus(): Promise<{ ok: boolean; dialect: Dialect;
       db = await getDb();
       await db.get("SELECT 1 AS ok");
     }
+    g.__llgDbOkAt = performance.now();
     return { ok: true, dialect: db.dialect, host, user, hints: [] };
   } catch (err) {
     const message = err instanceof Error ? err.message.replace(/postgres(ql)?:\/\/[^\s]+/gi, "[connection string]") : String(err);

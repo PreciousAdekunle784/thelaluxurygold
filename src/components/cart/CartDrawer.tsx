@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ShoppingBag, X } from "lucide-react";
 import { useCart } from "@/lib/state/cart";
 import { useEscape, useScrollLock } from "@/lib/hooks/ui";
@@ -30,8 +30,8 @@ export function CartDrawer() {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true" aria-label="Shopping bag">
-          <motion.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close} />
-          <motion.div
+          <m.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close} />
+          <m.div
             ref={panel}
             tabIndex={-1}
             initial={{ x: "100%" }}
@@ -85,7 +85,7 @@ export function CartDrawer() {
                 </div>
               </>
             )}
-          </motion.div>
+          </m.div>
         </div>
       )}
     </AnimatePresence>

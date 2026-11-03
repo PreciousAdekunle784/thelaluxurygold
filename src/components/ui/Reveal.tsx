@@ -1,43 +1,71 @@
 "use client";
 
-import { motion, type HTMLMotionProps } from "framer-motion";
+import { useEffect, useRef, type CSSProperties, type ReactNode } from "react";
+import { cx } from "@/lib/format";
 
-export const luxeEase = [0.22, 1, 0.36, 1] as const;
+/*
+ * Scroll reveals in plain CSS + one shared IntersectionObserver (no animation library),
+ * so they cost almost nothing to download and work smoothly on slow phones.
+ * Content is visible by default if JavaScript hasn't run yet (see globals.css).
+ */
 
-export function Reveal({
-  children,
-  delay = 0,
-  y = 28,
-  className,
-  as = "div",
-  ...rest
-}: { delay?: number; y?: number; as?: "div" | "li" | "section" | "article" } & HTMLMotionProps<"div">) {
-  const Comp = motion[as] as typeof motion.div;
+let observer: IntersectionObserver | null = null;
+function observe(el: Element) {
+  if (typeof IntersectionObserver === "undefined") {
+    el.classList.add("is-in");
+    return () => {};
+  }
+  observer ??= new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) {
+          e.target.classList.add("is-in");
+          observer?.unobserve(e.target);
+        }
+      }
+    },
+    { rootMargin: "0px 0px -10% 0px" },
+  );
+  observer.observe(el);
+  return () => observer?.unobserve(el);
+}
+
+function useReveal<T extends HTMLElement>() {
+  const ref = useRef<T>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    // Already on screen at load: leave it visible (no flash). Only arm what is below the fold.
+    // Items outside the viewport horizontally (e.g. in a swipeable carousel) are never armed,
+    // so a fast swipe can't leave a card invisible.
+    const r = el.getBoundingClientRect();
+    if (r.top < window.innerHeight * 0.92 || r.left >= window.innerWidth || r.right <= 0) return;
+    el.classList.add("reveal-armed");
+    return observe(el);
+  }, []);
+  return ref;
+}
+
+type Tag = "div" | "li" | "section" | "article";
+
+export function Reveal({ children, delay = 0, className, as = "div" }: { children: ReactNode; delay?: number; y?: number; className?: string; as?: Tag }) {
+  const ref = useReveal<HTMLElement>();
+  const Comp = as as "div";
+  const style = delay ? ({ "--reveal-delay": `${delay}s` } as CSSProperties) : undefined;
   return (
-    <Comp
-      className={className}
-      initial={{ opacity: 0, y }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-      transition={{ duration: 1.1, ease: luxeEase, delay }}
-      {...rest}
-    >
+    <Comp ref={ref as React.Ref<HTMLDivElement>} className={cx("reveal", className)} style={style}>
       {children}
     </Comp>
   );
 }
 
 /** Image reveal: a soft scale-down with a fade, used on editorial imagery. */
-export function ImageReveal({ children, className, delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+export function ImageReveal({ children, className, delay = 0 }: { children: ReactNode; className?: string; delay?: number }) {
+  const ref = useReveal<HTMLDivElement>();
+  const style = delay ? ({ "--reveal-delay": `${delay}s` } as CSSProperties) : undefined;
   return (
-    <motion.div
-      className={className}
-      initial={{ opacity: 0, scale: 1.06 }}
-      whileInView={{ opacity: 1, scale: 1 }}
-      viewport={{ once: true, margin: "0px 0px -10% 0px" }}
-      transition={{ duration: 1.6, ease: luxeEase, delay }}
-    >
+    <div ref={ref} className={cx("reveal-image", className)} style={style}>
       {children}
-    </motion.div>
+    </div>
   );
 }

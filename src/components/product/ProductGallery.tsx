@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ChevronLeft, ChevronRight, Expand, X } from "lucide-react";
 import type { ProductImage } from "@/lib/data/types";
 import { MediaImage } from "@/components/ui/MediaImage";
@@ -71,12 +71,12 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
 
       <AnimatePresence>
         {zoom !== null && (
-          <motion.div className="fixed inset-0 z-[95] flex items-center justify-center bg-ivory" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-modal="true" aria-label={`${name} image viewer`}>
+          <m.div className="fixed inset-0 z-[95] flex items-center justify-center bg-ivory" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} role="dialog" aria-modal="true" aria-label={`${name} image viewer`}>
             <div className="relative h-full w-full max-w-[min(100vw,82vh)]">
               <AnimatePresence mode="wait">
-                <motion.div key={zoom} className="absolute inset-0" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
+                <m.div key={zoom} className="absolute inset-0" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}>
                   <MediaImage mediaKey={images[zoom].media} alt={images[zoom].alt} sizes="100vw" className="object-contain" />
-                </motion.div>
+                </m.div>
               </AnimatePresence>
             </div>
             <button type="button" onClick={() => setZoom(null)} className="absolute right-4 top-4 flex h-12 w-12 items-center justify-center rounded-full bg-ivory/80 hover:bg-sand" aria-label="Close image viewer">
@@ -95,7 +95,7 @@ export function ProductGallery({ images, name }: { images: ProductImage[]; name:
                 </p>
               </>
             )}
-          </motion.div>
+          </m.div>
         )}
       </AnimatePresence>
     </div>

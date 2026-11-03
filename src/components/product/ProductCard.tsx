@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Plus, Check } from "lucide-react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import type { Product } from "@/lib/data/types";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { useCart } from "@/lib/state/cart";
@@ -17,6 +17,8 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
   const { add } = useCart();
   const [picking, setPicking] = useState(false);
   const [added, setAdded] = useState(false);
+  // The hover photo is only fetched once someone actually hovers (desktop) — saves half the image bytes.
+  const [hoverReady, setHoverReady] = useState(false);
   const variant = product.variants?.[0];
   const unavailable = product.availability === "out_of_stock";
   const href = `/product/${product.slug}`;
@@ -29,7 +31,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
   };
 
   return (
-    <article className="group/card relative flex flex-col">
+    <article className="group/card relative flex flex-col" onPointerEnter={(e) => e.pointerType === "mouse" && setHoverReady(true)} onFocus={() => setHoverReady(true)}>
       <div className="relative">
       <Link href={href} className="relative block aspect-[4/5] overflow-hidden bg-sand" aria-label={product.name}>
         <MediaImage
@@ -39,7 +41,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
           sizes={sizes ?? "(min-width: 1280px) 25vw, (min-width: 768px) 33vw, 50vw"}
           className="object-cover transition-[transform,opacity] duration-[1400ms] ease-[var(--ease-luxe)] group-hover/card:scale-[1.035]"
         />
-        {product.images[1] && (
+        {product.images[1] && hoverReady && (
           <MediaImage
             mediaKey={product.images[1].media}
             alt=""
@@ -66,7 +68,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
         <div className="absolute inset-x-2 bottom-2 z-10 md:inset-x-3 md:bottom-3">
           <AnimatePresence>
             {picking && variant && (
-              <motion.div
+              <m.div
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
@@ -87,7 +89,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
                     </button>
                   ))}
                 </div>
-              </motion.div>
+              </m.div>
             )}
           </AnimatePresence>
           {product.priceAED == null ? (

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import { queryProducts, sortOptions, type SortKey } from "@/lib/data/catalogue";
 import { useCatalogue } from "@/lib/state/catalogue";
@@ -153,10 +153,10 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
               </Button>
             </div>
           ) : (
-            <motion.ul layout className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:gap-y-16">
+            <m.ul layout className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:gap-y-16">
               <AnimatePresence initial={false}>
                 {results.map((p, i) => (
-                  <motion.li
+                  <m.li
                     key={p.id}
                     layout
                     initial={{ opacity: 0, y: 14 }}
@@ -164,11 +164,11 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
                     exit={{ opacity: 0 }}
                     transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
                   >
-                    <ProductCard product={p} priority={i < 3} sizes="(min-width: 1280px) 28vw, (min-width: 768px) 33vw, 50vw" />
-                  </motion.li>
+                    <ProductCard product={p} priority={i < 2} sizes="(min-width: 1280px) 28vw, (min-width: 768px) 33vw, 50vw" />
+                  </m.li>
                 ))}
               </AnimatePresence>
-            </motion.ul>
+            </m.ul>
           )}
         </div>
       </div>
@@ -177,8 +177,8 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
       <AnimatePresence>
         {drawer && (
           <div className="fixed inset-0 z-[85] lg:hidden" role="dialog" aria-modal="true" aria-label="Filters">
-            <motion.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawer(false)} />
-            <motion.div
+            <m.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setDrawer(false)} />
+            <m.div
               initial={{ y: "100%" }}
               animate={{ y: 0 }}
               exit={{ y: "100%" }}
@@ -198,7 +198,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
                 </Button>
                 <Button onClick={() => setDrawer(false)}>Show {results.length}</Button>
               </div>
-            </motion.div>
+            </m.div>
           </div>
         )}
       </AnimatePresence>

@@ -44,7 +44,7 @@ export function CategoryShowcase() {
                       sizes="(min-width: 1024px) 20vw, (min-width: 640px) 44vw, 72vw"
                       className="object-cover transition-transform duration-[1600ms] ease-[var(--ease-luxe)] group-hover:scale-[1.06]"
                     />
-                    <span className="absolute left-4 top-4 font-display text-sm italic text-ivory/90 mix-blend-difference">0{i + 1}</span>
+                    <span className="absolute left-4 top-4 font-display text-sm text-ivory/90 mix-blend-difference">0{i + 1}</span>
                   </div>
                   <div className="mt-5 flex items-baseline justify-between gap-3 border-b border-line pb-4">
                     <h3 className="font-display text-[1.7rem] leading-none transition-transform duration-700 ease-[var(--ease-luxe)] group-hover:translate-x-1">{c.name}</h3>

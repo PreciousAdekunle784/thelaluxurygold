@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import type { Product } from "@/lib/data/types";
 import { ProductCard } from "@/components/product/ProductCard";
 import { SectionHeading } from "@/components/ui/SectionHeading";
@@ -43,14 +43,14 @@ export function FeaturedCollection({ products }: { products: Product[] }) {
               )}
             >
               {t.label}
-              {tab === t.key && <motion.span layoutId="featured-tab" className="absolute inset-x-4 bottom-0 h-px bg-ink" transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} />}
+              {tab === t.key && <m.span layoutId="featured-tab" className="absolute inset-x-4 bottom-0 h-px bg-ink" transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }} />}
             </button>
           ))}
         </div>
 
         <div className="mt-12 md:mt-16">
           <AnimatePresence mode="wait">
-            <motion.ul
+            <m.ul
               key={tab}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
@@ -63,7 +63,7 @@ export function FeaturedCollection({ products }: { products: Product[] }) {
                   <ProductCard product={p} />
                 </li>
               ))}
-            </motion.ul>
+            </m.ul>
           </AnimatePresence>
         </div>
 

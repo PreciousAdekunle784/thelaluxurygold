@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { testimonials } from "@/lib/data/testimonials";
 import { Reveal } from "@/components/ui/Reveal";
@@ -32,7 +32,7 @@ export function Testimonials() {
           <div className="lg:col-span-7 lg:col-start-6">
             <div className="relative min-h-[300px] md:min-h-[280px]">
               <AnimatePresence mode="wait">
-                <motion.figure
+                <m.figure
                   key={i}
                   initial={{ opacity: 0, y: 18 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -40,12 +40,12 @@ export function Testimonials() {
                   transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
                 >
                   <span aria-hidden className="block font-display text-7xl leading-[0.5] text-champagne">“</span>
-                  <blockquote className="mt-4 font-display text-[1.75rem] font-light leading-[1.3] text-forest md:text-[2.4rem]">{t.quote}</blockquote>
+                  <blockquote className="mt-4 font-display text-[1.75rem] font-normal leading-[1.3] text-forest md:text-[2.4rem]">{t.quote}</blockquote>
                   <figcaption className="mt-8 flex flex-wrap items-center gap-3 text-[0.72rem] uppercase tracking-[0.2em] text-forest/80">
                     <span>{t.attribution}</span>
                     {t.isSample && <span className="border border-forest/30 px-2 py-[3px] text-[0.58rem] font-semibold">Sample testimonial</span>}
                   </figcaption>
-                </motion.figure>
+                </m.figure>
               </AnimatePresence>
             </div>
             <div className="mt-10 flex items-center gap-6">

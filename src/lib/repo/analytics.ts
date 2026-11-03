@@ -98,18 +98,25 @@ export async function trafficSummary(days: string[]) {
         days,
       )
     ).map((r) => ({ key: String(r.k ?? "") || "—", views: Number(r.views), visitors: Number(r.visitors) }));
-  const totals = await db.get<Raw>(
-    `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors, COUNT(DISTINCT session_id) AS sessions, COALESCE(SUM(is_new),0) AS new_visitors FROM page_views WHERE day IN (${ph})`,
-    days,
-  );
+  // All five queries run at the same time (one round trip of latency instead of five).
+  const [totals, pages, referrers, countries, devices] = await Promise.all([
+    db.get<Raw>(
+      `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors, COUNT(DISTINCT session_id) AS sessions, COALESCE(SUM(is_new),0) AS new_visitors FROM page_views WHERE day IN (${ph})`,
+      days,
+    ),
+    top("path"),
+    top("referrer"),
+    top("country"),
+    top("device", 4),
+  ]);
   return {
     views: Number(totals?.views ?? 0),
     visitors: Number(totals?.visitors ?? 0),
     sessions: Number(totals?.sessions ?? 0),
     newVisitors: Number(totals?.new_visitors ?? 0),
-    pages: await top("path"),
-    referrers: await top("referrer"),
-    countries: await top("country"),
-    devices: await top("device", 4),
+    pages,
+    referrers,
+    countries,
+    devices,
   };
 }

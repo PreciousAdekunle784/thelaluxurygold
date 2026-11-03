@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion } from "framer-motion";
+import { AnimatePresence, m } from "framer-motion";
 import { Monitor, ShoppingBag, Smartphone, Tablet } from "lucide-react";
 import { useLive } from "./LiveProvider";
 import { Card, Stat, countryLabel } from "./ui";
@@ -64,7 +64,7 @@ export function LivePanel() {
           <ul className="max-h-[420px] divide-y divide-line overflow-y-auto">
             <AnimatePresence initial={false}>
               {activity.map((a) => (
-                <motion.li key={a.key} initial={{ opacity: 0, backgroundColor: "#f6ecd6" }} animate={{ opacity: 1, backgroundColor: "#ffffff" }} transition={{ duration: 1.2 }} className="px-5 py-2.5 text-sm">
+                <m.li key={a.key} initial={{ opacity: 0, backgroundColor: "#f6ecd6" }} animate={{ opacity: 1, backgroundColor: "#ffffff" }} transition={{ duration: 1.2 }} className="px-5 py-2.5 text-sm">
                   {a.kind === "order" ? (
                     <Link href={`/admin/orders/${a.o.reference}`} className="flex items-center gap-3">
                       <ShoppingBag size={14} className="shrink-0 text-champagne" />
@@ -86,7 +86,7 @@ export function LivePanel() {
                       <span className="w-14 shrink-0 text-right text-xs text-stone">{timeAgo(a.ts, now)}</span>
                     </div>
                   )}
-                </motion.li>
+                </m.li>
               ))}
             </AnimatePresence>
           </ul>
