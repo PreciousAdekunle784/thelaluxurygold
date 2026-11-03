@@ -73,13 +73,13 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.goto(BASE + '/shop?purity=24K', { waitUntil: 'load' });
     await p.waitForTimeout(700);
     ok('purity 24K → 5 gold bars', (await count()) === 5, `${await count()}`);
-    await p.goto(BASE + '/shop?max=2000', { waitUntil: 'load' });
+    await p.goto(BASE + '/shop?max=500', { waitUntil: 'load' });
     await p.waitForTimeout(700);
     const under = await p.$$eval('main ul.grid > li', (lis) => lis.map((li) => li.textContent));
-    ok('price filter max 2000 → 4 items', under.length === 4, `${under.length}`);
+    ok('price filter max $500 → 3 items', under.length === 3, `${under.length}`);
     await p.goto(BASE + '/shop?sort=price-asc', { waitUntil: 'load' });
     await p.waitForTimeout(700);
-    const prices = await p.$$eval('main ul.grid > li', (lis) => lis.map((li) => { const m = li.textContent.match(/AED ([\d,]+)/); return m ? Number(m[1].replace(/,/g, '')) : Infinity; }));
+    const prices = await p.$$eval('main ul.grid > li', (lis) => lis.map((li) => { const m = li.textContent.match(/\$([\d,]+)/); return m ? Number(m[1].replace(/,/g, '')) : Infinity; }));
     ok('sort price low→high is ascending', prices.every((v, i) => i === 0 || v >= prices[i - 1]), prices.slice(0, 6).join(','));
     await p.goto(BASE + '/shop?stock=1', { waitUntil: 'load' });
     await p.waitForTimeout(700);
@@ -121,7 +121,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(700);
     ok('PDP shows 3 gallery images', (await p.locator('main button[aria-label^="Enlarge image"]').count()) === 3);
     const ld = await p.$$eval('script[type="application/ld+json"]', (s) => s.map((x) => JSON.parse(x.textContent)));
-    ok('PDP has Product structured data with AED offer', ld.some((d) => d['@type'] === 'Product' && d.offers?.priceCurrency === 'AED'));
+    ok('PDP has Product structured data with USD offer', ld.some((d) => d['@type'] === 'Product' && d.offers?.priceCurrency === 'USD'));
     await p.locator('main button:has-text("Add to bag")').click();
     ok('size required before adding', await p.locator('text=Please select a ring size.').isVisible());
     await p.locator('main button[aria-pressed]:has-text("54")').click();
@@ -146,16 +146,26 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(400);
     ok('cart persists across pages (2 lines)', (await p.locator('main li:has(a[href^="/product/"])').count()) === 2);
     const subtotal1 = await p.locator('aside dd').first().textContent();
-    ok('subtotal = 3,400 + 1,950', subtotal1.includes('5,350'), subtotal1);
+    ok('subtotal = $925 + $530', subtotal1.includes('$1,455'), subtotal1);
     await p.locator('main button[aria-label="Increase quantity"]').first().click();
     await p.waitForTimeout(300);
     const subtotal2 = await p.locator('aside dd').first().textContent();
-    ok('quantity increase recalculates subtotal', subtotal2.includes('8,750'), subtotal2);
+    ok('quantity increase recalculates subtotal', subtotal2.includes('$2,380'), subtotal2);
     await p.reload({ waitUntil: 'load' });
     await p.waitForTimeout(700);
     await p.waitForTimeout(400);
     const subtotal3 = await p.locator('aside dd').first().textContent();
-    ok('cart persists after reload', subtotal3.includes('8,750'), subtotal3);
+    ok('cart persists after reload', subtotal3.includes('$2,380'), subtotal3);
+    // currency switch: USD ↔ NGN
+    await p.locator('header [aria-label=Currency] button:has-text("NGN")').click();
+    await p.waitForTimeout(300);
+    const naira = await p.locator('aside dd').first().textContent();
+    ok('switching to naira converts prices', naira.includes('₦') && Number(naira.replace(/[^\d]/g, '')) > 2380 * 100, naira);
+    await p.reload({ waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    ok('currency choice persists', (await p.locator('aside dd').first().textContent()).includes('₦'));
+    await p.locator('header [aria-label=Currency] button:has-text("USD")').click();
+    await p.waitForTimeout(300);
     await p.locator('main button:has-text("Remove")').last().click();
     await p.waitForTimeout(300);
     ok('remove line', (await p.locator('main li:has(a[href^="/product/"])').count()) === 1);
@@ -178,7 +188,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.selectOption('select[name=country]', 'GB');
     await p.waitForTimeout(200);
     ok('international country switches shipping method + customs note', (await p.locator('text=International insured express').isVisible()) && (await p.locator('text=import duties, taxes').isVisible()));
-    ok('card payment disabled until gateway connected', await p.locator('input[name=paymentMethod]').first().isDisabled());
+    ok('only available payment options are shown', (await p.locator('input[name=paymentMethod]').count()) === 1 && !(await p.locator('text=Coming soon').count()));
     const [resp] = await Promise.all([p.waitForResponse((r) => r.url().includes('/api/orders')), p.locator('button:has-text("Submit order request")').click()]);
     ok('order API returns 201', resp.status() === 201, String(resp.status()));
     await p.waitForTimeout(600);
@@ -188,6 +198,21 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('confirmation WhatsApp link includes reference', waHref.includes(encodeURIComponent(ref)));
     const after = await p.locator('header button[aria-label^="Shopping bag"]').getAttribute('aria-label');
     ok('cart cleared after order request', after.includes('0 items'), after);
+    // order tracking
+    await p.goto(BASE + '/account', { waitUntil: 'load' });
+    await p.waitForTimeout(500);
+    await p.fill('input[name=reference]', ref.trim());
+    await p.fill('input[name=email]', 'test@example.com');
+    await p.click('button:has-text("Track order")');
+    await p.waitForSelector('text=Awaiting confirmation', { timeout: 10000 }).catch(() => {});
+    ok('customer can track the order with reference + email', (await p.locator('main').textContent()).includes('Awaiting confirmation') && /Signet Ring|Gold Hoops/.test(await p.locator('main').textContent()));
+    const wrong = await p.request.post(BASE + '/api/orders/lookup', { data: { reference: ref.trim(), email: 'someone-else@example.com' } });
+    ok('order lookup with the wrong email is refused', wrong.status() === 404, String(wrong.status()));
+    for (const u of ['/terms', '/privacy', '/returns', '/shipping', '/faq']) {
+      const txt = await (await p.request.get(BASE + u)).text();
+      const body = txt.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');
+      ok(`${u} has no draft notes or [placeholders]`, !/Draft for review|\[[A-Za-z][^\]]{3,}\]|AED|to be confirmed/i.test(body), (body.match(/Draft for review|\[[A-Za-z][^\]]{3,}\]|AED|to be confirmed/i) || [''])[0]);
+    }
     // API tampering: server recomputes and validates
     const bad = await p.request.post(BASE + '/api/orders', { data: { lines: [{ productId: 'nope', quantity: 1 }] } });
     ok('order API rejects invalid payload (422)', bad.status() === 422);

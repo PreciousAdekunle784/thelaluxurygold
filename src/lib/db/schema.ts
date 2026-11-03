@@ -1,6 +1,7 @@
 import "server-only";
 import type { Db } from "./client";
 import { products as seedProducts } from "@/lib/data/products";
+import { upgradeLegacyData } from "./upgrade";
 
 const tables = (blob: string) => `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -11,7 +12,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE TABLE IF NOT EXISTS orders (
   reference TEXT PRIMARY KEY, created_at BIGINT NOT NULL, day TEXT NOT NULL, status TEXT NOT NULL,
   email TEXT NOT NULL, name TEXT NOT NULL, phone TEXT, country TEXT,
-  subtotal_aed BIGINT NOT NULL DEFAULT 0, item_count INTEGER NOT NULL DEFAULT 0, has_por INTEGER NOT NULL DEFAULT 0,
+  subtotal BIGINT NOT NULL DEFAULT 0, item_count INTEGER NOT NULL DEFAULT 0, has_por INTEGER NOT NULL DEFAULT 0,
   data TEXT NOT NULL, history TEXT NOT NULL, updated_at BIGINT NOT NULL
 );
 CREATE INDEX IF NOT EXISTS orders_created ON orders (created_at);
@@ -33,18 +34,24 @@ CREATE TABLE IF NOT EXISTS media (
 `;
 
 /** Bump when the DDL above changes; the full migration then runs once. */
-export const SCHEMA_VERSION = "2";
+export const SCHEMA_VERSION = "3";
 
 const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media"];
 
-async function schemaIsCurrent(db: Db) {
+const FLAGS = ["schema_version", "prices_usd", "catalogue_seeded"];
+
+/** One read for every start-up flag (missing meta table → first run). */
+async function readFlags(db: Db): Promise<Record<string, string>> {
   try {
-    const v = await db.get<{ value: string }>("SELECT value FROM meta WHERE key = $1", ["schema_version"]);
-    return v?.value === SCHEMA_VERSION;
+    const rows = await db.all<{ key: string; value: string }>(`SELECT key, value FROM meta WHERE key IN ($1, $2, $3)`, FLAGS);
+    return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   } catch {
-    return false; // meta table missing → first run
+    return {};
   }
 }
+
+const setFlag = (db: Db, key: string, value: string) =>
+  db.run("INSERT INTO meta (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", [key, value]);
 
 /**
  * Runs on every cold start, so the common path must be a single cheap read.
@@ -56,7 +63,8 @@ async function schemaIsCurrent(db: Db) {
  * timeout so it can never stall the site.
  */
 export async function migrate(db: Db) {
-  if (!(await schemaIsCurrent(db))) {
+  const flags = await readFlags(db);
+  if (flags.schema_version !== SCHEMA_VERSION) {
     const ddl = tables(db.dialect === "postgres" ? "BYTEA" : "BLOB");
     try {
       if (db.dialect === "sqlite") {
@@ -73,7 +81,7 @@ export async function migrate(db: Db) {
         END $$;`;
         await db.exec(`SET LOCAL lock_timeout = '4s';\nSET LOCAL statement_timeout = '30s';\n${ddl}\n${rls}`);
       }
-      await db.run("INSERT INTO meta (key, value) VALUES ($1, $2) ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value", ["schema_version", SCHEMA_VERSION]);
+      await setFlag(db, "schema_version", SCHEMA_VERSION);
     } catch (err) {
       // Another instance may be migrating at the same moment. If the tables already exist,
       // carry on — a later start will finish the job.
@@ -86,10 +94,15 @@ export async function migrate(db: Db) {
     }
   }
 
+  // Prices moved from AED to USD — convert data written by earlier versions (runs once).
+  if (!flags.prices_usd) {
+    await upgradeLegacyData(db);
+    await setFlag(db, "prices_usd", "1");
+  }
+
   // Seed the catalogue once (one statement). A flag rather than "table is empty" means
-  // deleting every product in the admin does not bring the samples back.
-  const seeded = await db.get<{ value: string }>("SELECT value FROM meta WHERE key = $1", ["catalogue_seeded"]);
-  if (!seeded) {
+  // deleting every product in the admin does not bring the starting catalogue back.
+  if (!flags.catalogue_seeded) {
     const now = Date.now();
     const values = seedProducts.map((_, i) => `($${i * 5 + 1}, $${i * 5 + 2}, $${i * 5 + 3}, 0, $${i * 5 + 4}, $${i * 5 + 5})`).join(", ");
     await db.run(

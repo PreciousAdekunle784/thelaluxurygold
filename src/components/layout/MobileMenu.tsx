@@ -5,6 +5,7 @@ import { useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 import { Minus, Plus, X } from "lucide-react";
 import { Logo } from "@/components/brand/Logo";
+import { CurrencySwitch } from "./CurrencySwitch";
 import { socialIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { useEscape, useScrollLock } from "@/lib/hooks/ui";
 import { collectionsMenu, mainNav, shopMenu } from "@/lib/navigation";
@@ -92,8 +93,12 @@ export function MobileMenu({ open, onClose }: { open: boolean; onClose: () => vo
             </ul>
 
             <div className="space-y-6 border-t border-line bg-linen px-5 py-7">
+              <div className="flex items-center justify-between">
+                <span className="text-[0.62rem] uppercase tracking-[0.2em] text-stone">Currency</span>
+                <CurrencySwitch />
+              </div>
               <div className="flex gap-6 text-[0.72rem] uppercase tracking-[0.2em]">
-                <Link href="/account" onClick={onClose}>Account</Link>
+                <Link href="/account" onClick={onClose}>Track order</Link>
                 <Link href="/wishlist" onClick={onClose}>Wishlist</Link>
                 <Link href="/cart" onClick={onClose}>Bag</Link>
               </div>

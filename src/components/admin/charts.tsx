@@ -22,8 +22,8 @@ export interface BarDatum {
  * Single-series column chart. One hue (forest), 4px rounded data end, square baseline,
  * hairline gridlines, hover tooltip and a visually-hidden table for screen readers.
  */
-export function ColumnChart({ data, unit = "count", title, height = 200 }: { data: BarDatum[]; unit?: "count" | "aed"; title: string; height?: number }) {
-  const format = (n: number) => (unit === "aed" ? formatMoney(n) : n.toLocaleString("en-US"));
+export function ColumnChart({ data, unit = "count", title, height = 200 }: { data: BarDatum[]; unit?: "count" | "money"; title: string; height?: number }) {
+  const format = (n: number) => (unit === "money" ? formatMoney(n) : n.toLocaleString("en-US"));
   const [hover, setHover] = useState<number | null>(null);
   const W = 640;
   const padL = 44, padB = 26, padT = 12;

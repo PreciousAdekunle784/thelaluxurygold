@@ -97,7 +97,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                           </div>
                           <p className="mt-3 font-display text-[1.05rem] leading-tight">{p.name}</p>
                           <p className="mt-1 text-xs text-stone">
-                            {p.purity} · <Price amountAED={p.priceAED} />
+                            {p.purity} · <Price amount={p.price} />
                           </p>
                         </Link>
                       </li>

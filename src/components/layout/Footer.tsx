@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Logo, Monogram } from "@/components/brand/Logo";
 import { NewsletterForm } from "@/components/forms/NewsletterForm";
+import { CurrencySwitch } from "./CurrencySwitch";
 import { socialIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { footerNav } from "@/lib/navigation";
 import { store } from "@/lib/config/store";
@@ -100,7 +101,7 @@ export function Footer() {
               </Link>
             </li>
           </ul>
-          <p className="uppercase tracking-[0.2em]">{store.sampleMode ? "Preview · sample products & prices" : "Prices shown in AED"}</p>
+          <CurrencySwitch tone="light" className="text-ivory/80" />
         </div>
       </div>
     </footer>

@@ -1,12 +1,8 @@
 import type { Product, ProductVariant } from "./types";
 
 /**
- * SAMPLE CATALOGUE — development preview only.
- *
- * Names, descriptions, weights, specifications and prices below are placeholders
- * created so the shopping experience can be built and tested. Every entry is marked
- * `isSample: true` and is labelled as such in the interface. Replace this file (or the
- * data source behind `getProducts`) with LA Luxury Gold's verified catalogue.
+ * Starting catalogue. On first run it is copied into the database; from then on
+ * products are managed in the admin (Admin → Products). Prices are in US dollars.
  */
 
 const ringSizes: ProductVariant = {
@@ -22,8 +18,6 @@ const braceletSizes: ProductVariant = {
   options: ["S · 16 cm", "M · 17.5 cm", "L · 19 cm"].map((value) => ({ value })),
 };
 
-const sampleNote = { label: "Specification status", value: "Sample data — to be confirmed" };
-
 export const products: Product[] = [
   // ------------------------------------------------------------------ rings
   {
@@ -34,7 +28,7 @@ export const products: Product[] = [
     collections: ["everyday-gold", "gifting"],
     purity: "18K",
     weightGrams: 3.2,
-    priceAED: 1850,
+    price: 495,
     availability: "in_stock",
     tagline: "A softly domed band with a comfort-fit interior.",
     description: [
@@ -46,7 +40,6 @@ export const products: Product[] = [
       { label: "Approx. weight", value: "3.2 g (varies by size)" },
       { label: "Band width", value: "3.6 mm" },
       { label: "Finish", value: "High polish" },
-      sampleNote,
     ],
     variants: [ringSizes],
     images: [
@@ -57,7 +50,6 @@ export const products: Product[] = [
     createdAt: "2026-09-12",
     popularity: 92,
     featured: true,
-    isSample: true,
   },
   {
     id: "p-ring-signet",
@@ -67,7 +59,7 @@ export const products: Product[] = [
     collections: ["signature", "gifting"],
     purity: "21K",
     weightGrams: 7.8,
-    priceAED: 3400,
+    price: 925,
     availability: "in_stock",
     tagline: "A sculpted signet with a polished oval face, ready for engraving.",
     description: [
@@ -79,7 +71,6 @@ export const products: Product[] = [
       { label: "Approx. weight", value: "7.8 g (varies by size)" },
       { label: "Face", value: "Oval, approx. 11 × 9 mm" },
       { label: "Personalisation", value: "Engraving on request" },
-      sampleNote,
     ],
     variants: [ringSizes],
     images: [
@@ -91,7 +82,6 @@ export const products: Product[] = [
     popularity: 88,
     featured: true,
     isNew: true,
-    isSample: true,
   },
   {
     id: "p-ring-corda",
@@ -101,7 +91,7 @@ export const products: Product[] = [
     collections: ["everyday-gold"],
     purity: "18K",
     weightGrams: 4.1,
-    priceAED: 2150,
+    price: 585,
     availability: "low_stock",
     tagline: "Two strands of gold, twisted into one continuous rope.",
     description: [
@@ -112,7 +102,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "4.1 g (varies by size)" },
       { label: "Width", value: "3.2 mm" },
-      sampleNote,
     ],
     variants: [ringSizes],
     images: [
@@ -122,7 +111,6 @@ export const products: Product[] = [
     ],
     createdAt: "2026-07-20",
     popularity: 74,
-    isSample: true,
   },
   {
     id: "p-ring-soleil",
@@ -132,7 +120,7 @@ export const products: Product[] = [
     collections: ["signature"],
     purity: "22K",
     weightGrams: 9.4,
-    priceAED: 4200,
+    price: 1145,
     availability: "made_to_order",
     tagline: "A bold, sculptural dome that gathers light like the sun.",
     description: [
@@ -143,7 +131,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "22K yellow gold" },
       { label: "Approx. weight", value: "9.4 g (varies by size)" },
       { label: "Dome height", value: "approx. 6 mm" },
-      sampleNote,
     ],
     variants: [ringSizes],
     images: [
@@ -154,7 +141,6 @@ export const products: Product[] = [
     createdAt: "2026-08-14",
     popularity: 81,
     featured: true,
-    isSample: true,
   },
 
   // ------------------------------------------------------------------ necklaces
@@ -166,7 +152,7 @@ export const products: Product[] = [
     collections: ["everyday-gold"],
     purity: "18K",
     weightGrams: 6.5,
-    priceAED: 3950,
+    price: 1075,
     availability: "in_stock",
     tagline: "Generous oval links with a fluid, polished drape.",
     description: [
@@ -178,7 +164,6 @@ export const products: Product[] = [
       { label: "Approx. weight", value: "6.5 g (45 cm)" },
       { label: "Link size", value: "approx. 4.6 mm" },
       { label: "Clasp", value: "Lobster clasp" },
-      sampleNote,
     ],
     variants: [chainLengths([42, 45, 50])],
     images: [
@@ -189,7 +174,6 @@ export const products: Product[] = [
     createdAt: "2026-06-30",
     popularity: 86,
     featured: true,
-    isSample: true,
   },
   {
     id: "p-neck-medaille",
@@ -199,7 +183,7 @@ export const products: Product[] = [
     collections: ["signature", "gifting"],
     purity: "21K",
     weightGrams: 5.2,
-    priceAED: 2900,
+    price: 790,
     availability: "in_stock",
     tagline: "A polished medallion bearing the LG monogram.",
     description: [
@@ -210,7 +194,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "21K pendant · 18K chain" },
       { label: "Approx. weight", value: "5.2 g" },
       { label: "Medallion diameter", value: "approx. 21 mm" },
-      sampleNote,
     ],
     variants: [chainLengths([42, 45, 50])],
     images: [
@@ -222,7 +205,6 @@ export const products: Product[] = [
     popularity: 90,
     featured: true,
     isNew: true,
-    isSample: true,
   },
   {
     id: "p-neck-corde",
@@ -232,7 +214,7 @@ export const products: Product[] = [
     collections: ["signature"],
     purity: "22K",
     weightGrams: 14.6,
-    priceAED: 5600,
+    price: 1525,
     availability: "in_stock",
     tagline: "A dense, twisted rope chain with a brilliant, light-catching surface.",
     description: [
@@ -243,7 +225,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "22K yellow gold" },
       { label: "Approx. weight", value: "14.6 g (50 cm)" },
       { label: "Chain width", value: "approx. 2.5 mm" },
-      sampleNote,
     ],
     variants: [chainLengths([45, 50, 55])],
     images: [
@@ -253,7 +234,6 @@ export const products: Product[] = [
     ],
     createdAt: "2026-05-08",
     popularity: 79,
-    isSample: true,
   },
   {
     id: "p-neck-goutte",
@@ -263,7 +243,7 @@ export const products: Product[] = [
     collections: ["gifting", "everyday-gold"],
     purity: "18K",
     weightGrams: 3.9,
-    priceAED: 2450,
+    price: 665,
     availability: "in_stock",
     tagline: "A single polished drop of gold on a fine chain.",
     description: [
@@ -274,7 +254,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "3.9 g" },
       { label: "Drop height", value: "approx. 17 mm" },
-      sampleNote,
     ],
     variants: [chainLengths([40, 42, 45])],
     images: [
@@ -285,7 +264,6 @@ export const products: Product[] = [
     createdAt: "2026-09-25",
     popularity: 77,
     isNew: true,
-    isSample: true,
   },
 
   // ------------------------------------------------------------------ bracelets
@@ -297,7 +275,7 @@ export const products: Product[] = [
     collections: ["everyday-gold", "signature"],
     purity: "22K",
     weightGrams: 12.5,
-    priceAED: 7800,
+    price: 2125,
     availability: "in_stock",
     tagline: "A perfectly round bangle in rich 22K gold.",
     description: [
@@ -308,7 +286,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "22K yellow gold" },
       { label: "Approx. weight", value: "12.5 g" },
       { label: "Wire diameter", value: "approx. 3.4 mm" },
-      sampleNote,
     ],
     variants: [braceletSizes],
     images: [
@@ -319,7 +296,6 @@ export const products: Product[] = [
     createdAt: "2026-04-11",
     popularity: 84,
     featured: true,
-    isSample: true,
   },
   {
     id: "p-brac-arc",
@@ -329,7 +305,7 @@ export const products: Product[] = [
     collections: ["signature"],
     purity: "18K",
     weightGrams: 18.2,
-    priceAED: 5200,
+    price: 1415,
     availability: "low_stock",
     tagline: "A sculpted open cuff that widens at the centre.",
     description: [
@@ -340,7 +316,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "18.2 g" },
       { label: "Width at centre", value: "approx. 10 mm" },
-      sampleNote,
     ],
     variants: [braceletSizes],
     images: [
@@ -350,7 +325,6 @@ export const products: Product[] = [
     ],
     createdAt: "2026-08-29",
     popularity: 72,
-    isSample: true,
   },
   {
     id: "p-brac-riviera",
@@ -360,7 +334,7 @@ export const products: Product[] = [
     collections: ["everyday-gold", "gifting"],
     purity: "18K",
     weightGrams: 5.8,
-    priceAED: 2650,
+    price: 720,
     availability: "in_stock",
     tagline: "Bold oval links, scaled for the wrist.",
     description: [
@@ -371,7 +345,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "5.8 g" },
       { label: "Link size", value: "approx. 5 mm" },
-      sampleNote,
     ],
     variants: [braceletSizes],
     images: [
@@ -381,7 +354,6 @@ export const products: Product[] = [
     ],
     createdAt: "2026-07-03",
     popularity: 70,
-    isSample: true,
   },
 
   // ------------------------------------------------------------------ earrings
@@ -393,7 +365,7 @@ export const products: Product[] = [
     collections: ["everyday-gold", "gifting"],
     purity: "18K",
     weightGrams: 4.4,
-    priceAED: 1950,
+    price: 530,
     availability: "in_stock",
     tagline: "Rounded, tapered hoops — the essential pair.",
     description: [
@@ -404,7 +376,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "4.4 g (pair)" },
       { label: "Diameter", value: "approx. 20 mm" },
-      sampleNote,
     ],
     images: [
       { media: "products/classic-hoops-1", alt: "Classic Gold Hoops in 18K gold" },
@@ -414,7 +385,6 @@ export const products: Product[] = [
     createdAt: "2026-06-02",
     popularity: 95,
     featured: true,
-    isSample: true,
   },
   {
     id: "p-ear-huggies",
@@ -424,7 +394,7 @@ export const products: Product[] = [
     collections: ["everyday-gold"],
     purity: "18K",
     weightGrams: 2.6,
-    priceAED: 1250,
+    price: 340,
     availability: "in_stock",
     tagline: "Small, chunky huggies that sit close to the lobe.",
     description: [
@@ -435,7 +405,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "18K yellow gold" },
       { label: "Approx. weight", value: "2.6 g (pair)" },
       { label: "Diameter", value: "approx. 12 mm" },
-      sampleNote,
     ],
     images: [
       { media: "products/petite-huggies-1", alt: "Petite Huggie Earrings in 18K gold" },
@@ -445,7 +414,6 @@ export const products: Product[] = [
     createdAt: "2026-10-09",
     popularity: 83,
     isNew: true,
-    isSample: true,
   },
   {
     id: "p-ear-goutte",
@@ -455,7 +423,7 @@ export const products: Product[] = [
     collections: ["signature", "gifting"],
     purity: "21K",
     weightGrams: 5.6,
-    priceAED: 3100,
+    price: 845,
     availability: "made_to_order",
     tagline: "Polished gold drops suspended from petite hoops.",
     description: [
@@ -466,7 +434,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "21K yellow gold" },
       { label: "Approx. weight", value: "5.6 g (pair)" },
       { label: "Drop length", value: "approx. 32 mm" },
-      sampleNote,
     ],
     images: [
       { media: "products/goutte-drop-earrings-1", alt: "Goutte Drop Earrings in 21K gold" },
@@ -475,16 +442,15 @@ export const products: Product[] = [
     ],
     createdAt: "2026-09-04",
     popularity: 76,
-    isSample: true,
   },
 
   // ------------------------------------------------------------------ gold bars
   ...(
     [
-      ["5g", 5, 1750, 2.5, 1.5, 60],
-      ["10g", 10, 3450, 3.1, 1.8, 89],
-      ["20g", 20, 6850, 3.6, 2.2, 71],
-      ["50g", 50, 16900, 4.6, 2.6, 64],
+      ["5g", 5, 475, 2.5, 1.5, 60],
+      ["10g", 10, 940, 3.1, 1.8, 89],
+      ["20g", 20, 1865, 3.6, 2.2, 71],
+      ["50g", 50, 4600, 4.6, 2.6, 64],
     ] as const
   ).map(
     ([label, grams, price, h, w, pop], i): Product => ({
@@ -495,7 +461,7 @@ export const products: Product[] = [
       collections: ["investment-gold", "gifting"],
       purity: "24K",
       weightGrams: grams,
-      priceAED: price,
+      price: price,
       availability: i === 3 ? "low_stock" : "in_stock",
       tagline: `A ${grams} g bar of 24K gold with a polished, engraved face.`,
       description: [
@@ -507,7 +473,6 @@ export const products: Product[] = [
         { label: "Weight", value: `${grams} g` },
         { label: "Approx. dimensions", value: `${h * 10} × ${w * 10} mm` },
         { label: "Finish", value: "Minted, polished face" },
-        sampleNote,
       ],
       images: [
         { media: `products/minted-gold-bar-${label}-1`, alt: `24K minted gold bar, ${grams} grams` },
@@ -517,7 +482,6 @@ export const products: Product[] = [
       createdAt: `2026-0${3 + i}-15`,
       popularity: pop,
       featured: label === "10g",
-      isSample: true,
     }),
   ),
   {
@@ -528,7 +492,7 @@ export const products: Product[] = [
     collections: ["investment-gold"],
     purity: "24K",
     weightGrams: 100,
-    priceAED: null,
+    price: null,
     availability: "made_to_order",
     tagline: "A traditionally cast 100 g bar of 24K gold. Price on request.",
     description: [
@@ -539,7 +503,6 @@ export const products: Product[] = [
       { label: "Gold purity", value: "24K" },
       { label: "Weight", value: "100 g" },
       { label: "Finish", value: "Cast" },
-      sampleNote,
     ],
     images: [
       { media: "products/cast-gold-bar-100g-1", alt: "24K cast gold bar, 100 grams" },
@@ -548,6 +511,5 @@ export const products: Product[] = [
     ],
     createdAt: "2026-02-20",
     popularity: 58,
-    isSample: true,
   },
 ];

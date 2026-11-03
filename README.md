@@ -35,7 +35,7 @@ src/app/(store)/         Storefront routes: home, shop, collections/[slug], gold
                          returns, privacy, terms, api/{orders,newsletter,contact}, sitemap, robots
 src/components/          brand · layout · home · shop · product · cart · forms · ui
 src/lib/config/store.ts  Business settings: contact numbers, socials, currencies, shipping, payment options
-src/lib/data/            Catalogue (products.ts), categories & collections, testimonials, media registry
+src/lib/data/            Starting catalogue (products.ts), categories & collections, site settings, media registry
 src/lib/data/catalogue.ts   Data-access layer (search, filter, sort). Swap the data source here.
 src/lib/state/           Cart, wishlist and currency providers (persisted to localStorage)
 src/lib/server/          Order validation & persistence, webhook forwarding
@@ -44,18 +44,16 @@ src/lib/auth/            Admin session signing & guards
 src/app/admin/           Admin panel (dashboard, visitors, orders, buyers, products…)
 src/proxy.ts             Protects /admin and /api/admin
 src/lib/payments/        Payment-gateway interface (no provider connected)
-tools/render/            The 3D studio renderer used to create the placeholder imagery
+tools/render/            The 3D studio renderer used to create the studio imagery
 tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 ```
 
-## Important: sample content
+## Content you manage
 
-Real product data was not supplied, so the catalogue is a **clearly labelled sample**:
-
-* Every product has `isSample: true` and shows a "Sample" / "Sample price" label. Names, weights, specifications and prices are placeholders.
-* Testimonials are anonymous placeholders, labelled "Sample testimonial".
-* While `NEXT_PUBLIC_SAMPLE_CATALOGUE` is not `"false"`, every page is `noindex` and `robots.txt` disallows crawling, so sample prices are never indexed.
-* Policy pages (shipping, returns, privacy, terms) are **drafts**. Bracketed items must be confirmed by the business and reviewed legally.
+* **Products and prices** live in the database and are edited in `/admin → Products`. `src/lib/data/products.ts` is only the starting catalogue copied in on first run. Prices are in **US dollars**.
+* **Currency.** Prices are set in USD. Shoppers can switch to **Nigerian naira** (header, menu and footer). Visitors in Nigeria see naira first. The naira rate is set in `/admin → Store settings`, and naira prices are rounded to the nearest ₦100. Orders are stored in USD, and the order page also shows the naira amount the shopper saw.
+* **Testimonials** are added in `/admin → Testimonials`. The homepage section only appears once at least one is published. Only publish feedback a client actually gave, credited the way they agreed.
+* **Policies.** Terms, privacy, returns and shipping are written as finished copy for a Dubai-based jeweller: 14-day returns on unworn pieces, no returns on gold bars or made-to-order pieces, UAE governing law. Review them with the business before launch (ideally with a legal adviser). Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit them.
 
 ### Hero film
 
@@ -77,7 +75,7 @@ To use your own footage, replace the four files in `public/videos/` (keep the na
 
 ### Imagery
 
-All photography is **placeholder still-life imagery rendered in a 3D studio** (`tools/render`): gold rings, chains, bangles, earrings and bars on travertine, silk and seamless backdrops. It contains no third-party stock or brand assets. Each product has three images: a studio shot, a styled shot (used for the hover swap) and a detail close-up.
+All photography is **still-life imagery rendered in a 3D studio** (`tools/render`): gold rings, chains, bangles, earrings and bars on travertine, silk and seamless backdrops. It contains no third-party stock or brand assets. Each product has three images: a studio shot, a styled shot (used for the hover swap) and a detail close-up.
 
 To replace an image, drop a new file at the same key under `public/images/` (keep the aspect ratio: products 4:5), then run:
 
@@ -98,7 +96,7 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `ADMIN_SESSION_SECRET` | Optional secret for signing admin sessions |
 | `DATABASE_URL` | PostgreSQL connection string (required on serverless hosts); omit for local SQLite |
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata, sitemap and structured data |
-| `NEXT_PUBLIC_SAMPLE_CATALOGUE` | Set to `false` once verified products are loaded (enables indexing, removes labels) |
+| `NEXT_PUBLIC_NGN_PER_USD` | Optional: naira rate used until one is saved in Store settings (default 1550) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
 | `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
@@ -106,8 +104,8 @@ Copy `.env.example` to `.env.local` and fill it in.
 
 Orders, messages and sign-ups are always saved to the database and shown in the admin. Webhooks are optional extras.
 
-* **Currency**: AED is the base currency. USD, EUR, GBP and SAR are defined in `store.ts` with `rate: null`. Give one a rate (ideally from a rates service) and it appears automatically in the currency layer.
-* **Shipping**: methods are defined in `store.ts`. Rates and delivery estimates are `null` (shown as "confirmed by our team") until you set them. No rates or timelines were invented.
+* **Currency**: USD (base) and NGN, defined in `store.ts`. The naira rate comes from `/admin → Store settings`.
+* **Shipping**: methods are defined in `store.ts`. Rates are `null`, shown as "Confirmed with your order", until you set a flat rate.
 * **WhatsApp**: the main number `08149734675` is used in international format (`+234 814 973 4675`, assumed Nigerian). UAE `+971 50 625 9597` and secondary `+234 814 966 6013` are listed on the contact page and in the footer. Change these in `store.contact`.
 
 ## Admin panel (`/admin`)
@@ -121,7 +119,8 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
 | **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
-| **Homepage hero** | By default the hero plays the looping brand film. Upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back to the film at any time. |
+| **Testimonials** | Add, edit, hide or delete client testimonials. The homepage section is hidden until one is published. |
+| **Store settings** | The naira-per-dollar exchange rate. Also the homepage hero: by default it plays the looping brand film. Upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back to the film at any time. |
 | **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
 
 **New-order alerts.** When a customer places an order, every open admin page shows a pop-up and plays a soft chime. Click **Enable order alerts** in the sidebar to also get desktop notifications.
@@ -136,7 +135,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 2. In **SQL Editor → New query**, paste **`supabase/schema.sql`** and click **Run**. It creates every table and enables Row Level Security, so Supabase's public API keys cannot read your orders or customers. It is safe to run again.
 3. In **Project Settings → Database → Connection string**, copy the **Transaction pooler** URI (port `6543`) and replace `[YOUR-PASSWORD]`.
 4. Set it as **`DATABASE_URL`** in your hosting environment (Vercel: *Settings → Environment Variables*), together with `ADMIN_PASSWORD`, then redeploy.
-5. On first start the site copies the sample catalogue into `products`. Manage everything from `/admin` after that. The optional `product_overview` and `order_overview` views make the data easy to browse in Supabase's Table Editor.
+5. On first start the site copies the starting catalogue into `products`. Manage everything from `/admin` after that. The optional `product_overview` and `order_overview` views make the data easy to browse in Supabase's Table Editor.
 
 The **project URL** (`https://<ref>.supabase.co`) is *not* the connection string. `DATABASE_URL` must look like:
 
@@ -155,7 +154,7 @@ The app connects server-side with SSL, using a driver configured for the pooler 
 | `DATABASE_URL` set | **PostgreSQL** (Neon, Supabase, Railway, RDS…). **Required on Vercel and other serverless hosts.** |
 | not set | A local **SQLite** file at `.data/llg.sqlite`, built into Node 22.13+. Fine for development or a single server; back the file up. |
 
-The tables are created automatically, and the sample catalogue is copied into the database on first run. From then on, products are managed in the admin, and `src/lib/data/products.ts` is only the initial seed. Uploaded images are stored in the database and served from `/media/<id>`.
+The tables are created automatically, and the starting catalogue is copied into the database on first run. From then on, products are managed in the admin, and `src/lib/data/products.ts` is only the initial seed. Uploaded images are stored in the database and served from `/media/<id>`.
 
 **Security.** Admin pages and APIs are protected twice: by `src/proxy.ts`, and again inside every page and action. Sessions are signed, HTTP-only cookies lasting 12 hours. Login attempts are rate-limited. Use a long, unique `ADMIN_PASSWORD`. Optionally set `ADMIN_SESSION_SECRET`; changing it signs every session out.
 
@@ -163,12 +162,12 @@ The tables are created automatically, and the sample catalogue is copied into th
 
 Checkout collects contact details, a delivery address with country selection, a shipping method and a payment option. **No payment is simulated.** Because no gateway is connected:
 
-* "Credit / debit card" is shown but disabled ("Coming soon").
-* "Reserve & confirm with our team" submits an **order request** to `/api/orders`. The server re-validates the request and recalculates prices from the catalogue, then returns a reference such as `LLG-1A2B3C4D`. The customer sees a "No payment has been taken" confirmation and a WhatsApp button pre-filled with the reference.
+* The only option shown is "Confirm & pay with our team". The card option is defined in `store.ts` but hidden until a gateway is connected.
+* Placing the order submits an **order request** to `/api/orders`. The server re-validates the request and recalculates prices from the catalogue, then returns a reference such as `LLG-1A2B3C4D`. The customer sees a "No payment has been taken" confirmation and a WhatsApp button pre-filled with the reference.
 
 To go live, implement `PaymentProvider` in `src/lib/payments` (e.g. Network International N-Genius, Checkout.com, Telr or Stripe). Then enable the card option in `store.ts`.
 
-Customer accounts have a UI only. Connect an auth provider in `src/components/forms/AccountView.tsx`.
+**Order tracking.** `/account` lets customers look up an order with its reference and email. They see its status, a progress timeline and the items. The lookup is rate-limited, and internal status notes are never shown.
 
 ## Performance
 
@@ -203,10 +202,11 @@ The suite covers 49 checks:
 
 ## Launch checklist
 
-- [ ] Replace sample products, prices and imagery; set `NEXT_PUBLIC_SAMPLE_CATALOGUE=false`
+- [ ] Review products, prices and imagery in the admin (replace the studio renders with real photography)
+- [ ] Set the naira exchange rate in Store settings
 - [ ] Confirm the WhatsApp/phone country codes and add a contact email
 - [ ] Confirm shipping rates and timelines and the policy texts (legal review)
 - [ ] Set `ADMIN_PASSWORD` and a production `DATABASE_URL` (PostgreSQL)
 - [ ] Connect a payment gateway
-- [ ] Add verified testimonials (with permission) or remove the section
+- [ ] Add real client testimonials (with permission) in the admin
 - [ ] Set `NEXT_PUBLIC_SITE_URL` and add analytics/cookie consent if required

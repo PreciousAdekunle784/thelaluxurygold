@@ -37,8 +37,8 @@ export async function saveProductAction(input: Product): Promise<SaveResult> {
   if (!categories.some((c) => c.slug === input.category)) f.category = "Choose a category.";
   if (!purities.includes(input.purity)) f.purity = "Choose a gold purity.";
   if (!availability.includes(input.availability)) f.availability = "Choose availability.";
-  const price = input.priceAED == null || (input.priceAED as unknown) === "" ? null : Math.round(Number(input.priceAED));
-  if (price != null && (!Number.isFinite(price) || price < 0)) f.priceAED = "Enter a valid price, or leave empty for price on request.";
+  const price = input.price == null || (input.price as unknown) === "" ? null : Math.round(Number(input.price));
+  if (price != null && (!Number.isFinite(price) || price < 0)) f.price = "Enter a valid price, or leave empty for price on request.";
   const weight = input.weightGrams == null || (input.weightGrams as unknown) === "" ? undefined : Number(input.weightGrams);
   if (weight != null && (!Number.isFinite(weight) || weight <= 0)) f.weightGrams = "Enter a valid weight in grams.";
   const images = (input.images ?? [])
@@ -58,21 +58,20 @@ export async function saveProductAction(input: Product): Promise<SaveResult> {
     collections: (input.collections ?? []).filter((c) => collections.some((x) => x.slug === c)),
     purity: input.purity,
     weightGrams: weight,
-    priceAED: price,
+    price: price,
     availability: input.availability,
     tagline: str(input.tagline, 240),
     description: (input.description ?? []).map((d) => str(d, 2000)).filter(Boolean),
     specs: (input.specs ?? []).map((s) => ({ label: str(s.label, 80), value: str(s.value, 200) })).filter((s) => s.label && s.value),
     variants: (input.variants ?? [])
       .filter((v) => variantNames.includes(v.name))
-      .map((v) => ({ name: v.name, options: (v.options ?? []).map((o) => ({ value: str(o.value, 40), ...(o.priceDeltaAED ? { priceDeltaAED: Math.round(Number(o.priceDeltaAED)) || 0 } : {}), ...(o.available === false ? { available: false } : {}) })).filter((o) => o.value) }))
+      .map((v) => ({ name: v.name, options: (v.options ?? []).map((o) => ({ value: str(o.value, 40), ...(o.priceDelta ? { priceDelta: Math.round(Number(o.priceDelta)) || 0 } : {}), ...(o.available === false ? { available: false } : {}) })).filter((o) => o.value) }))
       .filter((v) => v.options.length),
     images,
     createdAt: existing?.product.createdAt ?? new Date().toISOString().slice(0, 10),
     popularity: Number.isFinite(Number(input.popularity)) ? Number(input.popularity) : 50,
     featured: !!input.featured,
     isNew: !!input.isNew,
-    isSample: !!input.isSample,
   };
   if (!product.variants?.length) delete product.variants;
   await saveProduct(product);

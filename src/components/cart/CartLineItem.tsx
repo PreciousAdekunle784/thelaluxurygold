@@ -26,7 +26,7 @@ export function CartLineItem({ line, onNavigate, large }: { line: ResolvedLine; 
               {line.variant ? ` · ${line.variant.name}: ${line.variant.value}` : ""}
             </p>
           </div>
-          <Price amountAED={line.lineTotalAED} className="shrink-0 text-sm" />
+          <Price amount={line.lineTotal} className="shrink-0 text-sm" />
         </div>
         <div className="mt-auto flex items-center justify-between pt-3">
           <QuantitySelector size="sm" value={line.quantity} min={1} onChange={(n) => setQuantity(line.key, n)} label={`Quantity for ${p.name}`} />

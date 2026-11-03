@@ -68,8 +68,8 @@ export function queryProducts(query: ProductQuery, source: Product[]): Product[]
     if (query.collections?.length && !p.collections.some((c) => query.collections!.includes(c))) return false;
     if (query.purities?.length && !query.purities.includes(p.purity)) return false;
     if (query.inStockOnly && !inStock.includes(p.availability)) return false;
-    if (query.minPrice != null && (p.priceAED == null || p.priceAED < query.minPrice)) return false;
-    if (query.maxPrice != null && (p.priceAED == null || p.priceAED > query.maxPrice)) return false;
+    if (query.minPrice != null && (p.price == null || p.price < query.minPrice)) return false;
+    if (query.maxPrice != null && (p.price == null || p.price > query.maxPrice)) return false;
     return true;
   });
 
@@ -79,7 +79,7 @@ export function queryProducts(query: ProductQuery, source: Product[]): Product[]
     if (!query.sort || query.sort === "featured") return list;
   }
 
-  const byPrice = (p: Product) => p.priceAED ?? Number.POSITIVE_INFINITY;
+  const byPrice = (p: Product) => p.price ?? Number.POSITIVE_INFINITY;
   switch (query.sort ?? "featured") {
     case "newest":
       return [...list].sort((a, b) => b.createdAt.localeCompare(a.createdAt));
@@ -88,7 +88,7 @@ export function queryProducts(query: ProductQuery, source: Product[]): Product[]
     case "price-asc":
       return [...list].sort((a, b) => byPrice(a) - byPrice(b));
     case "price-desc":
-      return [...list].sort((a, b) => (b.priceAED ?? -1) - (a.priceAED ?? -1));
+      return [...list].sort((a, b) => (b.price ?? -1) - (a.price ?? -1));
     default:
       return [...list].sort((a, b) => Number(!!b.featured) - Number(!!a.featured) || b.popularity - a.popularity);
   }
@@ -102,6 +102,6 @@ export const availabilityLabel: Record<Availability, string> = {
 };
 
 export function priceBounds(list: Product[]) {
-  const prices = list.map((p) => p.priceAED).filter((x): x is number => x != null);
+  const prices = list.map((p) => p.price).filter((x): x is number => x != null);
   return { min: Math.min(...prices), max: Math.max(...prices) };
 }

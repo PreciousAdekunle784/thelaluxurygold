@@ -14,7 +14,6 @@ import { store } from "@/lib/config/store";
 import { cx } from "@/lib/format";
 import { Price } from "./Price";
 import { WishlistButton } from "./WishlistButton";
-import { SampleBadge } from "./SampleBadge";
 
 export function PurchasePanel({ product }: { product: Product }) {
   const { add } = useCart();
@@ -25,7 +24,7 @@ export function PurchasePanel({ product }: { product: Product }) {
   const [error, setError] = useState<string | null>(null);
   const [added, setAdded] = useState(false);
 
-  const onRequest = product.priceAED == null;
+  const onRequest = product.price == null;
   const unavailable = product.availability === "out_of_stock";
   const price = unitPrice(product, variant && selected ? { name: variant.name, value: selected } : undefined);
   const url = `${store.url}/product/${product.slug}`;
@@ -54,10 +53,8 @@ export function PurchasePanel({ product }: { product: Product }) {
       <p className="mt-4 text-[0.98rem] leading-relaxed text-stone">{product.tagline}</p>
 
       <div className="mt-7 flex flex-wrap items-center gap-3">
-        <Price amountAED={price} className="text-xl" />
-        {product.isSample && <SampleBadge className="text-stone">Sample price</SampleBadge>}
+        <Price amount={price} className="text-xl" />
       </div>
-      {product.isSample && <p className="mt-2 text-xs text-stone">Development preview — product details and price are placeholders.</p>}
 
       <dl className="mt-8 grid grid-cols-3 border-y border-line text-center">
         <div className="py-4">

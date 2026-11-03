@@ -44,8 +44,7 @@ export const metadata: Metadata = {
     locale: "en_AE",
   },
   twitter: { card: "summary_large_image", site: "@laluxurygold" },
-  // Sample catalogue must never be indexed.
-  robots: store.sampleMode ? { index: false, follow: false } : { index: true, follow: true },
+  robots: { index: true, follow: true },
   alternates: { canonical: "/" },
 };
 

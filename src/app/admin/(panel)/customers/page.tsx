@@ -15,8 +15,8 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
   const buyers = await listCustomers({ q: q || undefined });
-  const paid = buyers.reduce((n, b) => n + b.paidAED, 0);
-  const requested = buyers.reduce((n, b) => n + b.requestedAED, 0);
+  const paid = buyers.reduce((n, b) => n + b.paid, 0);
+  const requested = buyers.reduce((n, b) => n + b.requested, 0);
   const repeat = buyers.filter((b) => b.orders > 1).length;
 
   return (
@@ -47,8 +47,8 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
               <td className="whitespace-nowrap px-4 py-3">{b.phone}</td>
               <td className="whitespace-nowrap px-4 py-3">{countryLabel(b.country)}</td>
               <td className="px-4 py-3 tabular-nums">{b.orders}</td>
-              <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatMoney(b.requestedAED)}</td>
-              <td className="whitespace-nowrap px-4 py-3 font-semibold tabular-nums">{formatMoney(b.paidAED)}</td>
+              <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatMoney(b.requested)}</td>
+              <td className="whitespace-nowrap px-4 py-3 font-semibold tabular-nums">{formatMoney(b.paid)}</td>
               <td className="whitespace-nowrap px-4 py-3 text-stone">{formatDateTime(b.lastOrder)}</td>
             </tr>
           ))}

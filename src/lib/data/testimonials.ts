@@ -1,28 +1,24 @@
-/**
- * SAMPLE TESTIMONIALS — development placeholders only.
- * They are deliberately anonymous and labelled in the UI. Replace with verified
- * client feedback (with permission) before launch, and set isSample to false.
- */
+/** Client testimonials, managed in Admin → Testimonials and stored in site settings. */
 export interface Testimonial {
+  id: string;
   quote: string;
-  attribution: string;
-  isSample: boolean;
+  /** How the client is credited, e.g. "Amaka O." */
+  name: string;
+  /** Optional detail, e.g. "Lagos · Signet ring". */
+  detail?: string;
+  published: boolean;
 }
 
-export const testimonials: Testimonial[] = [
-  {
-    quote: "Placeholder testimonial — a verified client's words about the quality of their piece will appear here.",
-    attribution: "Client name · City",
-    isSample: true,
-  },
-  {
-    quote: "Placeholder testimonial — feedback about the ordering and delivery experience will appear here once supplied.",
-    attribution: "Client name · City",
-    isSample: true,
-  },
-  {
-    quote: "Placeholder testimonial — a review describing the customer service received will appear here.",
-    attribution: "Client name · City",
-    isSample: true,
-  },
-];
+export function parseTestimonials(raw?: string): Testimonial[] {
+  if (!raw) return [];
+  try {
+    const list = JSON.parse(raw);
+    return Array.isArray(list)
+      ? list
+          .filter((t) => t && typeof t.quote === "string" && typeof t.name === "string")
+          .map((t) => ({ id: String(t.id), quote: t.quote, name: t.name, detail: t.detail || undefined, published: !!t.published }))
+      : [];
+  } catch {
+    return [];
+  }
+}

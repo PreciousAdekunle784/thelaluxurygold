@@ -15,14 +15,14 @@ export interface CartLine {
 
 export interface ResolvedLine extends CartLine {
   product: Product;
-  unitPriceAED: number | null;
-  lineTotalAED: number | null;
+  unitPrice: number | null;
+  lineTotal: number | null;
 }
 
 interface CartContextValue {
   lines: ResolvedLine[];
   count: number;
-  subtotalAED: number;
+  subtotal: number;
   hasPriceOnRequest: boolean;
   hydrated: boolean;
   isOpen: boolean;
@@ -54,7 +54,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
         const product = byId(l.productId);
         if (!product) return [];
         const u = unitPrice(product, l.variant);
-        return [{ ...l, product, unitPriceAED: u, lineTotalAED: u == null ? null : u * l.quantity }];
+        return [{ ...l, product, unitPrice: u, lineTotal: u == null ? null : u * l.quantity }];
       }),
     [raw, byId],
   );
@@ -86,8 +86,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
     () => ({
       lines,
       count: lines.reduce((n, l) => n + l.quantity, 0),
-      subtotalAED: lines.reduce((n, l) => n + (l.lineTotalAED ?? 0), 0),
-      hasPriceOnRequest: lines.some((l) => l.unitPriceAED == null),
+      subtotal: lines.reduce((n, l) => n + (l.lineTotal ?? 0), 0),
+      hasPriceOnRequest: lines.some((l) => l.unitPrice == null),
       hydrated,
       isOpen,
       open: () => setOpen(true),

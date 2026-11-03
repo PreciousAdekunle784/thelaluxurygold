@@ -42,13 +42,13 @@ export function productJsonLd(p: Product) {
     category: p.category,
     material: `${p.purity} gold`,
     ...(p.weightGrams ? { weight: { "@type": "QuantitativeValue", value: p.weightGrams, unitCode: "GRM" } } : {}),
-    ...(p.priceAED != null
+    ...(p.price != null
       ? {
           offers: {
             "@type": "Offer",
             url,
-            priceCurrency: "AED",
-            price: p.priceAED,
+            priceCurrency: "USD",
+            price: p.price,
             availability: availabilityMap[p.availability],
             seller: { "@type": "Organization", name: store.name },
           },

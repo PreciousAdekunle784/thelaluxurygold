@@ -36,7 +36,7 @@ export const footerNav = {
     { label: "Shipping & delivery", href: "/shipping" },
     { label: "Returns & exchanges", href: "/returns" },
     { label: "Frequently asked questions", href: "/faq" },
-    { label: "My account", href: "/account" },
+    { label: "Track your order", href: "/account" },
   ],
   house: [
     { label: "About LA Luxury Gold", href: "/about" },

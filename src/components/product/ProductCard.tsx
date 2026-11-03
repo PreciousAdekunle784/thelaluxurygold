@@ -11,7 +11,6 @@ import { cx } from "@/lib/format";
 import { whatsappLink, productEnquiry } from "@/lib/whatsapp";
 import { Price } from "./Price";
 import { WishlistButton } from "./WishlistButton";
-import { SampleBadge } from "./SampleBadge";
 
 export function ProductCard({ product, priority, sizes }: { product: Product; priority?: boolean; sizes?: string }) {
   const { add } = useCart();
@@ -92,7 +91,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
               </m.div>
             )}
           </AnimatePresence>
-          {product.priceAED == null ? (
+          {product.price == null ? (
             <a
               href={whatsappLink(productEnquiry(product.name))}
               target="_blank"
@@ -133,8 +132,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
           )}
         </p>
         <p className="flex items-center gap-2.5 text-[0.9rem]">
-          <Price amountAED={product.priceAED} />
-          {product.isSample && <SampleBadge className="text-stone">Sample</SampleBadge>}
+          <Price amount={product.price} />
         </p>
       </Link>
     </article>

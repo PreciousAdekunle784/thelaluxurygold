@@ -40,16 +40,16 @@ export default async function OrderDetail({ params }: PageProps<"/admin/orders/[
                 <li key={i} className="flex items-center justify-between gap-4 px-5 py-3.5 text-sm">
                   <div>
                     <p className="font-semibold">{l.name}</p>
-                    <p className="text-xs text-stone">{l.variant ? `${l.variant.name}: ${l.variant.value} · ` : ""}Qty {l.quantity} × {l.unitPriceAED == null ? "price on request" : formatMoney(l.unitPriceAED)}</p>
+                    <p className="text-xs text-stone">{l.variant ? `${l.variant.name}: ${l.variant.value} · ` : ""}Qty {l.quantity} × {l.unitPrice == null ? "price on request" : formatMoney(l.unitPrice)}</p>
                   </div>
-                  <p className="tabular-nums">{l.unitPriceAED == null ? "On request" : formatMoney(l.unitPriceAED * l.quantity)}</p>
+                  <p className="tabular-nums">{l.unitPrice == null ? "On request" : formatMoney(l.unitPrice * l.quantity)}</p>
                 </li>
               ))}
             </ul>
             <dl className="space-y-2 border-t border-line px-5 py-4 text-sm">
-              <div className="flex justify-between"><dt className="text-stone">Subtotal</dt><dd className="tabular-nums">{formatMoney(r.subtotalAED)}</dd></div>
-              <div className="flex justify-between"><dt className="text-stone">Shipping · {method?.label ?? r.shippingMethodId}</dt><dd>{r.shippingAED == null ? "To be confirmed" : formatMoney(r.shippingAED)}</dd></div>
-              <div className="flex justify-between border-t border-line pt-2 font-semibold"><dt>Order value</dt><dd className="tabular-nums">{formatMoney(r.subtotalAED + (r.shippingAED ?? 0))}{r.hasPriceOnRequest ? " + items on request" : ""}</dd></div>
+              <div className="flex justify-between"><dt className="text-stone">Subtotal</dt><dd className="tabular-nums">{formatMoney(r.subtotal)}</dd></div>
+              <div className="flex justify-between"><dt className="text-stone">Shipping · {method?.label ?? r.shippingMethodId}</dt><dd>{r.shippingCost == null ? "To be confirmed" : formatMoney(r.shippingCost)}</dd></div>
+              <div className="flex justify-between border-t border-line pt-2 font-semibold"><dt>Order value</dt><dd className="tabular-nums">{formatMoney(r.subtotal + (r.shippingCost ?? 0))}{r.hasPriceOnRequest ? " + items on request" : ""}</dd></div>
             </dl>
           </Card>
 
@@ -94,7 +94,7 @@ export default async function OrderDetail({ params }: PageProps<"/admin/orders/[
                 {others.map((o) => (
                   <Link key={o.reference} href={`/admin/orders/${o.reference}`} className="flex justify-between py-1 hover:underline">
                     <span>{o.reference}</span>
-                    <span className="tabular-nums text-stone">{formatMoney(o.subtotalAED)}</span>
+                    <span className="tabular-nums text-stone">{formatMoney(o.subtotal)}</span>
                   </Link>
                 ))}
               </div>
@@ -111,6 +111,11 @@ export default async function OrderDetail({ params }: PageProps<"/admin/orders/[
               <br />
               {countryLabel(r.shipping.country)}
             </address>
+            {r.displayCurrency === "NGN" && r.ngnPerUsd && (
+              <p className="mt-3 text-xs text-stone">
+                Shopper viewed prices in naira: {formatMoney(r.subtotal + (r.shippingCost ?? 0), "NGN", { USD: 1, NGN: r.ngnPerUsd })} at ₦{r.ngnPerUsd.toLocaleString("en-US")} per $1.
+              </p>
+            )}
             <p className="mt-3 text-xs text-stone">Payment option: {r.paymentMethod === "order-request" ? "Reserve & confirm with the team (no online payment taken)" : r.paymentMethod}</p>
           </Card>
         </div>

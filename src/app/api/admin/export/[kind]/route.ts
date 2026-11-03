@@ -19,15 +19,15 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/admin/expor
   if (kind === "orders") {
     const orders = await listOrders({ limit: 10000 });
     body = csv([
-      ["Reference", "Created", "Status", "Name", "Email", "Phone", "Country", "City", "Items", "Subtotal AED", "Price on request", "Lines"],
+      ["Reference", "Created", "Status", "Name", "Email", "Phone", "Country", "City", "Items", "Subtotal USD", "Price on request", "Lines"],
       ...orders.map((o) => [
-        o.reference, iso(o.createdAt), o.status, o.name, o.email, o.phone, o.country, o.record.shipping.city, o.itemCount, o.subtotalAED, o.hasPriceOnRequest ? "yes" : "no",
+        o.reference, iso(o.createdAt), o.status, o.name, o.email, o.phone, o.country, o.record.shipping.city, o.itemCount, o.subtotal, o.hasPriceOnRequest ? "yes" : "no",
         o.record.resolvedLines.map((l) => `${l.quantity}x ${l.name}${l.variant ? ` (${l.variant.value})` : ""}`).join("; "),
       ]),
     ]);
   } else if (kind === "customers") {
     const c = await listCustomers({ limit: 100000 });
-    body = csv([["Name", "Email", "Phone", "Country", "Orders", "Total ordered AED", "Total paid AED", "First order", "Last order"], ...c.map((b) => [b.name, b.email, b.phone, b.country, b.orders, b.requestedAED, b.paidAED, iso(b.firstOrder), iso(b.lastOrder)])]);
+    body = csv([["Name", "Email", "Phone", "Country", "Orders", "Total ordered USD", "Total paid USD", "First order", "Last order"], ...c.map((b) => [b.name, b.email, b.phone, b.country, b.orders, b.requested, b.paid, iso(b.firstOrder), iso(b.lastOrder)])]);
   } else if (kind === "subscribers") {
     const s = await listSubscribers();
     body = csv([["Email", "Source", "Subscribed"], ...s.map((x) => [x.email, x.source, iso(x.createdAt)])]);

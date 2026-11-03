@@ -210,10 +210,14 @@
     text-transform: uppercase;
     margin: 2em 0 0.8em;
   }
-  .prose-luxe ul {
+  .prose-luxe ul,
+  .prose-luxe ol {
     list-style: none;
     padding: 0;
     margin-bottom: 1.2em;
+  }
+  .prose-luxe ol {
+    counter-reset: step;
   }
   .prose-luxe li {
     position: relative;
@@ -221,7 +225,19 @@
     margin-bottom: 0.55em;
     line-height: 1.7;
   }
-  .prose-luxe li::before {
+  .prose-luxe ol > li {
+    counter-increment: step;
+  }
+  .prose-luxe ol > li::before {
+    content: counter(step) ".";
+    width: auto;
+    height: auto;
+    top: 0;
+    background: none;
+    font-weight: 600;
+    color: var(--color-champagne);
+  }
+  .prose-luxe ul > li::before {
     content: "";
     position: absolute;
     left: 0;

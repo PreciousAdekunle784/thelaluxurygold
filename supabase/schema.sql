@@ -6,8 +6,11 @@
 --   2. Project Settings → Database → Connection string → "Transaction pooler"
 --      (port 6543). Copy it, replace [YOUR-PASSWORD], and set it as DATABASE_URL
 --      in your hosting environment (e.g. Vercel → Settings → Environment Variables).
---   3. Deploy. On first start the website copies the sample catalogue into the
+--   3. Deploy. On first start the website copies the starting catalogue into the
 --      `products` table (once), then everything is managed from /admin.
+--
+-- Prices are stored in US dollars. The naira rate for the currency switcher is
+-- set in /admin → Store settings.
 --
 -- The app talks to the database directly from the server with this connection
 -- string. Row Level Security is switched ON for every table with no policies, so
@@ -17,13 +20,13 @@
 -- Safe to run more than once. Payments are not part of this schema yet.
 -- =============================================================================
 
--- Key/value settings used by the app (e.g. "catalogue_seeded").
+-- Key/value settings used by the app (e.g. "catalogue_seeded", exchange rate, testimonials).
 create table if not exists meta (
   key   text primary key,
   value text
 );
 
--- Products. `data` holds the full product as JSON (name, price in AED, purity,
+-- Products. `data` holds the full product as JSON (name, price in USD, purity,
 -- weight, images, options, specifications…) exactly as edited in /admin.
 create table if not exists products (
   id         text primary key,
@@ -44,13 +47,22 @@ create table if not exists orders (
   name         text not null,
   phone        text,
   country      text,                          -- ISO country code, e.g. AE
-  subtotal_aed bigint not null default 0,
+  subtotal     bigint not null default 0,      -- US dollars
   item_count   integer not null default 0,
   has_por      integer not null default 0,    -- 1 = contains "price on request" items
   data         text not null,                 -- full order JSON (items, address, notes…)
   history      text not null,                 -- status history JSON
   updated_at   bigint not null
 );
+-- Databases created by an earlier version stored the subtotal as subtotal_aed.
+-- (The website converts the old dirham prices to dollars itself on its next start.)
+drop view if exists order_overview;
+do $$ begin
+  if exists (select 1 from information_schema.columns
+             where table_schema = 'public' and table_name = 'orders' and column_name = 'subtotal_aed') then
+    alter table orders rename column subtotal_aed to subtotal;
+  end if;
+end $$;
 create index if not exists orders_created on orders (created_at);
 create index if not exists orders_email   on orders (email);
 
@@ -102,7 +114,7 @@ create table if not exists media (
 );
 
 -- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
-insert into meta (key, value) values ('schema_version', '2')
+insert into meta (key, value) values ('schema_version', '3')
 on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
@@ -120,14 +132,15 @@ alter table media       enable row level security;
 -- Optional: readable views for browsing data in the Supabase Table Editor.
 -- security_invoker keeps them behind the same Row Level Security as the tables.
 -- -----------------------------------------------------------------------------
-create or replace view product_overview with (security_invoker = true) as
+drop view if exists product_overview;
+create view product_overview with (security_invoker = true) as
 select
   id,
   slug,
   data::jsonb ->> 'name'                    as name,
   data::jsonb ->> 'category'                as category,
   data::jsonb ->> 'purity'                  as purity,
-  (data::jsonb ->> 'priceAED')::numeric     as price_aed,
+  (data::jsonb ->> 'price')::numeric        as price_usd,
   (data::jsonb ->> 'weightGrams')::numeric  as weight_grams,
   data::jsonb ->> 'availability'            as availability,
   archived = 1                              as hidden,
@@ -135,7 +148,8 @@ select
 from products
 order by position;
 
-create or replace view order_overview with (security_invoker = true) as
+drop view if exists order_overview;
+create view order_overview with (security_invoker = true) as
 select
   reference,
   to_timestamp(created_at / 1000.0) as placed_at,
@@ -145,6 +159,6 @@ select
   phone,
   country,
   item_count,
-  subtotal_aed
+  subtotal as subtotal_usd
 from orders
 order by created_at desc;

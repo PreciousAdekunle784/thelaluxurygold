@@ -8,7 +8,7 @@ import { Price } from "@/components/product/Price";
 import { CartLineItem } from "./CartLineItem";
 
 export function CartView() {
-  const { lines, subtotalAED, hydrated, hasPriceOnRequest, count } = useCart();
+  const { lines, subtotal, hydrated, hasPriceOnRequest, count } = useCart();
 
   if (!hydrated) {
     return (
@@ -56,7 +56,7 @@ export function CartView() {
           <dl className="mt-7 space-y-4 text-sm">
             <div className="flex justify-between">
               <dt className="text-stone">Subtotal ({count} {count === 1 ? "item" : "items"})</dt>
-              <dd><Price amountAED={subtotalAED} /></dd>
+              <dd><Price amount={subtotal} /></dd>
             </div>
             <div className="flex justify-between gap-6">
               <dt className="text-stone">Shipping</dt>
@@ -64,14 +64,14 @@ export function CartView() {
             </div>
             <div className="flex justify-between border-t border-line pt-5 text-base">
               <dt className="font-semibold">Total</dt>
-              <dd className="font-semibold"><Price amountAED={subtotalAED} /></dd>
+              <dd className="font-semibold"><Price amount={subtotal} /></dd>
             </div>
           </dl>
           {hasPriceOnRequest && <p className="mt-4 text-xs leading-relaxed text-stone">Includes items priced on request — their price will be confirmed by our team.</p>}
           <Link href="/checkout" className={buttonClass("solid", "lg", "mt-8 w-full")}>
             Proceed to checkout
           </Link>
-          <p className="mt-5 text-center text-xs leading-relaxed text-stone">Insured worldwide delivery · Prices in AED</p>
+          <p className="mt-5 text-center text-xs leading-relaxed text-stone">Insured worldwide delivery · Prices in USD or NGN</p>
         </div>
       </aside>
     </div>

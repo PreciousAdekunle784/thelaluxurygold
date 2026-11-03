@@ -49,12 +49,11 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
                 <span className="mt-0.5 flex flex-wrap gap-1.5 text-[0.62rem] font-semibold uppercase tracking-wide text-stone">
                   {p.featured && <span className="bg-gold-pale px-1.5 py-0.5 text-ink">Featured</span>}
                   {p.isNew && <span className="bg-sage-mist px-1.5 py-0.5 text-forest">New</span>}
-                  {p.isSample && <span className="border border-line px-1.5 py-0.5">Sample</span>}
                 </span>
               </td>
               <td className="px-4 py-2.5">{getCategory(p.category)?.name ?? p.category}</td>
               <td className="px-4 py-2.5">{p.purity}</td>
-              <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{p.priceAED == null ? "On request" : formatMoney(p.priceAED)}</td>
+              <td className="whitespace-nowrap px-4 py-2.5 tabular-nums">{p.price == null ? "On request" : formatMoney(p.price)}</td>
               <td className="whitespace-nowrap px-4 py-2.5">{availabilityLabel[p.availability]}</td>
               <td className="whitespace-nowrap px-4 py-2.5 text-xs text-stone">{formatDateTime(updatedAt)}</td>
               <td className="px-4 py-2.5 text-right"><ProductRowActions id={p.id} slug={p.slug} archived={archived} /></td>

@@ -28,7 +28,7 @@ export const emptyProduct: Product = {
   category: "rings",
   collections: [],
   purity: "18K",
-  priceAED: null,
+  price: null,
   availability: "in_stock",
   tagline: "",
   description: [],
@@ -36,7 +36,6 @@ export const emptyProduct: Product = {
   images: [],
   createdAt: "",
   popularity: 50,
-  isSample: false,
 };
 
 function Field({ label, error, hint, children, className }: { label: string; error?: string; hint?: string; children: React.ReactNode; className?: string }) {
@@ -147,8 +146,8 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
                   {purities.map((x) => <option key={x}>{x}</option>)}
                 </select>
               </Field>
-              <Field label="Price (AED)" error={errors.priceAED} hint="Leave empty to show “Price on request”.">
-                <input className="field-boxed" inputMode="numeric" value={p.priceAED ?? ""} onChange={(e) => set("priceAED", e.target.value === "" ? null : Number(e.target.value.replace(/[^\d]/g, "")))} placeholder="Price on request" />
+              <Field label="Price (USD)" error={errors.price} hint="Leave empty to show “Price on request”.">
+                <input className="field-boxed" inputMode="numeric" value={p.price ?? ""} onChange={(e) => set("price", e.target.value === "" ? null : Number(e.target.value.replace(/[^\d]/g, "")))} placeholder="Price on request" />
               </Field>
               <Field label="Weight (grams)" error={errors.weightGrams}>
                 <input className="field-boxed" inputMode="decimal" value={p.weightGrams ?? ""} onChange={(e) => set("weightGrams", e.target.value === "" ? undefined : (e.target.value.replace(/[^\d.]/g, "") as unknown as number))} placeholder="Optional" />
@@ -223,14 +222,14 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
             {variant && (
               <div>
                 <div className="grid grid-cols-[1fr_140px_90px_32px] gap-2 text-[0.62rem] font-semibold uppercase tracking-[0.14em] text-stone">
-                  <span>Option</span><span>Price difference (AED)</span><span>Available</span><span />
+                  <span>Option</span><span>Price difference (USD)</span><span>Available</span><span />
                 </div>
                 {variant.options.map((o, i) => {
                   const upd = (patch: Partial<typeof o>) => set("variants", [{ ...variant, options: variant.options.map((x, j) => (j === i ? { ...x, ...patch } : x)) }]);
                   return (
                     <div key={i} className="mt-2 grid grid-cols-[1fr_140px_90px_32px] items-center gap-2">
                       <input className="border border-line px-2 py-2 text-sm" value={o.value} onChange={(e) => upd({ value: e.target.value })} />
-                      <input className="border border-line px-2 py-2 text-sm" inputMode="numeric" value={o.priceDeltaAED ?? ""} placeholder="0" onChange={(e) => upd({ priceDeltaAED: e.target.value === "" ? undefined : Number(e.target.value.replace(/[^\d-]/g, "")) || 0 })} />
+                      <input className="border border-line px-2 py-2 text-sm" inputMode="numeric" value={o.priceDelta ?? ""} placeholder="0" onChange={(e) => upd({ priceDelta: e.target.value === "" ? undefined : Number(e.target.value.replace(/[^\d-]/g, "")) || 0 })} />
                       <input type="checkbox" className="h-4 w-4" checked={o.available !== false} onChange={(e) => upd({ available: e.target.checked ? undefined : false })} aria-label={`${o.value} available`} />
                       <button type="button" onClick={() => set("variants", [{ ...variant, options: variant.options.filter((_, j) => j !== i) }])} className="text-burgundy" aria-label="Remove option"><X size={15} /></button>
                     </div>
@@ -257,7 +256,6 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
           <Section title="Visibility & labels">
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.featured} onChange={(e) => set("featured", e.target.checked)} /> Featured on the homepage</label>
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Show “New” label</label>
-            <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={p.isSample} onChange={(e) => set("isSample", e.target.checked)} /> Mark as sample (shows “Sample price”)</label>
             <Field label="Popularity (for “Most popular” sorting)">
               <input className="field-boxed" inputMode="numeric" value={p.popularity} onChange={(e) => set("popularity", Number(e.target.value.replace(/\D/g, "")) || 0)} />
             </Field>

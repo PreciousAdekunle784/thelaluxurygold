@@ -1,5 +1,7 @@
 import "server-only";
 import { listProductRows } from "@/lib/repo/products";
+import { getSiteSettings } from "@/lib/data/site-settings";
+import type { CurrencyCode } from "@/lib/config/store";
 import { insertOrder } from "@/lib/repo/orders";
 import type { Product } from "@/lib/data/types";
 import { paymentOptions, shippingMethods, shippingMethodsFor } from "@/lib/config/store";
@@ -10,6 +12,8 @@ export interface OrderInput {
   shipping: { address1: string; address2?: string; city: string; region?: string; postalCode?: string; country: string };
   shippingMethodId: string;
   paymentMethod: string;
+  /** Currency the shopper was viewing prices in. */
+  displayCurrency: CurrencyCode;
   notes?: string;
   lines: { productId: string; quantity: number; variant?: { name: string; value: string } }[];
 }
@@ -18,10 +22,13 @@ export interface OrderRecord extends OrderInput {
   reference: string;
   createdAt: string;
   status: "pending_confirmation";
-  currency: "AED";
-  resolvedLines: { productId: string; name: string; quantity: number; variant?: { name: string; value: string }; unitPriceAED: number | null }[];
-  subtotalAED: number;
-  shippingAED: number | null;
+  /** Amounts are stored in US dollars. */
+  currency: "USD";
+  /** Naira per dollar at the time of the order (for orders placed while viewing NGN). */
+  ngnPerUsd: number;
+  resolvedLines: { productId: string; name: string; quantity: number; variant?: { name: string; value: string }; unitPrice: number | null }[];
+  subtotal: number;
+  shippingCost: number | null;
   hasPriceOnRequest: boolean;
 }
 
@@ -85,7 +92,8 @@ export async function validateOrder(body: unknown): Promise<OrderInput> {
   if (!cleanLines.length) errors.lines = "Your bag is empty.";
 
   if (Object.keys(errors).length) throw new ValidationError(errors);
-  return { customer, shipping, shippingMethodId, paymentMethod, notes: str(b.notes, 1000), lines: cleanLines };
+  const displayCurrency: CurrencyCode = b.currency === "NGN" ? "NGN" : "USD";
+  return { customer, shipping, shippingMethodId, paymentMethod, displayCurrency, notes: str(b.notes, 1000), lines: cleanLines };
 }
 
 export async function buildOrder(input: OrderInput, reference: string, createdAt: string): Promise<OrderRecord> {
@@ -93,7 +101,7 @@ export async function buildOrder(input: OrderInput, reference: string, createdAt
   const getProductById = (id: string): Product | undefined => catalogue.find((p) => p.id === id);
   const resolvedLines = input.lines.map((l) => {
     const p = getProductById(l.productId)!;
-    return { productId: p.id, name: p.name, quantity: l.quantity, variant: l.variant, unitPriceAED: unitPrice(p, l.variant) };
+    return { productId: p.id, name: p.name, quantity: l.quantity, variant: l.variant, unitPrice: unitPrice(p, l.variant) };
   });
   const method = shippingMethods.find((m) => m.id === input.shippingMethodId);
   return {
@@ -101,11 +109,12 @@ export async function buildOrder(input: OrderInput, reference: string, createdAt
     reference,
     createdAt,
     status: "pending_confirmation",
-    currency: "AED",
+    currency: "USD",
+    ngnPerUsd: (await getSiteSettings()).ngnPerUsd,
     resolvedLines,
-    subtotalAED: resolvedLines.reduce((n, l) => n + (l.unitPriceAED ?? 0) * l.quantity, 0),
-    shippingAED: method?.rateAED ?? null,
-    hasPriceOnRequest: resolvedLines.some((l) => l.unitPriceAED == null),
+    subtotal: resolvedLines.reduce((n, l) => n + (l.unitPrice ?? 0) * l.quantity, 0),
+    shippingCost: method?.rate ?? null,
+    hasPriceOnRequest: resolvedLines.some((l) => l.unitPrice == null),
   };
 }
 

@@ -13,7 +13,7 @@ export async function POST(request: Request) {
     const reference = `LLG-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     const order = await buildOrder(input, reference, new Date().toISOString());
     await saveOrder(order);
-    return NextResponse.json({ reference, status: order.status, subtotalAED: order.subtotalAED, hasPriceOnRequest: order.hasPriceOnRequest }, { status: 201 });
+    return NextResponse.json({ reference, status: order.status, subtotal: order.subtotal, hasPriceOnRequest: order.hasPriceOnRequest }, { status: 201 });
   } catch (err) {
     if (err instanceof ValidationError) return NextResponse.json({ error: err.message, fields: err.fields }, { status: 422 });
     console.error("[orders] failed", err);

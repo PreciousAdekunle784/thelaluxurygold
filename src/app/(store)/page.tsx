@@ -9,9 +9,10 @@ import { Testimonials } from "@/components/home/Testimonials";
 import { SocialGrid } from "@/components/home/SocialGrid";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { getCatalogue } from "@/lib/data/store-catalogue";
+import { getSiteSettings } from "@/lib/data/site-settings";
 
 export default async function HomePage() {
-  const products = await getCatalogue();
+  const [products, settings] = await Promise.all([getCatalogue(), getSiteSettings()]);
   return (
     <>
       <Hero />
@@ -21,7 +22,7 @@ export default async function HomePage() {
       <GoldInvestment />
       <WhyChooseUs />
       <Campaign />
-      <Testimonials />
+      {settings.testimonials.length > 0 && <Testimonials testimonials={settings.testimonials} />}
       <SocialGrid />
       <NewsletterSection />
     </>

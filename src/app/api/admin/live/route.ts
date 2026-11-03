@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       now: Date.now(),
       live: live.map((v) => ({ id: v.id, ts: v.ts, path: v.path, country: v.country, device: v.device, visitorId: v.visitorId.slice(0, 6), isNew: v.isNew })),
       views: views.map((v) => ({ id: v.id, ts: v.ts, path: v.path, country: v.country, device: v.device, referrer: v.referrer, visitorId: v.visitorId.slice(0, 6), isNew: v.isNew })),
-      orders: orders.map((o) => ({ reference: o.reference, ts: o.createdAt, name: o.name, country: o.country, subtotalAED: o.subtotalAED, items: o.itemCount, hasPriceOnRequest: o.hasPriceOnRequest })),
+      orders: orders.map((o) => ({ reference: o.reference, ts: o.createdAt, name: o.name, country: o.country, subtotal: o.subtotal, items: o.itemCount, hasPriceOnRequest: o.hasPriceOnRequest })),
       pending,
       unread,
     },

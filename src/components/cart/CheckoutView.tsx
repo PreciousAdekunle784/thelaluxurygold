@@ -12,7 +12,8 @@ import { Price } from "@/components/product/Price";
 import { buttonClass, Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/Icons";
 import { whatsappLink } from "@/lib/whatsapp";
-import { formatMoney, cx } from "@/lib/format";
+import { cx } from "@/lib/format";
+import { useCurrency } from "@/lib/state/currency";
 
 type Fields = {
   email: string;
@@ -88,7 +89,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
 }
 
 export function CheckoutView() {
-  const { lines, subtotalAED, hydrated, hasPriceOnRequest, clear } = useCart();
+  const { lines, subtotal, hydrated, hasPriceOnRequest, clear } = useCart();
+  const { format, currency } = useCurrency();
   const [f, setF] = useState<Fields>(initial);
   const methods = useMemo(() => shippingMethodsFor(f.country), [f.country]);
   const [shippingPick, setShippingPick] = useState<string | null>(null);
@@ -101,8 +103,8 @@ export function CheckoutView() {
   const countryList = useMemo(() => countries(), []);
 
   const method = methods.find((m) => m.id === shippingId);
-  const shippingAED = method?.rateAED ?? null;
-  const totalAED = subtotalAED + (shippingAED ?? 0);
+  const shippingCost = method?.rate ?? null;
+  const total = subtotal + (shippingCost ?? 0);
 
   const set = (k: keyof Fields) => (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) =>
     setF((prev) => ({ ...prev, [k]: e.target.type === "checkbox" ? (e.target as HTMLInputElement).checked : e.target.value }));
@@ -127,6 +129,7 @@ export function CheckoutView() {
           shipping: { address1: f.address1, address2: f.address2, city: f.city, region: f.region, postalCode: f.postalCode, country: f.country },
           shippingMethodId: shippingId,
           paymentMethod: payment,
+          currency,
           notes: f.notes,
           lines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, variant: l.variant })),
         }),
@@ -157,7 +160,8 @@ export function CheckoutView() {
         <h1 className="display mt-4 text-5xl uppercase md:text-6xl">Thank you</h1>
         <p className="mt-6 max-w-lg text-[0.98rem] leading-relaxed text-stone">
           Your reference is <strong className="font-semibold text-ink">{result.reference}</strong>. Our team will contact you at {f.email} to confirm availability,
-          delivery and payment. <strong className="font-semibold text-ink">No payment has been taken.</strong>
+          delivery and payment. <strong className="font-semibold text-ink">No payment has been taken.</strong> You can follow your order any time on the{" "}
+          <Link href="/account" className="underline underline-offset-4 hover:text-ink">track your order</Link> page.
         </p>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
           <a
@@ -235,7 +239,7 @@ export function CheckoutView() {
                 <span className="flex-1">
                   <span className="flex flex-wrap justify-between gap-2">
                     <span className="text-sm font-semibold">{m.label}</span>
-                    <span className="text-sm">{m.rateAED == null ? "Rate confirmed by our team" : m.rateAED === 0 ? "Complimentary" : formatMoney(m.rateAED)}</span>
+                    <span className="text-sm">{m.rate == null ? "Rate confirmed by our team" : m.rate === 0 ? "Complimentary" : format(m.rate)}</span>
                   </span>
                   <span className="mt-1 block text-xs leading-relaxed text-stone">
                     {m.description} {m.estimate ? `Estimated delivery: ${m.estimate}.` : "Delivery timeline confirmed with your order."}
@@ -254,7 +258,7 @@ export function CheckoutView() {
 
         <Step n={4} title="Payment">
           <div className="space-y-3" role="radiogroup" aria-label="Payment method">
-            {paymentOptions.map((p) => (
+            {paymentOptions.filter((p) => p.available).map((p) => (
               <label
                 key={p.id}
                 className={cx(
@@ -266,7 +270,6 @@ export function CheckoutView() {
                 <span className="flex-1">
                   <span className="flex flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-semibold">{p.label}</span>
-                    {!p.available && <span className="border border-line px-2 py-0.5 text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-stone">Coming soon</span>}
                   </span>
                   <span className="mt-1 block text-xs leading-relaxed text-stone">{p.description}</span>
                 </span>
@@ -300,7 +303,7 @@ export function CheckoutView() {
                     {l.variant ? ` · ${l.variant.value}` : ""}
                   </p>
                 </div>
-                <Price amountAED={l.lineTotalAED} className="shrink-0 text-sm" />
+                <Price amount={l.lineTotal} className="shrink-0 text-sm" />
               </li>
             ))}
           </ul>
@@ -308,21 +311,21 @@ export function CheckoutView() {
             <div className="flex justify-between">
               <dt className="text-stone">Subtotal</dt>
               <dd>
-                <Price amountAED={subtotalAED} />
+                <Price amount={subtotal} />
               </dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-stone">Shipping</dt>
-              <dd className="text-right">{shippingAED == null ? <span className="text-stone">To be confirmed</span> : <Price amountAED={shippingAED} />}</dd>
+              <dd className="text-right">{shippingCost == null ? <span className="text-stone">Confirmed with your order</span> : <Price amount={shippingCost} />}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-stone">Duties & taxes</dt>
               <dd className="text-right text-stone">{f.country === "AE" ? "Confirmed with order" : "May apply on arrival"}</dd>
             </div>
             <div className="flex justify-between border-t border-line pt-4 text-base font-semibold">
-              <dt>{shippingAED == null || hasPriceOnRequest ? "Estimated total" : "Total"}</dt>
+              <dt>{shippingCost == null || hasPriceOnRequest ? "Estimated total" : "Total"}</dt>
               <dd>
-                <Price amountAED={totalAED} />
+                <Price amount={total} />
               </dd>
             </div>
           </dl>
@@ -340,7 +343,6 @@ export function CheckoutView() {
             No payment is taken at this step. Our team will confirm your order, delivery and payment details before anything is charged. By submitting you agree to our{" "}
             <Link href="/terms" className="underline underline-offset-4">terms</Link> and <Link href="/privacy" className="underline underline-offset-4">privacy policy</Link>.
           </p>
-          {store.sampleMode && <p className="mt-4 border-t border-line pt-4 text-[0.7rem] leading-relaxed text-stone">Development preview: products and prices in this order are sample data.</p>}
         </div>
       </aside>
     </form>

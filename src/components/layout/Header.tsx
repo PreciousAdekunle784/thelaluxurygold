@@ -14,6 +14,7 @@ import { collectionsMenu, mainNav, shopMenu } from "@/lib/navigation";
 import { cx } from "@/lib/format";
 import { SearchOverlay } from "./SearchOverlay";
 import { MobileMenu } from "./MobileMenu";
+import { CurrencySwitch } from "./CurrencySwitch";
 
 type MenuKey = "shop" | "collections" | null;
 
@@ -114,10 +115,11 @@ export function Header() {
 
           {/* right icons */}
           <div className="flex items-center justify-self-end gap-0.5 sm:gap-1">
+            <CurrencySwitch className="mr-3 max-xl:hidden" />
             <button type="button" className={cx(iconBtn, "max-xl:hidden")} onClick={() => { setMenu(null); setSearchOpen((v) => !v); }} aria-label="Search" aria-expanded={searchOpen}>
               <Search size={19} strokeWidth={1.2} />
             </button>
-            <Link href="/account" className={cx(iconBtn, "max-sm:hidden")} aria-label="Account">
+            <Link href="/account" className={cx(iconBtn, "max-sm:hidden")} aria-label="Track your order" title="Track your order">
               <User size={19} strokeWidth={1.2} />
             </Link>
             <Link href="/wishlist" className={cx(iconBtn, "max-sm:hidden")} aria-label={`Wishlist${wishlist.hydrated && wishlist.ids.length ? `, ${wishlist.ids.length} items` : ""}`}>

@@ -30,7 +30,7 @@ export default async function Dashboard() {
     listOrders({ limit: 6 }),
   ]);
   const todayOrders = stats.series.find((s) => s.day === today)?.orders ?? 0;
-  const aov = stats.paidOrders ? Math.round(stats.paidAED / stats.paidOrders) : 0;
+  const aov = stats.paidOrders ? Math.round(stats.paid / stats.paidOrders) : 0;
 
   return (
     <>
@@ -44,8 +44,8 @@ export default async function Dashboard() {
       </div>
 
       <div className="mt-4 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat accent label="Revenue received" value={formatMoney(stats.paidAED)} hint={`${stats.paidOrders} paid / shipped / delivered orders`} />
-        <Stat label="Value of all orders" value={formatMoney(stats.requestedAED)} hint="Excludes cancelled orders" />
+        <Stat accent label="Revenue received" value={formatMoney(stats.paid)} hint={`${stats.paidOrders} paid / shipped / delivered orders`} />
+        <Stat label="Value of all orders" value={formatMoney(stats.requested)} hint="Excludes cancelled orders" />
         <Stat label="Buyers" value={stats.buyers.toLocaleString("en-US")} hint={`${stats.orders} orders in total`} />
         <Stat label="Average paid order" value={aov ? formatMoney(aov) : "—"} />
       </div>
@@ -55,8 +55,8 @@ export default async function Dashboard() {
           <Card title="Visitors per day · last 14 days">
             <ColumnChart title="Unique visitors per day" data={series.map((s) => ({ label: shortDay(s.day), short: shortDay(s.day), value: s.visitors }))} />
           </Card>
-          <Card title="Order value per day · last 14 days (AED)">
-            <ColumnChart title="Order value per day in AED" unit="aed" data={stats.series.map((s) => ({ label: `${shortDay(s.day)} · ${s.orders} order${s.orders === 1 ? "" : "s"}`, short: shortDay(s.day), value: s.value }))} />
+          <Card title="Order value per day · last 14 days (USD)">
+            <ColumnChart title="Order value per day in US dollars" unit="money" data={stats.series.map((s) => ({ label: `${shortDay(s.day)} · ${s.orders} order${s.orders === 1 ? "" : "s"}`, short: shortDay(s.day), value: s.value }))} />
           </Card>
         </div>
         <LivePanel />
@@ -71,7 +71,7 @@ export default async function Dashboard() {
               <td className="px-4 py-3">{o.name}<span className="block text-xs text-stone">{o.email}</span></td>
               <td className="px-4 py-3">{countryLabel(o.country)}</td>
               <td className="px-4 py-3 tabular-nums">{o.itemCount}</td>
-              <td className="px-4 py-3 tabular-nums">{formatMoney(o.subtotalAED)}{o.hasPriceOnRequest && <span className="block text-xs text-stone">+ price on request</span>}</td>
+              <td className="px-4 py-3 tabular-nums">{formatMoney(o.subtotal)}{o.hasPriceOnRequest && <span className="block text-xs text-stone">+ price on request</span>}</td>
               <td className="px-4 py-3"><StatusPill status={o.status} /></td>
             </tr>
           ))}

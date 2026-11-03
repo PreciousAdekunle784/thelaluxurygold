@@ -71,7 +71,7 @@ export function LivePanel() {
                       <span className="min-w-0 flex-1 truncate">
                         <strong className="font-semibold">New order</strong> {a.o.reference} · {a.o.name}
                       </span>
-                      <span className="shrink-0 font-semibold tabular-nums">{a.o.hasPriceOnRequest && !a.o.subtotalAED ? "On request" : formatMoney(a.o.subtotalAED)}</span>
+                      <span className="shrink-0 font-semibold tabular-nums">{a.o.hasPriceOnRequest && !a.o.subtotal ? "On request" : formatMoney(a.o.subtotal)}</span>
                       <span className="w-14 shrink-0 text-right text-xs text-stone">{timeAgo(a.ts, now)}</span>
                     </Link>
                   ) : (

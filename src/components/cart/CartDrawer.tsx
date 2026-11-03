@@ -12,7 +12,7 @@ import { Price } from "@/components/product/Price";
 import { CartLineItem } from "./CartLineItem";
 
 export function CartDrawer() {
-  const { isOpen, close, lines, subtotalAED, count, hasPriceOnRequest } = useCart();
+  const { isOpen, close, lines, subtotal, count, hasPriceOnRequest } = useCart();
   const pathname = usePathname();
   const panel = useRef<HTMLDivElement>(null);
   useScrollLock(isOpen);
@@ -68,7 +68,7 @@ export function CartDrawer() {
                 <div className="border-t border-line bg-linen px-6 py-6">
                   <div className="flex items-center justify-between">
                     <span className="eyebrow font-semibold">Subtotal</span>
-                    <Price amountAED={subtotalAED} className="text-lg" />
+                    <Price amount={subtotal} className="text-lg" />
                   </div>
                   <p className="mt-2 text-xs leading-relaxed text-stone">
                     Shipping, duties and any applicable taxes are confirmed at checkout.

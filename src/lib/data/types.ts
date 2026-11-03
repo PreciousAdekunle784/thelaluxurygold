@@ -10,8 +10,8 @@ export interface ProductImage {
 
 export interface VariantOption {
   value: string;
-  /** Price difference in AED relative to the base price. */
-  priceDeltaAED?: number;
+  /** Price difference in USD relative to the base price. */
+  priceDelta?: number;
   available?: boolean;
 }
 
@@ -34,9 +34,9 @@ export interface Product {
   purity: Purity;
   /** Weight in grams, where known. */
   weightGrams?: number;
-  /** Price in AED. `null` means price on request. */
-  priceAED: number | null;
-  compareAtAED?: number;
+  /** Price in US dollars. `null` means price on request. */
+  price: number | null;
+  compareAt?: number;
   availability: Availability;
   tagline: string;
   description: string[];
@@ -48,8 +48,6 @@ export interface Product {
   popularity: number;
   featured?: boolean;
   isNew?: boolean;
-  /** True for development preview data. Never set on verified products. */
-  isSample: boolean;
 }
 
 export interface Category {

@@ -18,7 +18,7 @@ export async function getCatalogue(): Promise<Product[]> {
   } catch (err) {
     // Database unreachable (e.g. wrong DATABASE_URL during a build): serve the bundled
     // catalogue, and check again within minutes rather than hours.
-    console.error("[catalogue] database unavailable, serving bundled sample catalogue:", err instanceof Error ? err.message : err);
+    console.error("[catalogue] database unavailable, serving the bundled starting catalogue:", err instanceof Error ? err.message : err);
     cacheLife("minutes");
     return seedProducts;
   }

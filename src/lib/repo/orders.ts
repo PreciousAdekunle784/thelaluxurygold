@@ -23,7 +23,7 @@ export interface StoredOrder {
   name: string;
   phone: string;
   country: string;
-  subtotalAED: number;
+  subtotal: number;
   itemCount: number;
   hasPriceOnRequest: boolean;
   record: OrderRecord;
@@ -39,7 +39,7 @@ const parse = (r: Raw): StoredOrder => ({
   name: String(r.name),
   phone: String(r.phone ?? ""),
   country: String(r.country ?? ""),
-  subtotalAED: Number(r.subtotal_aed),
+  subtotal: Number(r.subtotal),
   itemCount: Number(r.item_count),
   hasPriceOnRequest: !!Number(r.has_por),
   record: JSON.parse(String(r.data)),
@@ -50,11 +50,11 @@ export async function insertOrder(o: OrderRecord) {
   const db = await getDb();
   const ts = Date.parse(o.createdAt);
   await db.run(
-    `INSERT INTO orders (reference, created_at, day, status, email, name, phone, country, subtotal_aed, item_count, has_por, data, history, updated_at)
+    `INSERT INTO orders (reference, created_at, day, status, email, name, phone, country, subtotal, item_count, has_por, data, history, updated_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
     [
       o.reference, ts, dayKey(ts), "pending_confirmation", o.customer.email.toLowerCase(), `${o.customer.firstName} ${o.customer.lastName}`.trim(),
-      o.customer.phone, o.shipping.country, Math.round(o.subtotalAED), o.resolvedLines.reduce((n, l) => n + l.quantity, 0), o.hasPriceOnRequest ? 1 : 0,
+      o.customer.phone, o.shipping.country, Math.round(o.subtotal), o.resolvedLines.reduce((n, l) => n + l.quantity, 0), o.hasPriceOnRequest ? 1 : 0,
       JSON.stringify(o), JSON.stringify([{ status: "pending_confirmation", at: ts }]), ts,
     ],
   );
@@ -114,23 +114,23 @@ export async function orderStats(days: string[]) {
   const totalsP = db.get<Raw>(
     `SELECT COUNT(*) AS orders,
             COUNT(DISTINCT email) AS buyers,
-            COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END), 0) AS requested,
-            COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN subtotal_aed ELSE 0 END), 0) AS paid,
+            COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal ELSE 0 END), 0) AS requested,
+            COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN subtotal ELSE 0 END), 0) AS paid,
             COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN 1 ELSE 0 END), 0) AS paid_orders,
             COALESCE(SUM(CASE WHEN status = 'pending_confirmation' THEN 1 ELSE 0 END), 0) AS pending
        FROM orders`,
   );
   const ph = days.map((_, i) => `$${i + 1}`).join(",");
   const byDayP = days.length
-    ? db.all<Raw>(`SELECT day, COUNT(*) AS orders, COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END),0) AS value FROM orders WHERE day IN (${ph}) GROUP BY day`, days)
+    ? db.all<Raw>(`SELECT day, COUNT(*) AS orders, COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal ELSE 0 END),0) AS value FROM orders WHERE day IN (${ph}) GROUP BY day`, days)
     : Promise.resolve([] as Raw[]);
   const [totals, byDay] = await Promise.all([totalsP, byDayP]);
   const map = new Map(byDay.map((r) => [String(r.day), { orders: Number(r.orders), value: Number(r.value) }]));
   return {
     orders: Number(totals?.orders ?? 0),
     buyers: Number(totals?.buyers ?? 0),
-    requestedAED: Number(totals?.requested ?? 0),
-    paidAED: Number(totals?.paid ?? 0),
+    requested: Number(totals?.requested ?? 0),
+    paid: Number(totals?.paid ?? 0),
     paidOrders: Number(totals?.paid_orders ?? 0),
     pending: Number(totals?.pending ?? 0),
     series: days.map((d) => ({ day: d, ...(map.get(d) ?? { orders: 0, value: 0 }) })),
@@ -146,8 +146,8 @@ export async function listCustomers(opts: { q?: string; limit?: number } = {}) {
   params.push(opts.limit ?? 200);
   const rows = await db.all<Raw>(
     `SELECT email, MAX(name) AS name, MAX(phone) AS phone, MAX(country) AS country, COUNT(*) AS orders,
-            COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal_aed ELSE 0 END),0) AS requested,
-            COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN subtotal_aed ELSE 0 END),0) AS paid,
+            COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal ELSE 0 END),0) AS requested,
+            COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN subtotal ELSE 0 END),0) AS paid,
             MAX(created_at) AS last_order, MIN(created_at) AS first_order
        FROM orders ${where} GROUP BY email ORDER BY paid DESC, requested DESC LIMIT $${params.length}`,
     params,
@@ -158,8 +158,8 @@ export async function listCustomers(opts: { q?: string; limit?: number } = {}) {
     phone: String(r.phone ?? ""),
     country: String(r.country ?? ""),
     orders: Number(r.orders),
-    requestedAED: Number(r.requested),
-    paidAED: Number(r.paid),
+    requested: Number(r.requested),
+    paid: Number(r.paid),
     lastOrder: Number(r.last_order),
     firstOrder: Number(r.first_order),
   }));

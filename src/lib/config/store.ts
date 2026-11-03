@@ -15,12 +15,6 @@ export const store = {
   url: process.env.NEXT_PUBLIC_SITE_URL ?? "https://laluxurygold.com",
   location: "Dubai, United Arab Emirates",
 
-  /**
-   * While true, the catalogue contains sample products and sample prices for the
-   * development preview. Pages are marked `noindex` and products are labelled.
-   * Set NEXT_PUBLIC_SAMPLE_CATALOGUE="false" once verified products are loaded.
-   */
-  sampleMode: process.env.NEXT_PUBLIC_SAMPLE_CATALOGUE !== "false",
 
   contact: {
     // Numbers as supplied by LA Luxury Gold. International formats are used for links.
@@ -53,35 +47,34 @@ export const store = {
 
 /* --------------------------------------------------------------------------
    Currency
-   AED is the base currency. Additional currencies appear in the currency
-   selector only once a rate is configured (e.g. from a rates service).
+   Prices are stored in US dollars. Shoppers can switch to Nigerian naira; the
+   naira rate is set in Admin → Store settings (falls back to the value below).
    -------------------------------------------------------------------------- */
-export type CurrencyCode = "AED" | "USD" | "EUR" | "GBP" | "SAR";
+export type CurrencyCode = "USD" | "NGN";
 
 export interface CurrencyConfig {
   code: CurrencyCode;
   label: string;
-  /** Units of this currency per 1 AED. `null` = not configured, hidden from customers. */
-  rate: number | null;
   locale: string;
 }
 
-export const baseCurrency: CurrencyCode = "AED";
+export const baseCurrency: CurrencyCode = "USD";
 
 export const currencies: CurrencyConfig[] = [
-  { code: "AED", label: "UAE Dirham", rate: 1, locale: "en-AE" },
-  { code: "USD", label: "US Dollar", rate: null, locale: "en-US" },
-  { code: "EUR", label: "Euro", rate: null, locale: "en-IE" },
-  { code: "GBP", label: "British Pound", rate: null, locale: "en-GB" },
-  { code: "SAR", label: "Saudi Riyal", rate: null, locale: "en-SA" },
+  { code: "USD", label: "US Dollar", locale: "en-US" },
+  { code: "NGN", label: "Nigerian Naira", locale: "en-NG" },
 ];
 
-export const enabledCurrencies = currencies.filter((c) => c.rate !== null);
+/** Naira per US dollar used until a rate is saved in the admin. */
+export const DEFAULT_NGN_PER_USD = Number(process.env.NEXT_PUBLIC_NGN_PER_USD) || 1550;
+
+export type Rates = Record<CurrencyCode, number>;
+export const defaultRates: Rates = { USD: 1, NGN: DEFAULT_NGN_PER_USD };
 
 /* --------------------------------------------------------------------------
    Shipping
-   Rates and delivery timelines are intentionally left unset (null) — they are
-   confirmed by the LA Luxury Gold team. Fill these in to show them at checkout.
+   Rates are confirmed by the team with each order (null). Set a flat rate or an
+   estimate here to show it at checkout and on the shipping page.
    -------------------------------------------------------------------------- */
 export interface ShippingMethod {
   id: string;
@@ -89,8 +82,8 @@ export interface ShippingMethod {
   description: string;
   /** ISO country codes this method serves, or "*" for all. */
   regions: string[] | "*";
-  /** Flat rate in AED, or null when the rate is confirmed after ordering. */
-  rateAED: number | null;
+  /** Flat rate in USD, or null when the rate is confirmed after ordering. */
+  rate: number | null;
   /** Human readable estimate, or null when not yet confirmed. */
   estimate: string | null;
 }
@@ -101,7 +94,7 @@ export const shippingMethods: ShippingMethod[] = [
     label: "UAE insured delivery",
     description: "Insured, signature-on-delivery service within the United Arab Emirates.",
     regions: ["AE"],
-    rateAED: null,
+    rate: null,
     estimate: null,
   },
   {
@@ -109,7 +102,7 @@ export const shippingMethods: ShippingMethod[] = [
     label: "International insured express",
     description: "Insured express courier with tracking. Duties and taxes may apply on arrival.",
     regions: "*",
-    rateAED: null,
+    rate: null,
     estimate: null,
   },
 ];
@@ -122,20 +115,22 @@ export function shippingMethodsFor(country: string) {
 
 /* --------------------------------------------------------------------------
    Payments
-   No payment provider is connected yet. See src/lib/payments.
+   Orders are confirmed by the team, who arrange payment directly with the
+   customer. To add online card payments see src/lib/payments, then set the
+   "card" option below to available.
    -------------------------------------------------------------------------- */
 export const paymentOptions = [
   {
     id: "card",
     label: "Credit / debit card",
-    description: "Secure card payments will be available once a payment gateway is connected.",
+    description: "Online card payment.",
     available: false,
   },
   {
     id: "order-request",
-    label: "Reserve & confirm with our team",
+    label: "Confirm & pay with our team",
     description:
-      "Submit your order request. Our team will contact you to confirm availability, delivery and payment details. No payment is taken now.",
+      "Place your order now and our team will contact you, usually within one business day, to confirm availability, delivery and payment. No payment is taken online.",
     available: true,
   },
 ] as const;

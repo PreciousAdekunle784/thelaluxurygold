@@ -6,6 +6,7 @@ import { AnimatePresence, m } from "framer-motion";
 import { SlidersHorizontal, X, Search } from "lucide-react";
 import { queryProducts, sortOptions, type SortKey } from "@/lib/data/catalogue";
 import { useCatalogue } from "@/lib/state/catalogue";
+import { useCurrency } from "@/lib/state/currency";
 import { categories, collections, purities } from "@/lib/data/categories";
 import type { CategorySlug, Purity } from "@/lib/data/types";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -13,11 +14,12 @@ import { useEscape, useScrollLock } from "@/lib/hooks/ui";
 import { cx } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
 
-const pricePresets = [
-  { label: "Under AED 2,000", min: null, max: 2000 },
-  { label: "AED 2,000 – 5,000", min: 2000, max: 5000 },
-  { label: "AED 5,000 – 10,000", min: 5000, max: 10000 },
-  { label: "Over AED 10,000", min: 10000, max: null },
+/** Price bands in USD (the store's base currency); labels are shown in the shopper's currency. */
+const pricePresets: { min: number | null; max: number | null }[] = [
+  { min: null, max: 500 },
+  { min: 500, max: 1000 },
+  { min: 1000, max: 2500 },
+  { min: 2500, max: null },
 ];
 
 const list = (v: string | null) => (v ? v.split(",").filter(Boolean) : []);
@@ -34,6 +36,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
   const pathname = usePathname();
   const [, startTransition] = useTransition();
   const { products } = useCatalogue();
+  const { format } = useCurrency();
   const [drawer, setDrawer] = useState(false);
   useScrollLock(drawer);
   useEscape(drawer, () => setDrawer(false));
@@ -76,7 +79,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
     ...(!preset.collection ? state.collections.map((c) => ({ label: collections.find((x) => x.slug === c)?.name ?? c, clear: () => toggleIn("collection", state.collections, c) })) : []),
     ...state.purities.map((p) => ({ label: `${p} gold`, clear: () => toggleIn("purity", state.purities, p) })),
     ...(state.minPrice != null || state.maxPrice != null
-      ? [{ label: `AED ${state.minPrice?.toLocaleString("en-US") ?? "0"} – ${state.maxPrice?.toLocaleString("en-US") ?? "∞"}`, clear: () => update({ min: null, max: null }) }]
+      ? [{ label: state.minPrice != null && state.maxPrice != null ? `${format(state.minPrice)} – ${format(state.maxPrice)}` : state.maxPrice != null ? `Under ${format(state.maxPrice)}` : `Over ${format(state.minPrice ?? 0)}`, clear: () => update({ min: null, max: null }) }]
       : []),
     ...(state.inStockOnly ? [{ label: "Available now", clear: () => update({ stock: null }) }] : []),
   ];
@@ -253,9 +256,16 @@ function Filters({
   onUpdate: (patch: Record<string, string | null>) => void;
   countFor: (patch: Partial<FilterState>) => number;
 }) {
+  const { format, currency, rates } = useCurrency();
+  const rate = rates[currency] ?? 1;
+  // Price inputs are typed in the shopper's currency; the filter itself works in USD.
+  const toLocal = (usd: number | null) => (usd == null ? "" : String(Math.round(usd * rate)));
+  const toUsd = (local: string) => (local ? String(Math.round(Number(local) / rate)) : null);
   const [q, setQ] = useState(state.q);
-  const [min, setMin] = useState(state.minPrice?.toString() ?? "");
-  const [max, setMax] = useState(state.maxPrice?.toString() ?? "");
+  const [min, setMin] = useState(toLocal(state.minPrice));
+  const [max, setMax] = useState(toLocal(state.maxPrice));
+  const presetLabel = (p: { min: number | null; max: number | null }) =>
+    p.min == null ? `Under ${format(p.max!)}` : p.max == null ? `Over ${format(p.min)}` : `${format(p.min)} – ${format(p.max)}`;
 
   return (
     <div>
@@ -294,19 +304,19 @@ function Filters({
         ))}
       </Group>
 
-      <Group title="Price (AED)">
+      <Group title="Price">
         <div className="space-y-2.5">
           {pricePresets.map((p) => {
             const active = state.minPrice === p.min && state.maxPrice === p.max;
             return (
               <Check
-                key={p.label}
-                label={p.label}
+                key={`${p.min}-${p.max}`}
+                label={presetLabel(p)}
                 checked={active}
                 onChange={() => {
                   onUpdate(active ? { min: null, max: null } : { min: p.min?.toString() ?? null, max: p.max?.toString() ?? null });
-                  setMin(active ? "" : p.min?.toString() ?? "");
-                  setMax(active ? "" : p.max?.toString() ?? "");
+                  setMin(active ? "" : toLocal(p.min));
+                  setMax(active ? "" : toLocal(p.max));
                 }}
               />
             );
@@ -316,15 +326,15 @@ function Filters({
           className="flex items-end gap-2 pt-3"
           onSubmit={(e) => {
             e.preventDefault();
-            onUpdate({ min: min || null, max: max || null });
+            onUpdate({ min: toUsd(min), max: toUsd(max) });
           }}
         >
           <label className="flex-1 text-[0.65rem] uppercase tracking-[0.16em] text-stone">
-            Min
+            Min ({currency})
             <input inputMode="numeric" value={min} onChange={(e) => setMin(e.target.value.replace(/\D/g, ""))} className="field-boxed mt-1.5 px-3 py-2 text-sm normal-case tracking-normal text-ink" placeholder="0" />
           </label>
           <label className="flex-1 text-[0.65rem] uppercase tracking-[0.16em] text-stone">
-            Max
+            Max ({currency})
             <input inputMode="numeric" value={max} onChange={(e) => setMax(e.target.value.replace(/\D/g, ""))} className="field-boxed mt-1.5 px-3 py-2 text-sm normal-case tracking-normal text-ink" placeholder="Any" />
           </label>
           <button type="submit" className="h-[38px] border border-ink px-3 text-[0.62rem] font-semibold uppercase tracking-[0.18em] transition-colors hover:bg-ink hover:text-ivory">

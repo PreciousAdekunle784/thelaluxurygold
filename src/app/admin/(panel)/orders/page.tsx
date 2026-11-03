@@ -56,7 +56,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
               <td className="px-4 py-3">{o.name}<span className="block text-xs text-stone">{o.email}</span></td>
               <td className="whitespace-nowrap px-4 py-3">{countryLabel(o.country)}</td>
               <td className="px-4 py-3 tabular-nums">{o.itemCount}</td>
-              <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatMoney(o.subtotalAED)}{o.hasPriceOnRequest && <span className="block text-xs text-stone">+ price on request</span>}</td>
+              <td className="whitespace-nowrap px-4 py-3 tabular-nums">{formatMoney(o.subtotal)}{o.hasPriceOnRequest && <span className="block text-xs text-stone">+ price on request</span>}</td>
               <td className="px-4 py-3"><StatusPill status={o.status} /></td>
             </tr>
           ))}

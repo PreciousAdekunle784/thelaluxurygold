@@ -7,7 +7,7 @@ import { Bell, ShoppingBag, X } from "lucide-react";
 import { formatMoney } from "@/lib/format";
 
 export interface LiveView { id: string; ts: number; path: string; country: string; device: string; referrer?: string; visitorId: string; isNew: boolean }
-export interface LiveOrder { reference: string; ts: number; name: string; country: string; subtotalAED: number; items: number; hasPriceOnRequest: boolean }
+export interface LiveOrder { reference: string; ts: number; name: string; country: string; subtotal: number; items: number; hasPriceOnRequest: boolean }
 interface LiveState {
   now: number;
   live: LiveView[];
@@ -73,7 +73,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
         setToasts((t) => [...fresh, ...t].slice(0, 4));
         chime();
         if (typeof Notification !== "undefined" && Notification.permission === "granted") {
-          for (const o of fresh) new Notification(`New order ${o.reference}`, { body: `${o.name} · ${o.hasPriceOnRequest ? "price on request" : formatMoney(o.subtotalAED)}`, tag: o.reference });
+          for (const o of fresh) new Notification(`New order ${o.reference}`, { body: `${o.name} · ${o.hasPriceOnRequest ? "price on request" : formatMoney(o.subtotal)}`, tag: o.reference });
         }
       }
       firstLoad.current = false;
@@ -130,7 +130,7 @@ export function LiveProvider({ children }: { children: ReactNode }) {
               <ShoppingBag size={18} className="mt-0.5 shrink-0 text-gold" />
               <Link href={`/admin/orders/${o.reference}`} className="min-w-0 flex-1">
                 <p className="text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-gold-pale">New order</p>
-                <p className="mt-1 text-sm font-semibold">{o.reference} · {o.hasPriceOnRequest ? "price on request" : formatMoney(o.subtotalAED)}</p>
+                <p className="mt-1 text-sm font-semibold">{o.reference} · {o.hasPriceOnRequest ? "price on request" : formatMoney(o.subtotal)}</p>
                 <p className="mt-0.5 truncate text-xs text-ivory/70">{o.name} · {o.country} · {o.items} item{o.items === 1 ? "" : "s"}</p>
               </Link>
               <button type="button" aria-label="Dismiss" onClick={() => setToasts((t) => t.filter((x) => x.reference !== o.reference))} className="text-ivory/60 hover:text-ivory">

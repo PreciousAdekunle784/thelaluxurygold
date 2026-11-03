@@ -76,7 +76,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
 
   await a.goto(BASE + '/admin/orders', { waitUntil: 'load' });
   await a.waitForTimeout(800);
-  ok('order appears in orders list with amount', (await a.locator(`tr:has-text("${ref}")`).textContent()).includes('AED 3,400'));
+  ok('order appears in orders list with amount', (await a.locator(`tr:has-text("${ref}")`).textContent()).includes('$925'));
   await a.click(`a:has-text("${ref}")`);
   await a.waitForURL(new RegExp(ref));
   ok('order detail shows buyer & item', (await a.locator('main').textContent()).includes(BUYER) && (await a.locator('main').textContent()).includes('Maison Signet Ring'));
@@ -91,11 +91,11 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.goto(BASE + '/admin/customers', { waitUntil: 'load' });
   await a.waitForTimeout(800);
   const buyerRow = await a.locator(`tr:has-text("${BUYER}")`).textContent();
-  ok('buyer listed with total paid', buyerRow.includes('AED 3,400'), buyerRow.replace(/\s+/g, ' ').slice(0, 120));
+  ok('buyer listed with total paid', buyerRow.includes('$925'), buyerRow.replace(/\s+/g, ' ').slice(0, 120));
   await a.goto(BASE + '/admin', { waitUntil: 'load' });
   await a.waitForTimeout(800);
   const revenue = await a.locator('p:has-text("Revenue received") + p').textContent();
-  ok('dashboard revenue includes paid order', Number(revenue.replace(/[^\d]/g, '')) >= 3400, revenue);
+  ok('dashboard revenue includes paid order', Number(revenue.replace(/[^\d]/g, '')) >= 925, revenue);
   if (SHOTS) { await a.waitForTimeout(1200); await a.screenshot({ path: path.join(SHOTS, 'admin-dashboard.png'), fullPage: true }); }
 
   const csv = await a.request.get(BASE + '/api/admin/export/orders');
@@ -107,20 +107,20 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   ok('products list shows catalogue', (await a.locator('tbody tr').count()) >= 19);
   await a.click('a:has-text("Classic Gold Hoops")');
   await a.waitForURL(/\/admin\/products\/p-/);
-  await a.locator('label:has-text("Price (AED)") input').fill('2100');
+  await a.locator('label:has-text("Price (USD)") input').fill('560');
   await a.locator('label:has-text("Short tagline") input').fill('Rounded hoops — edited from the admin.');
   await a.click('button:has-text("Save changes")');
   await a.waitForSelector('text=Saved and published to the store.');
   await s.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'load' });
   await s.waitForTimeout(700);
   const pdp = await s.locator('main').textContent();
-  ok('product edit is live on the store (price + tagline)', pdp.includes('AED 2,100') && pdp.includes('edited from the admin'));
+  ok('product edit is live on the store (price + tagline)', pdp.includes('$560') && pdp.includes('edited from the admin'));
 
   // create a product with an uploaded image
   await a.goto(BASE + '/admin/products/new', { waitUntil: 'load' });
   await a.waitForTimeout(800);
   await a.getByRole('textbox', { name: 'Product name', exact: true }).fill('Test Admin Ring');
-  await a.locator('label:has-text("Price (AED)") input').fill('999');
+  await a.locator('label:has-text("Price (USD)") input').fill('999');
   await a.locator('input[type=file]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'products', 'soleil-dome-3.webp'));
   await a.waitForSelector('span:has-text("Main")', { timeout: 20000 });
   ok('image upload works', true);
@@ -168,12 +168,12 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   ok('visit log lists shopper page views', (await a.locator('tbody tr').count()) >= 3);
   if (SHOTS) await a.screenshot({ path: path.join(SHOTS, 'admin-visitors.png'), fullPage: true });
 
-  // restore the edited sample product so repeated runs start from the same data
+  // restore the edited product so repeated runs start from the same data
   await a.goto(BASE + '/admin/products', { waitUntil: 'load' });
   await a.waitForTimeout(800);
   await a.click('a:has-text("Classic Gold Hoops")');
   await a.waitForURL(/\/admin\/products\/p-/);
-  await a.locator('label:has-text("Price (AED)") input').fill('1950');
+  await a.locator('label:has-text("Price (USD)") input').fill('530');
   await a.locator('label:has-text("Short tagline") input').fill('Rounded, tapered hoops — the essential pair.');
   await a.click('button:has-text("Save changes")');
   await a.waitForSelector('text=Saved and published to the store.');
@@ -191,6 +191,50 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   ok('uploaded hero image is used on the homepage', heroSrc.includes('%2Fmedia%2F'), heroSrc.slice(0, 80));
   await a.click('button:has-text("Use the brand film")');
   await a.waitForSelector('text=Restored the looping brand film.');
+
+  // ---------------------------------------------------------------- exchange rate
+  await a.goto(BASE + '/admin/settings', { waitUntil: 'load' });
+  await a.waitForTimeout(500);
+  const rateInput = a.locator('input[name=ngnPerUsd]');
+  const oldRate = await rateInput.inputValue();
+  await rateInput.fill('1600');
+  await a.click('button:has-text("Save rate")');
+  await a.waitForSelector('text=Saved — naira prices');
+  await s.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'load' });
+  await s.evaluate(() => localStorage.setItem('llg.currency.v2', JSON.stringify('NGN')));
+  let ngnText = '';
+  for (let i = 0; i < 3 && !ngnText.includes('848,000'); i++) {
+    await s.reload({ waitUntil: 'load' });
+    await s.waitForTimeout(700);
+    ngnText = await s.locator('main').textContent();
+  }
+  ok('naira rate from Store settings is used on the store ($530 × 1600)', ngnText.includes('848,000'), (ngnText.match(/₦[\d,]+/) || [''])[0]);
+  await s.evaluate(() => localStorage.setItem('llg.currency.v2', JSON.stringify('USD')));
+  await rateInput.fill(oldRate);
+  await a.click('button:has-text("Save rate")');
+  await a.waitForSelector('text=Saved — naira prices');
+
+  // ---------------------------------------------------------------- testimonials
+  await a.goto(BASE + '/admin/testimonials', { waitUntil: 'load' });
+  await a.waitForTimeout(500);
+  await a.click('button:has-text("Add testimonial")');
+  await a.fill('textarea[name=quote]', `Beautiful ring and very helpful team on WhatsApp. (${RUN})`);
+  await a.fill('input[name=name]', 'Test Client');
+  await a.click('button:has-text("Save testimonial")');
+  await a.waitForSelector(`text=(${RUN})`);
+  let homeText = '';
+  for (let i = 0; i < 3 && !homeText.includes(RUN); i++) {
+    await s.goto(BASE + '/', { waitUntil: 'load' });
+    await s.waitForTimeout(700);
+    homeText = await s.locator('main').textContent();
+  }
+  ok('published testimonial appears on the homepage', homeText.includes(RUN));
+  a.once('dialog', (d) => d.accept());
+  await a.locator(`li:has-text("(${RUN})") button[aria-label=Delete]`).click();
+  await a.waitForSelector(`text=(${RUN})`, { state: 'detached' });
+  await s.goto(BASE + '/', { waitUntil: 'load' });
+  await s.waitForTimeout(700);
+  ok('testimonials section hidden when none are published', !(await s.locator('section[aria-labelledby=testimonials]').count()));
 
   // ---------------------------------------------------------------- logout
   await a.click('button:has-text("Sign out")');
