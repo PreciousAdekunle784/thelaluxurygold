@@ -65,7 +65,7 @@ export function ClientConfidence({ reviews }: { reviews: number }) {
         </div>
         <ul className="grid gap-px self-start border border-line bg-line sm:grid-cols-2 lg:col-span-7 lg:col-start-6">
           {items.map((it, i) => (
-            <Reveal as="li" key={it.title} delay={(i % 2) * 0.08} className="flex flex-col bg-white p-8 md:p-10">
+            <Reveal as="li" key={it.title} delay={(i % 2) * 0.08} className="flex flex-col bg-white p-8 sm:[&:last-child:nth-child(odd)]:col-span-2 md:p-10">
               <it.icon size={26} strokeWidth={1} className="text-champagne" aria-hidden />
               <h3 className="mt-7 font-display text-[1.6rem] leading-[1.1]">{it.title}</h3>
               <p className="mt-3 flex-1 text-sm leading-relaxed text-stone">{it.copy}</p>

@@ -159,7 +159,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
 
       <div className="mt-8 grid gap-12 lg:mt-4 lg:grid-cols-[250px_1fr] xl:grid-cols-[270px_1fr] xl:gap-16">
         <aside className="hidden lg:block" aria-label="Filters">
-          <div className="sticky top-[calc(var(--header-h)+1.5rem)]">{filters}</div>
+          <div className="no-scrollbar sticky top-[calc(var(--header-h)+1.5rem)] max-h-[calc(100vh-var(--header-h)-3rem)] overflow-y-auto overscroll-contain pb-6 pr-1">{filters}</div>
         </aside>
 
         <div>

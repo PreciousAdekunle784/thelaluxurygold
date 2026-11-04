@@ -35,7 +35,7 @@ export default async function GoldBarsPage() {
             </Reveal>
           </div>
           <div className="relative min-h-[360px]">
-            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[38%_55%]" />
             <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#0e3326_0%,transparent_30%)] lg:bg-[linear-gradient(90deg,#0e3326_0%,transparent_30%)]" />
           </div>
         </div>

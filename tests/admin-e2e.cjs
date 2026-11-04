@@ -121,7 +121,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.waitForTimeout(800);
   await a.getByRole('textbox', { name: 'Product name', exact: true }).fill('Test Admin Ring');
   await a.locator('label:has-text("Price (USD)") input').fill('999');
-  await a.locator('input[type=file]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'products', 'soleil-dome-3.webp'));
+  await a.locator('input[type=file]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'laluxurygold', 'products', 'soleil-dome-3.webp'));
   await a.waitForSelector('span:has-text("Main")', { timeout: 20000 });
   ok('image upload works', true);
   await a.click('button:has-text("Create product")');
@@ -181,7 +181,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   // ---------------------------------------------------------------- homepage hero
   await a.goto(BASE + '/admin/settings', { waitUntil: 'load' });
   await a.waitForTimeout(700);
-  await a.locator('input[aria-label="Upload Hero background — desktop"]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'editorial', 'campaign.webp'));
+  await a.locator('input[aria-label="Upload Hero background — desktop"]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'laluxurygold', 'campaign', 'campaign-editorial.webp'));
   await a.waitForSelector('text=Published — the homepage now uses this image.', { timeout: 30000 });
   let heroSrc = '';
   for (let i = 0; i < 2 && !heroSrc.includes('%2Fmedia%2F'); i++) {

@@ -47,27 +47,29 @@ export async function Hero() {
       <div className="container-luxe relative flex w-full flex-col justify-start pb-10 pt-[calc(var(--header-h)+2.25rem)] md:justify-center md:pb-16 md:pt-[calc(var(--header-h)+2rem)]">
         <div className="max-w-[44rem]">
           <HeroFade delay={0.45}>
-            <p className="eyebrow mb-6 flex items-center gap-3 text-gold-pale md:mb-10">
+            <p className="eyebrow mb-4 flex items-center gap-3 text-gold-pale md:mb-8">
               <span className="h-px w-10 bg-current" /> The Burgundy Edit · Dubai
             </p>
           </HeroFade>
-          <h1 className="display text-[3.1rem] uppercase leading-[0.88] sm:text-[4.8rem] lg:text-[6rem] xl:text-[6.9rem]">
+          <h1 className="display text-[2.6rem] uppercase leading-[0.9] sm:text-[4.2rem] lg:text-[5rem] xl:text-[5.6rem]">
             <HeroLine delay={0.55}>Gold,</HeroLine>
             <HeroLine delay={0.68}>
               <span className="script normal-case text-gold-pale">beyond</span>
             </HeroLine>
-            <HeroLine delay={0.81}>the ordinary.</HeroLine>
+            <HeroLine delay={0.81}>
+              <span className="whitespace-nowrap">the ordinary.</span>
+            </HeroLine>
           </h1>
           <HeroFade delay={1.05}>
-            <p className="mt-4 max-w-[24rem] text-[0.92rem] leading-relaxed text-ivory/80 md:mt-10 md:text-[1.05rem]">
+            <p className="mt-3 max-w-[20rem] text-[0.88rem] leading-relaxed text-ivory/80 md:mt-8 md:max-w-[24rem] md:text-[1.05rem]">
               Exceptional pieces. Enduring presence. A personal expression of luxury.
             </p>
           </HeroFade>
-          <HeroFade delay={1.2} className="mt-7 flex flex-wrap gap-2.5 sm:gap-3 md:mt-12">
-            <ButtonLink href="/shop" variant="gold" size="lg" className="max-sm:h-11 max-sm:px-5">
+          <HeroFade delay={1.2} className="mt-5 flex flex-wrap gap-2 sm:gap-3 md:mt-10">
+            <ButtonLink href="/shop" variant="gold" size="lg" className="max-sm:h-10 max-sm:px-4 max-sm:text-[0.6rem] max-sm:tracking-[0.18em]">
               Explore the collection
             </ButtonLink>
-            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-11 max-sm:px-5">
+            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-10 max-sm:px-4 max-sm:text-[0.6rem] max-sm:tracking-[0.18em]">
               Discover our story
             </ButtonLink>
           </HeroFade>
@@ -75,13 +77,7 @@ export async function Hero() {
       </div>
 
       <HeroFade delay={1.5} className="absolute inset-x-0 bottom-0 hidden md:block">
-        <div className="container-luxe flex items-end justify-between pb-10 text-[0.62rem] uppercase tracking-[0.3em] text-ivory/60">
-          <span className="flex items-center gap-4">
-            <span className="relative block h-12 w-px overflow-hidden bg-ivory/20">
-              <span className="absolute inset-x-0 top-0 h-1/2 animate-[scrollcue_2.4s_ease-in-out_infinite] bg-ivory" />
-            </span>
-            Scroll
-          </span>
+        <div className="container-luxe flex items-end justify-end pb-10 text-[0.62rem] uppercase tracking-[0.3em] text-ivory/60">
           <span>18K — 24K gold · Insured worldwide delivery</span>
         </div>
       </HeroFade>

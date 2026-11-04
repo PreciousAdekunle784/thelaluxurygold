@@ -70,6 +70,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(1200);
     const afterScroll = await p.locator('main ul.grid > li').count();
     ok('grid loads progressively (12, then the rest on scroll)', firstPage === 12 && afterScroll === 21, `${firstPage} → ${afterScroll}`);
+    await p.evaluate(() => window.scrollTo(0, 0));
+    await p.waitForTimeout(400);
     await p.locator('aside label:has-text("Rings")').first().click();
     await p.waitForURL(/category=rings/);
     await p.waitForTimeout(700);
@@ -163,10 +165,10 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('studio-render note shown on illustrative product images', await p.locator('text=Images are studio renderings of this design').isVisible());
     const ld = await p.$$eval('script[type="application/ld+json"]', (s) => s.map((x) => JSON.parse(x.textContent)));
     ok('PDP has Product structured data with USD offer', ld.some((d) => d['@type'] === 'Product' && d.offers?.priceCurrency === 'USD'));
-    await p.locator('main button:has-text("Add to bag")').click();
+    await p.locator('#add-to-bag').click();
     ok('size required before adding', await p.locator('text=Please select a ring size.').isVisible());
     await p.locator('main button[aria-pressed]:has-text("54")').click();
-    await p.locator('main button:has-text("Add to bag")').click();
+    await p.locator('#add-to-bag').click();
     await p.waitForTimeout(500);
     const badge = await p.locator('header button[aria-label^="Shopping bag"]').getAttribute('aria-label');
     ok('cart count updates to 1', badge.includes('1 items'), badge);
@@ -176,7 +178,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('Escape closes cart drawer', !(await p.locator('[role=dialog][aria-label="Shopping bag"]').isVisible()));
     await p.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'load' });
     await p.waitForTimeout(700);
-    await p.locator('main button:has-text("Add to bag")').click();
+    await p.locator('#add-to-bag').click();
     await p.waitForTimeout(400);
     await p.keyboard.press('Escape');
     await p.waitForTimeout(700);

@@ -736,7 +736,7 @@ def hero_mobile():
     L.camera((-8, -96, 33), (0, 0, 32), 70, 3.2, (0, -4, 28), shift=(0, 0.2))
 
 
-@job("campaign/campaign-burgundy", 2560, 1280, 80)
+@job("campaign/campaign-burgundy", 2560, 1280, 48)
 def campaign_burgundy():
     surf = env_silk(L.hexrgb("#6a1631"), 1.15, (-46, -4, 9), seed=31, amp=3.6)
     h = L.drape_on(surf, [(3, 1)])[0]

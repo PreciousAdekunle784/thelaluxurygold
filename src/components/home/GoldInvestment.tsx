@@ -14,7 +14,7 @@ export async function GoldInvestment() {
       <div className="grid lg:min-h-[760px] lg:grid-cols-2">
         <div className="relative order-1 aspect-[10/7] lg:order-2 lg:aspect-auto">
           <ImageReveal className="absolute inset-0">
-            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[38%_55%]" />
           </ImageReveal>
           <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#0e3326_0%,transparent_30%)] lg:bg-[linear-gradient(90deg,#0e3326_0%,transparent_28%)]" />
         </div>

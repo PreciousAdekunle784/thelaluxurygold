@@ -12,8 +12,8 @@ const layout: Record<string, { cell: string; aspect: string; caption: "below" | 
   necklaces: { cell: "lg:col-span-4 lg:mt-24", aspect: "aspect-[3/4]", caption: "below", note: "Chains · Pendants" },
   bracelets: { cell: "lg:col-span-3 lg:mt-48", aspect: "aspect-[2/3]", caption: "below", note: "Bangles · Cuffs · Links" },
   earrings: { cell: "lg:col-span-3", aspect: "aspect-[2/3]", caption: "below", note: "Hoops · Huggies · Drops" },
-  sets: { cell: "lg:col-span-4 lg:mt-16", aspect: "aspect-[3/4]", caption: "below", note: "Presented together" },
-  "gold-bars": { cell: "lg:col-span-5 lg:-mt-24", aspect: "aspect-[4/5]", caption: "overlay", note: "24K · Minted & cast" },
+  sets: { cell: "lg:col-span-4 lg:mt-20", aspect: "aspect-[3/4]", caption: "below", note: "Presented together" },
+  "gold-bars": { cell: "lg:col-span-5 lg:mt-6", aspect: "aspect-[4/5]", caption: "overlay", note: "24K · Minted & cast" },
 };
 
 export function CategoryShowcase() {
