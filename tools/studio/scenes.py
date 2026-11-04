@@ -220,7 +220,7 @@ def env_travertine(plinth=(18, 12, 7), sun_dir=(-0.62, 0.55, -0.56), bg=None, go
 def env_silk(color=L.BURGUNDY, light=1.0, rake=(-38, -8, 10), seed=3, amp=2.6, dark=True):
     """Silk drape with low raking light — deep folds and satin highlights."""
     L.world((0.002, 0.0015, 0.0015) if dark else (0.05, 0.045, 0.04), 1)
-    sheet = L.heightfield(L.silk(color), (140, 100), (280, 200), (0, 0, 0), L.silk_fn(seed, amp, 0.075, ((1.0, 0.25), (0.6, 1.6), (0.35, -0.9))))
+    sheet = L.heightfield(L.silk(color), (140, 100), (280, 200), (0, 0, 0), L.silk_fn(seed, amp * 0.5, 0.3, ((1.0, 0.25), (0.6, 1.6), (0.35, -0.9))))
     L.area(rake, (0, 0, 0), 10, 16000 * light, (1, 0.94, 0.86), size_y=60)
     L.area((26, 22, 26), (0, 0, 0), 20, 3200 * light, (1, 0.86, 0.84))
     L.area((0, -30, 40), (0, 0, 0), 30, 500 * light, (1, 0.95, 0.9))
