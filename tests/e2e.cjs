@@ -18,7 +18,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     const urls = [...sm.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1].replace(/^https?:\/\/[^/]+/, ''));
     const extra = ['/cart', '/checkout', '/wishlist', '/account', '/shop?category=rings', '/does-not-exist'];
     const seenLinks = new Set();
-    let badImages = 0, pagesOk = 0;
+    let badImages = 0, pagesOk = 0, svgPhotos = 0;
     for (const u of [...new Set([...urls.map((x) => x || '/'), ...extra])]) {
       const r = await p.goto(BASE + u, { waitUntil: 'load' });
       await p.waitForTimeout(700);
@@ -29,13 +29,15 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
       // scroll to trigger lazy images
       await p.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 700) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); } });
       await p.waitForFunction(() => [...document.images].filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0).every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
-      const imgs = await p.$$eval('img', (els) => els.filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0).map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0 })));
+      const imgs = await p.$$eval('img', (els) => els.filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0).map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0, w: i.getBoundingClientRect().width })));
       const bad = imgs.filter((i) => !i.ok);
+      svgPhotos += imgs.filter((i) => /\.svg(\?|$)/.test(decodeURIComponent(i.src)) && i.w > 120).length;
       if (bad.length) { badImages += bad.length; console.log('  bad images on', u, bad.slice(0, 3)); }
       (await p.$$eval('a[href]', (as) => as.map((a) => a.getAttribute('href')))).forEach((h) => seenLinks.add(h));
     }
     ok('all sitemap + app pages return 200', pagesOk === new Set([...urls.map((x) => x || '/'), ...extra]).size - 1, `${pagesOk} pages`);
     ok('no broken images', badImages === 0, `${badImages} broken`);
+    ok('no SVG used as a photograph', svgPhotos === 0, `${svgPhotos} found`);
     // internal links
     const internal = [...seenLinks].filter((h) => h.startsWith('/') && !h.startsWith('//'));
     let brokenLinks = [];
@@ -59,9 +61,15 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     const p = await ctx.newPage();
     await p.goto(BASE + '/shop', { waitUntil: 'load' });
     await p.waitForTimeout(700);
-    const count = async () => p.locator('main ul.grid > li:visible').count();
+    // the grid loads progressively, so counts come from the result summary ("21 pieces")
+    const count = async () => Number(((await p.locator('main p[aria-live=polite]:visible').first().textContent()) || '').match(/\d+/)?.[0] ?? -1);
     const total = await count();
-    ok('shop lists all products', total === 19, `${total}`);
+    ok('shop lists all products', total === 21, `${total}`);
+    const firstPage = await p.locator('main ul.grid > li').count();
+    await p.locator('button:has-text("Show more")').scrollIntoViewIfNeeded();
+    await p.waitForTimeout(1200);
+    const afterScroll = await p.locator('main ul.grid > li').count();
+    ok('grid loads progressively (12, then the rest on scroll)', firstPage === 12 && afterScroll === 21, `${firstPage} → ${afterScroll}`);
     await p.locator('aside label:has-text("Rings")').first().click();
     await p.waitForURL(/category=rings/);
     await p.waitForTimeout(700);
@@ -83,13 +91,38 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('sort price low→high is ascending', prices.every((v, i) => i === 0 || v >= prices[i - 1]), prices.slice(0, 6).join(','));
     await p.goto(BASE + '/shop?stock=1', { waitUntil: 'load' });
     await p.waitForTimeout(700);
-    ok('availability filter hides 3 made-to-order', (await count()) === 16, `${await count()}`);
+    ok('availability filter hides 3 made-to-order', (await count()) === 18, `${await count()}`);
+    await p.goto(BASE + '/shop?size=54', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    ok('size filter (ring size 54) → 4 rings + 1 set', (await count()) === 5, `${await count()}`);
+    await p.goto(BASE + '/shop?category=rings', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    await p.locator('aside button[aria-pressed]:has-text("60")').click();
+    await p.waitForURL(/size=60/);
+    ok('size buttons update the URL filter', true);
     await p.goto(BASE + '/shop?purity=24K&category=rings', { waitUntil: 'load' });
     await p.waitForTimeout(700);
     ok('empty state shown for no results', await p.locator('text=No pieces match your selection').isVisible());
     await p.locator('button:has-text("Clear filters")').click();
     await p.waitForTimeout(800);
-    ok('clear filters restores all', (await count()) === 19, `${await count()}`);
+    ok('clear filters restores all', (await count()) === 21, `${await count()}`);
+    // curated listings
+    await p.goto(BASE + '/fine-jewellery', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    ok('fine jewellery lists every non-bar piece (16)', (await count()) === 16, `${await count()}`);
+    await p.goto(BASE + '/new-arrivals', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    ok('new arrivals lists pieces flagged new (6)', (await count()) === 6, `${await count()}`);
+    await p.goto(BASE + '/collections/sets', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    ok('jewellery sets category (2)', (await count()) === 2, `${await count()}`);
+    // navigation
+    await p.goto(BASE + '/', { waitUntil: 'load' });
+    await p.waitForTimeout(700);
+    const navText = await p.locator('nav[aria-label=Main]').textContent();
+    ok('main navigation has Shop · New Arrivals · Collections · Fine Jewellery · Gold Bars · Our Story', ['Shop', 'New Arrivals', 'Collections', 'Fine Jewellery', 'Gold Bars', 'Our Story'].every((t) => navText.includes(t)), navText);
+    const hero = await p.evaluate(() => { const i = document.querySelector('section[aria-label=Introduction] img'); return i ? { src: i.currentSrc, w: i.naturalWidth } : null; });
+    ok('hero shows the raster campaign photograph', !!hero && /hero-desktop/.test(decodeURIComponent(hero.src)) && hero.w > 1000, JSON.stringify(hero));
     // header search
     await p.goto(BASE + '/', { waitUntil: 'load' });
     await p.waitForTimeout(700);
@@ -120,6 +153,14 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.goto(BASE + '/product/maison-signet-ring', { waitUntil: 'load' });
     await p.waitForTimeout(700);
     ok('PDP shows 3 gallery images', (await p.locator('main button[aria-label^="Enlarge image"]').count()) === 3);
+    await p.locator('main button[aria-label^="Enlarge image"]').first().click();
+    await p.waitForTimeout(500);
+    await p.locator('[role=dialog] button:has-text("Zoom in")').click();
+    await p.waitForTimeout(300);
+    ok('image viewer zooms in', (await p.locator('[role=dialog] button[aria-pressed=true]').count()) === 1);
+    await p.keyboard.press('Escape');
+    await p.waitForTimeout(400);
+    ok('studio-render note shown on illustrative product images', await p.locator('text=Images are studio renderings of this design').isVisible());
     const ld = await p.$$eval('script[type="application/ld+json"]', (s) => s.map((x) => JSON.parse(x.textContent)));
     ok('PDP has Product structured data with USD offer', ld.some((d) => d['@type'] === 'Product' && d.offers?.priceCurrency === 'USD'));
     await p.locator('main button:has-text("Add to bag")').click();

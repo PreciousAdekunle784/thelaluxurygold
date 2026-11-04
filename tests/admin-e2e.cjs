@@ -189,8 +189,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
     heroSrc = (await s.locator('section[aria-label=Introduction] picture img').first().getAttribute('src')) ?? '';
   }
   ok('uploaded hero image is used on the homepage', heroSrc.includes('%2Fmedia%2F'), heroSrc.slice(0, 80));
-  await a.click('button:has-text("Use the brand film")');
-  await a.waitForSelector('text=Restored the looping brand film.');
+  await a.click('button:has-text("Use the campaign image")');
+  await a.waitForSelector('text=Restored the campaign image.');
 
   // ---------------------------------------------------------------- exchange rate
   await a.goto(BASE + '/admin/settings', { waitUntil: 'load' });

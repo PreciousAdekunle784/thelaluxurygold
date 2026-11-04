@@ -26,7 +26,7 @@ function Column({ title, links }: { title: string; links: { label: string; href:
 
 export function Footer() {
   return (
-    <footer className="relative overflow-hidden bg-forest text-ivory">
+    <footer className="relative overflow-hidden bg-obsidian text-ivory">
       <Monogram tone="ivory" className="pointer-events-none absolute -right-20 -top-10 h-[540px] w-auto opacity-[0.05]" />
       <div className="container-luxe relative">
         <div className="grid gap-14 border-b border-line-light py-16 md:py-24 lg:grid-cols-[1.3fr_1fr] lg:gap-24">

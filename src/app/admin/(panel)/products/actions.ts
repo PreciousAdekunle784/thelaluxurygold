@@ -72,6 +72,7 @@ export async function saveProductAction(input: Product): Promise<SaveResult> {
     popularity: Number.isFinite(Number(input.popularity)) ? Number(input.popularity) : 50,
     featured: !!input.featured,
     isNew: !!input.isNew,
+    illustrativeImages: !!input.illustrativeImages,
   };
   if (!product.variants?.length) delete product.variants;
   await saveProduct(product);

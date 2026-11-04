@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     siteName: "LA Luxury Gold",
     title: "LA Luxury Gold — The Art of Timeless Gold",
     description: store.description,
-    images: [{ url: "/images/editorial/hero.webp", width: 2400, height: 1400, alt: "LA Luxury Gold jewellery still life" }],
+    images: [{ url: "/images/laluxurygold/campaign/hero-desktop.webp", width: 2560, height: 1440, alt: "Layered gold chains and a sun medallion on a burgundy velvet bust" }],
     locale: "en_AE",
   },
   twitter: { card: "summary_large_image", site: "@laluxurygold" },
@@ -49,7 +49,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#26382f",
+  themeColor: "#11100f",
   width: "device-width",
   initialScale: 1,
 };

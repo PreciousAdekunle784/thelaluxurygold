@@ -28,7 +28,7 @@ export async function generateMetadata({ params }: PageProps<"/collections/[slug
     title: r.kind === "category" ? `Gold ${r.name}` : r.name,
     description: r.intro,
     alternates: { canonical: `/collections/${slug}` },
-    openGraph: { images: [{ url: `/images/${r.media}.webp` }] },
+    openGraph: { images: [{ url: `/images/laluxurygold/${r.media}.webp` }] },
   };
 }
 
@@ -40,9 +40,9 @@ export default async function CollectionPage({ params }: PageProps<"/collections
 
   return (
     <>
-      <section className="relative h-[46vh] min-h-[340px] overflow-hidden bg-forest md:h-[56vh]">
+      <section className="relative h-[46vh] min-h-[340px] overflow-hidden bg-obsidian md:h-[56vh]">
         <MediaImage mediaKey={r.media} alt="" priority sizes="100vw" className="object-cover" />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,17,17,0.35)_0%,rgba(17,17,17,0)_40%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(17,16,15,0.45)_0%,rgba(17,16,15,0)_40%)]" />
       </section>
       <PageIntro
         crumbs={[{ name: "Home", href: "/" }, { name: "Collections", href: "/collections" }, { name: r.name }]}

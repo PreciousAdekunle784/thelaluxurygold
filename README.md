@@ -16,14 +16,17 @@ npm run typecheck
 
 | Token | Value | Use |
 | --- | --- | --- |
-| `forest` | `#26382F` | Primary dark: footer, hero, announcement |
-| `sage` / `sage-mist` | `#879681` / `#DFE3D8` | Secondary surfaces, testimonials |
-| `champagne` / `gold` | `#C6A15B` / `#D4AF69` | Hairlines, eyebrows, monogram, accents (used sparingly) |
-| `burgundy` | `#4B1726` | Campaign, brand story, alerts |
-| `ink` | `#111111` | Text, primary buttons |
-| `ivory` / `linen` / `sand` | `#F7F4ED` / `#F1ECE3` / `#EDE7DC` | Page, section and product-image backgrounds |
+| `obsidian` | `#11100F` | Hero, "The gold experience", footer, text and primary buttons (`ink`) |
+| `burgundy` / `burgundy-deep` | `#4A1025` / `#2C0915` | Campaign interlude, announcement bar, Our Story, button hover |
+| `emerald` / `emerald-deep` | `#174C3A` / `#0E3326` | Gold-bars sections, WhatsApp button, testimonials |
+| `champagne` / `gold` / `gold-pale` | `#C6A46A` / `#D6BA84` / `#EAD9B6` | Eyebrows, hairlines, primary hero button, accents (used sparingly) |
+| `ivory` / `linen` / `sand` / white | `#F7F3EC` / `#F2ECE2` / `#EEE6D9` / `#FFFFFF` | Editorial light sections and product-image backgrounds |
 
-* **Type**: Cormorant Garamond for display headlines (uppercase); **Corinthia Bold**, a bold calligraphic script, for the accent word in each headline ("*timeless*", "*a legacy*", "*cherished*") via the `script` utility class; Manrope for UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
+The homepage alternates light editorial sections with dark cinematic ones: obsidian hero → ivory edit → white
+categories → obsidian gold experience → linen story → burgundy campaign → white client confidence → emerald gold
+bars → newsletter → obsidian footer.
+
+* **Type**: Cormorant Garamond for display headlines (uppercase); **Corinthia Bold**, a bold calligraphic script, for the accent word in each headline ("*beyond*", "*presence*", "*cherished*") via the `script` utility class; Manrope for navigation, UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
 * **Logo**: a typographic wordmark ("LA LUXURY GOLD" with a "Dubai" line) and an **LG monogram set inside an arch**, a nod to Dubai architecture. It works on light and dark backgrounds: `src/components/brand/Logo.tsx`, plus `src/app/icon.png` and `apple-icon.png`.
 * **Components**: square-edged buttons, hairline dividers, arch-masked imagery used once, and restrained motion (fade-up reveals, slow image scale, mask-reveal hero type). Motion respects `prefers-reduced-motion`.
 
@@ -44,7 +47,8 @@ src/lib/auth/            Admin session signing & guards
 src/app/admin/           Admin panel (dashboard, visitors, orders, buyers, products…)
 src/proxy.ts             Protects /admin and /api/admin
 src/lib/payments/        Payment-gateway interface (no provider connected)
-tools/render/            The 3D studio renderer used to create the studio imagery
+tools/studio/            Blender Cycles scenes that render the image library (see docs/IMAGE-ASSETS.md)
+docs/IMAGE-ASSETS.md     Every image: what it shows, where it is used, what to replace before launch
 tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 ```
 
@@ -55,36 +59,34 @@ tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 * **Testimonials** are added in `/admin → Testimonials`. The homepage section only appears once at least one is published. Only publish feedback a client actually gave, credited the way they agreed.
 * **Policies.** Terms, privacy, returns and shipping are written as finished copy for a Dubai-based jeweller: 14-day returns on unworn pieces, no returns on gold bars or made-to-order pieces, UAE governing law. Review them with the business before launch (ideally with a legal adviser). Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit them.
 
-### Hero film
-
-The homepage hero plays a **seamless 12-second loop**: a slow camera drift around the gold still life, with reflections gliding across the gold and the dome ring turning on its plinth. It was rendered with the same 3D studio as the stills (`tools/render`). There is a 16:9 version for desktop and a 9:16 version for phones (`public/videos/hero-desktop|hero-mobile.mp4/.webm`).
-
-* The first frame is served as an instant-loading poster, and the video fades in only once it is playing.
-* It is muted and plays inline, so phones autoplay it.
-* It pauses when off-screen or in a background tab.
-* It is replaced by the still for visitors who prefer reduced motion or have data saver enabled.
-
-To re-render it:
-
-```bash
-cd tools/render && npm i && node film-run.cjs hero-desktop film/d 0.8334 && node film-run.cjs hero-mobile film/m 0.8334
-cd ../.. && tools/render/encode-film.sh tools/render/film/d hero-desktop && tools/render/encode-film.sh tools/render/film/m hero-mobile
-```
-
-To use your own footage, replace the four files in `public/videos/` (keep the names) and the two posters `public/images/editorial/hero-loop*.webp`, then run `npm run media`.
-
 ### Imagery
 
-All photography is **still-life imagery rendered in a 3D studio** (`tools/render`): gold rings, chains, bangles, earrings and bars on travertine, silk and seamless backdrops. It contains no third-party stock or brand assets. Each product has three images: a studio shot, a styled shot (used for the hover swap) and a detail close-up.
+Every image in `public/images/laluxurygold/` is an **original physically based 3D render** made with Blender Cycles (`tools/studio/`).
+The library covers campaign images, six category images, macro details, packaging and three shots of every product.
+There is no stock photography and no AI generation. These are renders, not photographs of the specific items, so
+starting products show a short "studio renderings" note on their page until real photos are uploaded (untick
+**Images are studio renders** in Admin → Products).
 
-To replace an image, drop a new file at the same key under `public/images/` (keep the aspect ratio: products 4:5), then run:
+The brief's signature **model** campaign could not be produced here. There was no image-generation tool, and
+licensed photo libraries were blocked by the network. The hero therefore uses a velvet display bust. Upload a real
+campaign photo in **Admin → Store settings** whenever one is available. Full details, the asset list and the
+replace-before-launch checklist are in **[docs/IMAGE-ASSETS.md](docs/IMAGE-ASSETS.md)**.
+
+To replace an image, drop a new file at the same key under `public/images/laluxurygold/` (products 4:5), then run:
 
 ```bash
 npm run media                       # rebuild sizes + blur placeholders
 npm run media -- --import ./photos  # or convert a folder of JPG/PNG to WebP first
 ```
 
-Products reference images by key (e.g. `products/aurelia-band-1`) in `src/lib/data/products.ts`.
+### Navigation & listings
+
+Shop (mega menu) · New Arrivals (`/new-arrivals`, pieces flagged "new") · Collections (mega menu) · Fine Jewellery
+(`/fine-jewellery`, every category except bars) · Gold Bars · Our Story. Categories are rings, necklaces, bracelets,
+earrings, **jewellery sets** and gold bars. Listings filter by category, purity, **size** (ring size, chain length
+and bracelet size from the catalogue), price and availability. They sort five ways and load 12 pieces at a time,
+loading more as you scroll. Product pages have a zoomable full-screen gallery (click or tap to magnify 2.4×), a
+sticky purchase panel on desktop and a buy bar on phones.
 
 ## Configuration
 
@@ -120,7 +122,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
 | **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
 | **Testimonials** | Add, edit, hide or delete client testimonials. The homepage section is hidden until one is published. |
-| **Store settings** | The naira-per-dollar exchange rate. Also the homepage hero: by default it plays the looping brand film. Upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back to the film at any time. |
+| **Store settings** | The naira-per-dollar exchange rate, and the homepage hero. By default the hero shows the campaign image; upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back at any time. |
 | **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
 
 **New-order alerts.** When a customer places an order, every open admin page shows a pop-up and plays a soft chime. Click **Enable order alerts** in the sidebar to also get desktop notifications.
@@ -177,8 +179,8 @@ The site is tuned for slow mobile connections. On a simulated 1.6 Mbps / 300 ms 
 * The shop and collection grids arrive as ready-made HTML, so products appear before JavaScript loads.
 * Hero and scroll animations are pure CSS. The headline animates in on first paint, and the animation library loads in the background (`LazyMotion`).
 * Fonts are trimmed to the weights in use (Cormorant 400/500, Corinthia 700, Manrope).
-* Images are served as AVIF/WebP at the right size, with blur placeholders. Product hover photos load only on hover. Images and the film are cached between visits.
-* The hero film loads only after the page has finished and the browser is idle. It is skipped on slow, 2G/3G or data-saver connections, which keep the poster image.
+* Images are served as AVIF/WebP at the right size, with blur placeholders. Product hover photos load only on hover. Images are cached between visits.
+* The hero is a single responsive image (separately composed for desktop and phones), fetched with high priority.
 * Admin data is fetched in parallel. The connection check is reused for 30 s, and order counts come from one grouped query.
 * Server functions run next to the database (`vercel.json` → `dub1`).
 
@@ -186,23 +188,25 @@ The site is tuned for slow mobile connections. On a simulated 1.6 Mbps / 300 ms 
 
 ```bash
 npm run build && npm start   # port 3000; or: npx next start -p 3100
-BASE=http://localhost:3000 node tests/e2e.cjs                               # storefront (49 checks)
-BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin (28 checks)
+BASE=http://localhost:3000 node tests/e2e.cjs                               # storefront
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin
 ```
 
 Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.
 
-The suite covers 49 checks:
+The storefront suite covers:
 
-* **Crawl**: every page in the sitemap and app returns 200, with no broken images, internal links or console errors.
-* **Shop**: filters, sorting, empty state, instant search and accent-insensitive search.
+* **Crawl**: every page in the sitemap and app returns 200, with no broken images, no SVGs standing in for photographs, and no broken internal links or console errors.
+* **Shop**: filters (including size), sorting, progressive loading, empty state, the curated listings, navigation, the hero photograph, instant search and accent-insensitive search.
 * **Cart and checkout**: variant validation, cart drawer, quantity and subtotal updates, persistence across reloads, wishlist, checkout validation, country-dependent shipping, order submission, and API validation.
 * **Forms**: newsletter consent and contact form.
 * **Mobile**: menu, filter drawer and quick add, plus horizontal-overflow checks on key pages.
 
 ## Launch checklist
 
-- [ ] Review products, prices and imagery in the admin (replace the studio renders with real photography)
+- [ ] Replace the product renders with photographs of the real pieces and untick "Images are studio renders" (see docs/IMAGE-ASSETS.md)
+- [ ] Optional: upload a real model campaign photo as the homepage hero (Admin → Store settings)
+- [ ] Review product names, weights, sizes and prices in the admin
 - [ ] Set the naira exchange rate in Store settings
 - [ ] Confirm the WhatsApp/phone country codes and add a contact email
 - [ ] Confirm shipping rates and timelines and the policy texts (legal review)

@@ -84,9 +84,9 @@ export function Header() {
 
           {/* desktop nav */}
           <nav aria-label="Main" className="hidden justify-center xl:flex">
-            <ul className="flex items-center gap-9">
+            <ul className="flex items-center gap-7 2xl:gap-9">
               {mainNav.map((item) => {
-                const active = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href);
+                const active = pathname.startsWith(item.href);
                 return (
                   <li key={item.href} onMouseEnter={() => (item.menu ? openMenu(item.menu) : scheduleClose())}>
                     <Link
@@ -119,7 +119,7 @@ export function Header() {
             <button type="button" className={cx(iconBtn, "max-xl:hidden")} onClick={() => { setMenu(null); setSearchOpen((v) => !v); }} aria-label="Search" aria-expanded={searchOpen}>
               <Search size={19} strokeWidth={1.2} />
             </button>
-            <Link href="/account" className={cx(iconBtn, "max-sm:hidden")} aria-label="Track your order" title="Track your order">
+            <Link href="/account" className={cx(iconBtn, "max-sm:hidden")} aria-label="Account and order tracking" title="Account · track your order">
               <User size={19} strokeWidth={1.2} />
             </Link>
             <Link href="/wishlist" className={cx(iconBtn, "max-sm:hidden")} aria-label={`Wishlist${wishlist.hydrated && wishlist.ids.length ? `, ${wishlist.ids.length} items` : ""}`}>
@@ -155,7 +155,7 @@ export function Header() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.45, ease }}
-              className="absolute inset-x-0 top-full hidden border-b border-line bg-ivory text-ink shadow-[0_30px_60px_-40px_rgba(17,17,17,0.35)] xl:block"
+              className="absolute inset-x-0 top-full hidden border-b border-line bg-ivory text-ink shadow-[0_30px_60px_-40px_rgba(17,16,15,0.35)] xl:block"
               onMouseEnter={() => openMenu(menu)}
               onMouseLeave={scheduleClose}
             >
@@ -207,8 +207,8 @@ function ShopMega() {
       <MegaColumn title="Categories" links={shopMenu.categories} />
       <MegaColumn title="By gold purity" links={shopMenu.purity} />
       <MegaColumn title="Discover" links={shopMenu.discover} />
-      <MegaTile href="/collections/rings" media="editorial/category-rings" title="Rings" caption="Bands · Signets · Domes" />
-      <MegaTile href="/gold-bars" media="editorial/category-bars" title="24K Gold Bars" caption="Minted & cast" />
+      <MegaTile href="/new-arrivals" media="products/soleil-halo-set-2" title="New arrivals" caption="Soleil & Halo · 22K" />
+      <MegaTile href="/gold-bars" media="collections/collection-gold-bars" title="24K Gold Bars" caption="Minted & cast" />
     </div>
   );
 }
@@ -229,8 +229,8 @@ function CollectionsMega() {
           ))}
         </ul>
       </div>
-      <MegaTile href="/collections/signature" media="editorial/story" title="The Signature Edit" caption="Sculpted silhouettes" />
-      <MegaTile href="/collections/gifting" media="editorial/social-6" title="The Gift Edit" caption="For milestones" />
+      <MegaTile href="/collections/signature" media="campaign/campaign-editorial" title="The Signature Edit" caption="Sculpted silhouettes" />
+      <MegaTile href="/collections/gifting" media="details/premium-packaging" title="The Gift Edit" caption="For milestones" />
     </div>
   );
 }

@@ -256,6 +256,13 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
           <Section title="Visibility & labels">
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.featured} onChange={(e) => set("featured", e.target.checked)} /> Featured on the homepage</label>
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Show “New” label</label>
+            <label className="flex items-start gap-3 text-sm">
+              <input type="checkbox" className="mt-0.5 h-4 w-4" checked={!!p.illustrativeImages} onChange={(e) => set("illustrativeImages", e.target.checked)} />
+              <span>
+                Images are studio renders, not photos of this piece
+                <span className="block text-xs text-stone">Shows a short note on the product page. Untick once you upload real photographs.</span>
+              </span>
+            </label>
             <Field label="Popularity (for “Most popular” sorting)">
               <input className="field-boxed" inputMode="numeric" value={p.popularity} onChange={(e) => set("popularity", Number(e.target.value.replace(/\D/g, "")) || 0)} />
             </Field>

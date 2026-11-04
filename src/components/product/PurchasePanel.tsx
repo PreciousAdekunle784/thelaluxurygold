@@ -118,7 +118,7 @@ export function PurchasePanel({ product }: { product: Product }) {
         <div className="mt-8">
           <div className="flex gap-3">
             <QuantitySelector value={qty} onChange={(n) => setQty(Math.max(1, n))} />
-            <Button size="lg" className="h-12 flex-1" disabled={unavailable} onClick={() => commit(false)}>
+            <Button id="add-to-bag" size="lg" className="h-12 flex-1" disabled={unavailable} onClick={() => commit(false)}>
               {added ? (
                 <>
                   <Check size={15} /> Added to bag

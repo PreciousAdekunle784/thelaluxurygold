@@ -5,14 +5,14 @@
  *   npm run media                     → rebuild src/lib/data/media.generated.ts from public/images
  *   npm run media -- --import <dir>   → convert JPG/PNG files in <dir> to WebP under public/images first
  *
- * Keys are paths relative to public/images without extension, e.g. "products/aurelia-band-1".
+ * Keys are paths relative to public/images/laluxurygold without extension, e.g. "products/aurelia-band-1".
  */
 import { readdir, mkdir, writeFile, stat } from "node:fs/promises";
 import path from "node:path";
 import sharp from "sharp";
 
 const root = path.resolve(import.meta.dirname, "..");
-const imagesDir = path.join(root, "public", "images");
+const imagesDir = path.join(root, "public", "images", "laluxurygold");
 const out = path.join(root, "src", "lib", "data", "media.generated.ts");
 
 async function walk(dir) {

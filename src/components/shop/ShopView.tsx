@@ -1,10 +1,10 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { AnimatePresence, m } from "framer-motion";
 import { SlidersHorizontal, X, Search } from "lucide-react";
-import { queryProducts, sortOptions, type SortKey } from "@/lib/data/catalogue";
+import { queryProducts, sizeOptions, sortOptions, type SortKey } from "@/lib/data/catalogue";
 import { useCatalogue } from "@/lib/state/catalogue";
 import { useCurrency } from "@/lib/state/currency";
 import { categories, collections, purities } from "@/lib/data/categories";
@@ -27,8 +27,16 @@ const num = (v: string | null) => (v && !Number.isNaN(Number(v)) ? Number(v) : n
 
 export interface ShopPreset {
   category?: CategorySlug;
+  /** Limit the page to several categories (e.g. fine jewellery = everything except gold bars). */
+  categories?: CategorySlug[];
   collection?: string;
+  /** Only pieces flagged as new (New Arrivals). */
+  newOnly?: boolean;
+  defaultSort?: SortKey;
 }
+
+/** Pieces shown per step of progressive loading. */
+const PAGE = 12;
 
 export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
   const params = useSearchParams();
@@ -43,20 +51,43 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
 
   const state = {
     q: params.get("q") ?? "",
-    categories: preset.category ? [preset.category] : (list(params.get("category")) as CategorySlug[]),
+    categories: preset.category ? [preset.category] : list(params.get("category")).length ? (list(params.get("category")) as CategorySlug[]) : (preset.categories ?? []),
     collections: preset.collection ? [preset.collection] : list(params.get("collection")),
     purities: list(params.get("purity")) as Purity[],
     minPrice: num(params.get("min")),
     maxPrice: num(params.get("max")),
     inStockOnly: params.get("stock") === "1",
-    sort: (params.get("sort") as SortKey) || "featured",
+    sizes: list(params.get("size")),
+    newOnly: !!preset.newOnly,
+    picked: list(params.get("category")) as CategorySlug[],
+    sort: (params.get("sort") as SortKey) || preset.defaultSort || "featured",
   };
+  // products this page can ever show (before shopper filters) — used to offer only relevant sizes
+  const scope = useMemo(
+    () => queryProducts({ categories: preset.category ? [preset.category] : preset.categories, collections: preset.collection ? [preset.collection] : undefined, newOnly: preset.newOnly }, products),
+    [products, preset.category, preset.categories, preset.collection, preset.newOnly],
+  );
 
   const results = useMemo(
     () => queryProducts(state, products),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [params, preset.category, preset.collection, products],
+    [params, preset.category, preset.categories, preset.collection, preset.newOnly, products],
   );
+
+  // progressive loading: render a page at a time, and the next page as the end of the grid scrolls into view
+  const [shown, setShown] = useState(PAGE);
+  const sentinel = useRef<HTMLDivElement>(null);
+  const paramsKey = params.toString();
+  // eslint-disable-next-line react-hooks/set-state-in-effect -- start from the first page whenever the filters change
+  useEffect(() => setShown(PAGE), [paramsKey]);
+  useEffect(() => {
+    const el = sentinel.current;
+    if (!el || shown >= results.length || typeof IntersectionObserver === "undefined") return;
+    const io = new IntersectionObserver((entries) => entries.some((e) => e.isIntersecting) && setShown((n) => n + PAGE), { rootMargin: "600px 0px" });
+    io.observe(el);
+    return () => io.disconnect();
+  }, [shown, results.length]);
+  const visible = results.slice(0, shown);
 
   const update = (patch: Record<string, string | null>) => {
     const next = new URLSearchParams(params.toString());
@@ -75,13 +106,14 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
 
   const chips: { label: string; clear: () => void }[] = [
     ...(state.q ? [{ label: `“${state.q}”`, clear: () => update({ q: null }) }] : []),
-    ...(!preset.category ? state.categories.map((c) => ({ label: categories.find((x) => x.slug === c)?.name ?? c, clear: () => toggleIn("category", state.categories, c) })) : []),
+    ...state.picked.map((c) => ({ label: categories.find((x) => x.slug === c)?.name ?? c, clear: () => toggleIn("category", state.picked, c) })),
     ...(!preset.collection ? state.collections.map((c) => ({ label: collections.find((x) => x.slug === c)?.name ?? c, clear: () => toggleIn("collection", state.collections, c) })) : []),
     ...state.purities.map((p) => ({ label: `${p} gold`, clear: () => toggleIn("purity", state.purities, p) })),
     ...(state.minPrice != null || state.maxPrice != null
       ? [{ label: state.minPrice != null && state.maxPrice != null ? `${format(state.minPrice)} – ${format(state.maxPrice)}` : state.maxPrice != null ? `Under ${format(state.maxPrice)}` : `Over ${format(state.minPrice ?? 0)}`, clear: () => update({ min: null, max: null }) }]
       : []),
     ...(state.inStockOnly ? [{ label: "Available now", clear: () => update({ stock: null }) }] : []),
+    ...state.sizes.map((v) => ({ label: `Size ${v}`, clear: () => toggleIn("size", state.sizes, v) })),
   ];
   const clearAll = () => startTransition(() => router.replace(pathname, { scroll: false }));
 
@@ -89,6 +121,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
     <Filters
       preset={preset}
       state={state}
+      sizeGroups={sizeOptions(scope)}
       onToggle={toggleIn}
       onUpdate={update}
       countFor={(patch) => queryProducts({ ...state, ...patch }, products).length}
@@ -158,7 +191,7 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
           ) : (
             <m.ul layout className="grid grid-cols-2 gap-x-4 gap-y-12 md:grid-cols-3 md:gap-x-6 lg:gap-y-16">
               <AnimatePresence initial={false}>
-                {results.map((p, i) => (
+                {visible.map((p, i) => (
                   <m.li
                     key={p.id}
                     layout
@@ -172,6 +205,16 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
                 ))}
               </AnimatePresence>
             </m.ul>
+          )}
+          {results.length > shown && (
+            <div ref={sentinel} className="mt-16 flex flex-col items-center gap-4">
+              <p className="text-xs uppercase tracking-[0.18em] text-stone">
+                Showing {shown} of {results.length}
+              </p>
+              <Button variant="outline" onClick={() => setShown((n) => n + PAGE)}>
+                Show more
+              </Button>
+            </div>
           )}
         </div>
       </div>
@@ -217,6 +260,10 @@ type FilterState = {
   minPrice: number | null;
   maxPrice: number | null;
   inStockOnly: boolean;
+  sizes: string[];
+  newOnly: boolean;
+  /** Categories the shopper ticked (as opposed to the page's own scope). */
+  picked: CategorySlug[];
 };
 
 function Group({ title, children }: { title: string; children: React.ReactNode }) {
@@ -246,12 +293,14 @@ function Check({ checked, onChange, label, count }: { checked: boolean; onChange
 function Filters({
   preset,
   state,
+  sizeGroups,
   onToggle,
   onUpdate,
   countFor,
 }: {
   preset: ShopPreset;
   state: FilterState;
+  sizeGroups: { name: string; values: string[] }[];
   onToggle: (key: string, current: string[], value: string) => void;
   onUpdate: (patch: Record<string, string | null>) => void;
   countFor: (patch: Partial<FilterState>) => number;
@@ -286,15 +335,17 @@ function Filters({
 
       {!preset.category && (
         <Group title="Category">
-          {categories.map((c) => (
-            <Check
-              key={c.slug}
-              label={c.name}
-              checked={state.categories.includes(c.slug)}
-              onChange={() => onToggle("category", state.categories, c.slug)}
-              count={countFor({ categories: [c.slug] })}
-            />
-          ))}
+          {categories
+            .filter((c) => !preset.categories || preset.categories.includes(c.slug))
+            .map((c) => (
+              <Check
+                key={c.slug}
+                label={c.name}
+                checked={state.picked.includes(c.slug)}
+                onChange={() => onToggle("category", state.picked, c.slug)}
+                count={countFor({ categories: [c.slug] })}
+              />
+            ))}
         </Group>
       )}
 
@@ -303,6 +354,32 @@ function Filters({
           <Check key={p} label={`${p} gold`} checked={state.purities.includes(p)} onChange={() => onToggle("purity", state.purities, p)} count={countFor({ purities: [p] })} />
         ))}
       </Group>
+
+      {sizeGroups.map((g) => (
+        <Group key={g.name} title={g.name}>
+          <div className="flex flex-wrap gap-2">
+            {g.values.map((v) => {
+              const on = state.sizes.includes(v);
+              const n = countFor({ sizes: [v] });
+              return (
+                <button
+                  key={v}
+                  type="button"
+                  aria-pressed={on}
+                  disabled={n === 0 && !on}
+                  onClick={() => onToggle("size", state.sizes, v)}
+                  className={cx(
+                    "min-w-11 border px-2.5 py-1.5 text-xs tabular-nums transition-colors disabled:opacity-30",
+                    on ? "border-ink bg-ink text-ivory" : "border-line bg-white/60 hover:border-ink",
+                  )}
+                >
+                  {v}
+                </button>
+              );
+            })}
+          </div>
+        </Group>
+      ))}
 
       <Group title="Price">
         <div className="space-y-2.5">

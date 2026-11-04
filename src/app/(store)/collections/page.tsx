@@ -32,14 +32,14 @@ export default async function CollectionsPage() {
         <h2 id="by-category" className="eyebrow mb-8 font-semibold">
           By category
         </h2>
-        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5 lg:gap-6">
+        <ul className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6 lg:gap-6">
           {categories.map((c, i) => {
             const count = queryProducts({ categories: [c.slug] }, all).length;
             return (
               <Reveal as="li" key={c.slug} delay={i * 0.06}>
                 <Link href={c.slug === "gold-bars" ? "/gold-bars" : `/collections/${c.slug}`} className="group block">
                   <div className="relative aspect-[3/4] overflow-hidden bg-sand">
-                    <MediaImage mediaKey={c.media} alt={c.name} sizes="(min-width: 1024px) 20vw, 50vw" className="object-cover transition-transform duration-[1400ms] ease-[var(--ease-luxe)] group-hover:scale-105" />
+                    <MediaImage mediaKey={c.media} alt={c.name} sizes="(min-width: 1024px) 17vw, (min-width: 768px) 33vw, 50vw" className="object-cover transition-transform duration-[1400ms] ease-[var(--ease-luxe)] group-hover:scale-105" />
                   </div>
                   <div className="mt-4 flex items-baseline justify-between">
                     <h3 className="font-display text-2xl">{c.name}</h3>

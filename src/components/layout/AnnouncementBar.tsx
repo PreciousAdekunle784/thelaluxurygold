@@ -13,7 +13,7 @@ export function AnnouncementBar() {
   }, [items.length]);
 
   return (
-    <div className="relative z-[60] bg-forest-deep text-ivory" role="region" aria-label="Announcements">
+    <div className="relative z-[60] bg-burgundy-deep text-ivory" role="region" aria-label="Announcements">
       <div className="container-luxe flex h-9 items-center justify-center overflow-hidden">
         <AnimatePresence mode="wait" initial={false}>
           <m.p

@@ -14,7 +14,7 @@ export function organizationJsonLd() {
     url: store.url,
     description: store.description,
     logo: `${store.url}/icon.png`,
-    image: `${store.url}/images/editorial/hero.webp`,
+    image: `${store.url}/images/laluxurygold/campaign/hero-desktop.webp`,
     telephone: store.contact.phones[0].display,
     address: { "@type": "PostalAddress", addressLocality: "Dubai", addressCountry: "AE" },
     sameAs: store.social.links.map((s) => s.href),

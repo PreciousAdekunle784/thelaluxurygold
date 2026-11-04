@@ -1,29 +1,31 @@
 import { Hero } from "@/components/home/Hero";
+import { EditorialShowcase } from "@/components/home/EditorialShowcase";
 import { CategoryShowcase } from "@/components/home/CategoryShowcase";
-import { FeaturedCollection } from "@/components/home/FeaturedCollection";
+import { GoldExperience } from "@/components/home/GoldExperience";
 import { BrandStory } from "@/components/home/BrandStory";
-import { GoldInvestment } from "@/components/home/GoldInvestment";
-import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 import { Campaign } from "@/components/home/Campaign";
+import { ClientConfidence } from "@/components/home/ClientConfidence";
+import { GoldInvestment } from "@/components/home/GoldInvestment";
 import { Testimonials } from "@/components/home/Testimonials";
-import { SocialGrid } from "@/components/home/SocialGrid";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
 import { getCatalogue } from "@/lib/data/store-catalogue";
 import { getSiteSettings } from "@/lib/data/site-settings";
 
+/* Rhythm: dark hero → ivory edit → white categories → obsidian gold → linen story →
+   burgundy campaign → white confidence → emerald bars → (testimonials) → newsletter. */
 export default async function HomePage() {
   const [products, settings] = await Promise.all([getCatalogue(), getSiteSettings()]);
   return (
     <>
       <Hero />
+      <EditorialShowcase products={products} />
       <CategoryShowcase />
-      <FeaturedCollection products={products} />
+      <GoldExperience />
       <BrandStory />
-      <GoldInvestment />
-      <WhyChooseUs />
       <Campaign />
+      <ClientConfidence reviews={settings.testimonials.length} />
+      <GoldInvestment />
       {settings.testimonials.length > 0 && <Testimonials testimonials={settings.testimonials} />}
-      <SocialGrid />
       <NewsletterSection />
     </>
   );

@@ -20,7 +20,7 @@ export default async function SettingsPage() {
         <RateSettings rate={rate} />
       </div>
       <h2 className="mb-4 text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-stone">Homepage hero</h2>
-      <p className="mb-4 max-w-2xl text-sm text-stone">By default the homepage plays the looping LA Luxury Gold film. Upload a photo to show it instead.</p>
+      <p className="mb-4 max-w-2xl text-sm text-stone">By default the homepage shows the LA Luxury Gold campaign image. Upload a photo — for example a campaign shot of a model wearing your pieces — to show it instead.</p>
       <HeroSettings desktop={s.heroDesktop || undefined} mobile={s.heroMobile || undefined} />
       <p className="mt-6 max-w-2xl text-xs leading-relaxed text-stone">
         A soft dark gradient is applied on the left (desktop) and bottom (phones) so the headline stays readable on any photo. JPG, PNG, WebP or AVIF up to 15 MB —

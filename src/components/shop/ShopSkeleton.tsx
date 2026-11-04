@@ -9,11 +9,19 @@ import type { ShopPreset } from "./ShopView";
  * slow connection. The interactive <ShopView> (filters, sorting) takes over once loaded.
  */
 export async function ShopSkeleton({ preset = {} }: { preset?: ShopPreset }) {
-  const products = queryProducts({ categories: preset.category ? [preset.category] : undefined, collections: preset.collection ? [preset.collection] : undefined }, await getCatalogue());
+  const products = queryProducts(
+    {
+      categories: preset.category ? [preset.category] : preset.categories,
+      collections: preset.collection ? [preset.collection] : undefined,
+      newOnly: preset.newOnly,
+      sort: preset.defaultSort,
+    },
+    await getCatalogue(),
+  ).slice(0, 12);
   return (
     <div className="container-luxe pb-28">
       <div className="flex h-14 items-center border-y border-line text-[0.75rem] uppercase tracking-[0.18em] text-stone lg:border-x-0">
-        {products.length} {products.length === 1 ? "piece" : "pieces"}
+        Loading the collection…
       </div>
       <div className="mt-8 grid gap-12 lg:mt-4 lg:grid-cols-[250px_1fr] xl:grid-cols-[270px_1fr] xl:gap-16">
         <div className="hidden space-y-4 lg:block" aria-hidden>

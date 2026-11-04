@@ -1,6 +1,0 @@
-{
-  "name": "llg-render",
-  "private": true,
-  "description": "Studio renderer used to produce the placeholder jewellery imagery.",
-  "dependencies": { "three": "0.170.0" }
-}

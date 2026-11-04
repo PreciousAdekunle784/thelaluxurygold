@@ -9,7 +9,7 @@ const base =
   "group relative inline-flex items-center justify-center gap-3 overflow-hidden whitespace-nowrap text-[0.7rem] font-semibold uppercase tracking-[0.24em] transition-[color,background-color,border-color,opacity] duration-500 ease-[var(--ease-luxe)] disabled:pointer-events-none disabled:opacity-40";
 
 const variants: Record<Variant, string> = {
-  solid: "bg-ink text-ivory hover:bg-forest",
+  solid: "bg-ink text-ivory hover:bg-burgundy",
   outline: "border border-ink/80 text-ink hover:bg-ink hover:text-ivory",
   light: "bg-ivory text-ink hover:bg-gold-pale",
   "outline-light": "border border-ivory/70 text-ivory hover:bg-ivory hover:text-ink",

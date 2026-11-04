@@ -7,7 +7,7 @@ import { Monogram } from "@/components/brand/Logo";
 import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 
 export const metadata: Metadata = {
-  title: "About Us",
+  title: "Our Story",
   description: "LA Luxury Gold is a Dubai-based luxury jewellery house offering authentic 18K–24K gold jewellery and 24K gold bars, with worldwide delivery.",
   alternates: { canonical: "/about" },
 };
@@ -16,7 +16,7 @@ export default function AboutPage() {
   return (
     <>
       <section className="container-luxe pt-10 md:pt-14">
-        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "About us" }]} />
+        <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Our story" }]} />
         <Reveal className="mx-auto mt-16 max-w-4xl text-center md:mt-24">
           <Monogram className="mx-auto h-20 w-auto" />
           <p className="eyebrow mt-10 text-champagne">The house of LA Luxury Gold</p>
@@ -27,8 +27,8 @@ export default function AboutPage() {
       </section>
 
       <section className="container-luxe mt-16 md:mt-24">
-        <ImageReveal className="relative aspect-[4/5] overflow-hidden bg-forest sm:aspect-[16/9] lg:aspect-[21/9]">
-          <MediaImage mediaKey="editorial/hero" alt="Gold jewellery and a gold bar arranged on travertine plinths" priority sizes="100vw" className="object-cover object-[65%_50%]" />
+        <ImageReveal className="relative aspect-[4/5] overflow-hidden bg-sand sm:aspect-[16/9] lg:aspect-[21/9]">
+          <MediaImage mediaKey="campaign/campaign-editorial" alt="Gold rings, a bangle and a cable chain on travertine blocks in late-afternoon window light" priority sizes="100vw" className="object-cover object-[55%_60%]" />
         </ImageReveal>
       </section>
 
@@ -50,10 +50,10 @@ export default function AboutPage() {
         </Reveal>
       </section>
 
-      <section className="bg-burgundy text-ivory">
+      <section className="bg-burgundy-deep text-ivory">
         <div className="grid lg:grid-cols-2">
           <div className="relative aspect-square lg:aspect-auto lg:min-h-[720px]">
-            <MediaImage mediaKey="editorial/story" alt="Stacked gold rings on a travertine block" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+            <MediaImage mediaKey="brand/our-story" alt="A gold band, a bangle and a fine chain on ivory silk beside an open burgundy gift box" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
           </div>
           <div className="container-luxe flex items-center py-20 lg:px-20">
             <Reveal className="max-w-lg">

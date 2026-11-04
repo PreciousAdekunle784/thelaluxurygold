@@ -1,4 +1,4 @@
-export type CategorySlug = "rings" | "necklaces" | "bracelets" | "earrings" | "gold-bars";
+export type CategorySlug = "rings" | "necklaces" | "bracelets" | "earrings" | "sets" | "gold-bars";
 export type Purity = "18K" | "21K" | "22K" | "24K";
 export type Availability = "in_stock" | "low_stock" | "made_to_order" | "out_of_stock";
 
@@ -48,6 +48,8 @@ export interface Product {
   popularity: number;
   featured?: boolean;
   isNew?: boolean;
+  /** True while the images are studio renders rather than photographs of the piece itself. */
+  illustrativeImages?: boolean;
 }
 
 export interface Category {

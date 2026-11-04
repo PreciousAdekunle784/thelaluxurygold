@@ -19,7 +19,7 @@ export default async function GoldBarsPage() {
   const bars = queryProducts({ categories: ["gold-bars"], sort: "price-asc" }, await getCatalogue());
   return (
     <>
-      <section className="relative overflow-hidden bg-[#141c18] text-ivory">
+      <section className="relative overflow-hidden bg-emerald-deep text-ivory">
         <div className="grid min-h-[620px] lg:grid-cols-2">
           <div className="container-luxe flex flex-col justify-center py-16 lg:py-24 lg:pr-16">
             <Breadcrumbs items={[{ name: "Home", href: "/" }, { name: "Gold Bars" }]} />
@@ -35,8 +35,8 @@ export default async function GoldBarsPage() {
             </Reveal>
           </div>
           <div className="relative min-h-[360px]">
-            <MediaImage mediaKey="editorial/investment" alt="24K minted and cast gold bars on dark stone" priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
-            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#141c18_0%,transparent_30%)] lg:bg-[linear-gradient(90deg,#141c18_0%,transparent_30%)]" />
+            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" priority sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover" />
+            <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#0e3326_0%,transparent_30%)] lg:bg-[linear-gradient(90deg,#0e3326_0%,transparent_30%)]" />
           </div>
         </div>
       </section>

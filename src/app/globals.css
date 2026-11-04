@@ -4,22 +4,29 @@
    LA LUXURY GOLD — design tokens
    ------------------------------------------------------------------ */
 @theme {
-  --color-sage: #879681;
-  --color-sage-soft: #a2ac98;
-  --color-sage-mist: #dfe3d8;
-  --color-forest: #26382f;
-  --color-forest-deep: #1b2a23;
-  --color-champagne: #c6a15b;
-  --color-gold: #d4af69;
-  --color-gold-pale: #e9d5a8;
-  --color-burgundy: #4b1726;
-  --color-ink: #111111;
-  --color-ivory: #f7f4ed;
-  --color-sand: #ede7dc;
-  --color-linen: #f1ece3;
-  --color-stone: #6d6b64;
-  --color-line: rgb(17 17 17 / 0.12);
-  --color-line-light: rgb(247 244 237 / 0.18);
+  /* Brand palette — obsidian, burgundy, emerald, champagne gold, warm ivory */
+  --color-obsidian: #11100f;
+  --color-obsidian-soft: #1b1917;
+  --color-burgundy: #4a1025;
+  --color-burgundy-deep: #2c0915;
+  --color-emerald: #174c3a;
+  --color-emerald-deep: #0e3326;
+  --color-champagne: #c6a46a;
+  --color-gold: #d6ba84;
+  --color-gold-pale: #ead9b6;
+  --color-ivory: #f7f3ec;
+  --color-sand: #eee6d9;
+  --color-linen: #f2ece2;
+  --color-stone: #6f685e;
+  --color-ink: #11100f;
+  /* legacy aliases (older components): forest = emerald, sage = warm neutrals */
+  --color-forest: #174c3a;
+  --color-forest-deep: #0e3326;
+  --color-sage: #8c806c;
+  --color-sage-soft: #b3a68f;
+  --color-sage-mist: #efe7da;
+  --color-line: rgb(17 16 15 / 0.12);
+  --color-line-light: rgb(247 243 236 / 0.16);
 
   --font-display: var(--font-cormorant), "Cormorant Garamond", "Times New Roman", serif;
   --font-script: var(--font-corinthia), "Corinthia", "Snell Roundhand", cursive;

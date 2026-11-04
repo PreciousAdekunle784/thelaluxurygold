@@ -1,5 +1,6 @@
 import "server-only";
 import type { Db } from "./client";
+import type { Product } from "@/lib/data/types";
 
 /**
  * One-time upgrade for databases created before prices moved from UAE dirham to US dollars
@@ -88,5 +89,52 @@ export async function upgradeLegacyData(db: Db) {
     const o = convert(JSON.parse(row.data), true) as { subtotal?: number; resolvedLines?: { unitPrice: number | null; quantity: number }[] };
     if (Array.isArray(o.resolvedLines)) o.subtotal = o.resolvedLines.reduce((n, l) => n + (l.unitPrice ?? 0) * l.quantity, 0);
     await db.run("UPDATE orders SET data = $1, subtotal = $2 WHERE reference = $3", [JSON.stringify(o), Math.round(o.subtotal ?? 0), row.reference]);
+  }
+}
+
+/**
+ * Catalogue v2 (new imagery). For databases seeded before it:
+ *  - adds the jewellery-set products (if they are not there yet);
+ *  - for starting-catalogue products whose images are unchanged, refreshes the image descriptions and
+ *    marks the images as studio renders;
+ *  - replaces copy that described markings the new imagery doesn't show (monogram, engraved / hallmarked bars).
+ * Products edited by the client keep their own text.
+ */
+export async function refreshCatalogue(db: Db, seed: Product[]) {
+  const rows = await db.all<{ id: string; data: string; position: number }>("SELECT id, data, position FROM products");
+  const byId = new Map(rows.map((r) => [r.id, r]));
+  const outdated = /LG monogram|Our monogram|engraved face|hallmark design/;
+  for (const sp of seed) {
+    const row = byId.get(sp.id);
+    if (!row) continue;
+    const p = JSON.parse(row.data) as Product;
+    let changed = false;
+    const sameImages = p.images?.length === sp.images.length && p.images.every((im, i) => im.media === sp.images[i].media);
+    if (sameImages) {
+      p.images = sp.images;
+      if (p.illustrativeImages === undefined) p.illustrativeImages = true;
+      changed = true;
+    }
+    if (outdated.test(p.tagline)) {
+      p.tagline = sp.tagline;
+      changed = true;
+    }
+    if (p.description?.some((d) => outdated.test(d))) {
+      p.description = sp.description;
+      changed = true;
+    }
+    for (const spec of p.specs ?? []) {
+      if (spec.value === "Minted, polished face") {
+        spec.value = "Minted, mirror-polished";
+        changed = true;
+      }
+    }
+    if (changed) await db.run("UPDATE products SET data = $1 WHERE id = $2", [JSON.stringify(p), sp.id]);
+  }
+  const maxPos = rows.reduce((m, r) => Math.max(m, Number(r.position)), 0);
+  const now = Date.now();
+  const add = seed.filter((p) => p.category === "sets" && !byId.has(p.id));
+  for (const [i, p] of add.entries()) {
+    await db.run("INSERT INTO products (id, slug, position, archived, data, updated_at) VALUES ($1, $2, $3, 0, $4, $5) ON CONFLICT DO NOTHING", [p.id, p.slug, maxPos + 1 + i, JSON.stringify(p), now]);
   }
 }

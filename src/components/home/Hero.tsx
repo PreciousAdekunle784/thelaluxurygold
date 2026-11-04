@@ -3,77 +3,86 @@ import { media } from "@/lib/data/media";
 import { getSiteSettings } from "@/lib/data/site-settings";
 import { ButtonLink } from "@/components/ui/Button";
 import { HeroMotion, HeroLine, HeroFade } from "./HeroMotion";
-import { HeroVideo } from "./HeroVideo";
 
+/**
+ * Signature campaign hero. Desktop and phone use separately composed images: on wide screens the
+ * piece sits in the right third with dark space on the left for type; on phones it sits low in the
+ * frame with headroom above, and the headline is anchored to the bottom.
+ * A photo uploaded in Admin → Store settings replaces the campaign image.
+ */
 export async function Hero() {
   const settings = await getSiteSettings();
-  // A photo uploaded in /admin/settings replaces the film; otherwise the looping brand film
-  // plays over its own first frame (used as the instant-loading poster).
   const custom = !!settings.heroDesktop;
-  const d = media(settings.heroDesktop ?? "editorial/hero-loop");
-  const m = media(settings.heroMobile ?? settings.heroDesktop ?? "editorial/hero-loop-mobile");
-  const common = { alt: "Gold rope chain draped over a travertine plinth beside signet rings and a 24K gold bar", sizes: "100vw", fetchPriority: "high" as const, loading: "eager" as const };
-  const { props: { srcSet: desktop, ...rest } } = getImageProps({ ...common, src: d.src, width: d.width, height: d.height });
+  const d = media(settings.heroDesktop ?? "campaign/hero-desktop");
+  const m = media(settings.heroMobile ?? settings.heroDesktop ?? "campaign/hero-mobile");
+  const common = {
+    alt: custom ? "LA Luxury Gold campaign" : "Layered gold chains and a sun medallion on a burgundy velvet display bust, lit against obsidian",
+    sizes: "100vw",
+    fetchPriority: "high" as const,
+    loading: "eager" as const,
+    quality: 82,
+  };
+  const { props: { srcSet: desktop, ...rest } } = getImageProps({ ...common, src: d.src, width: d.width, height: d.height, blurDataURL: d.blurDataURL });
   const { props: { srcSet: mobile } } = getImageProps({ ...common, src: m.src, width: m.width, height: m.height });
 
   return (
-    <section className="relative -mt-[var(--header-h)] flex min-h-[640px] overflow-hidden bg-forest text-ivory h-[100svh] max-h-[1040px]" aria-label="Introduction">
+    <section className="relative -mt-[var(--header-h)] flex h-[100svh] max-h-[1080px] min-h-[640px] overflow-hidden bg-obsidian text-ivory" aria-label="Introduction">
       <HeroMotion>
         <picture>
           <source media="(max-width: 767px)" srcSet={mobile} />
           <source media="(min-width: 768px)" srcSet={desktop} />
           {/* eslint-disable-next-line jsx-a11y/alt-text -- alt is supplied via getImageProps */}
-          <img {...rest} className={custom ? "absolute inset-0 h-full w-full object-cover object-center" : "absolute inset-0 h-full w-full object-cover md:object-[8%_50%]"} />
-        </picture>
-        {!custom && (
-          <HeroVideo
-            desktop={{ mp4: "/videos/hero-desktop.mp4", webm: "/videos/hero-desktop.webm" }}
-            mobile={{ mp4: "/videos/hero-mobile.mp4", webm: "/videos/hero-mobile.webm" }}
+          <img
+            {...rest}
+            className={custom ? "absolute inset-0 h-full w-full object-cover object-center" : "absolute inset-0 h-full w-full object-cover object-[50%_100%] md:object-[72%_50%] xl:object-[64%_50%]"}
           />
-        )}
+        </picture>
       </HeroMotion>
-      {/* Phones: text sits at the bottom over a deep fade (jewellery shows above it). Desktop: fade from the left. */}
-      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,rgba(27,42,35,0.97)_0%,rgba(27,42,35,0.88)_34%,rgba(27,42,35,0.25)_58%,rgba(27,42,35,0)_72%),linear-gradient(180deg,rgba(27,42,35,0.6)_0%,rgba(27,42,35,0)_20%)] md:bg-[linear-gradient(90deg,rgba(27,42,35,0.72)_0%,rgba(27,42,35,0.18)_48%,rgba(27,42,35,0)_70%)]" />
 
-      <div className="container-luxe relative flex w-full flex-col justify-end pb-9 pt-[calc(var(--header-h)+2rem)] md:justify-center md:pb-16 md:pt-[calc(var(--header-h)+2.5rem)]">
-        <div className="max-w-[50rem]">
-          <HeroFade delay={0.5}>
-            <p className="eyebrow mb-5 flex items-center gap-3 text-gold-pale md:mb-9">
-              <span className="h-px w-10 bg-current" /> Fine gold jewellery · Dubai
+      {/* Phones: type sits in the dark headroom above the piece. Desktop: a soft obsidian veil on the left. */}
+      <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(180deg,rgba(17,16,15,0.7)_0%,rgba(17,16,15,0.35)_45%,rgba(17,16,15,0)_62%),linear-gradient(0deg,rgba(17,16,15,0.55)_0%,rgba(17,16,15,0)_16%)] md:bg-[linear-gradient(90deg,rgba(17,16,15,0.88)_0%,rgba(17,16,15,0.55)_34%,rgba(17,16,15,0)_62%),linear-gradient(180deg,rgba(17,16,15,0.5)_0%,rgba(17,16,15,0)_22%)]" />
+      {/* a hairline frame gives the composition a printed, editorial edge */}
+      <div className="pointer-events-none absolute inset-4 hidden border border-ivory/10 md:inset-6 md:block" />
+
+      <div className="container-luxe relative flex w-full flex-col justify-start pb-10 pt-[calc(var(--header-h)+2.25rem)] md:justify-center md:pb-16 md:pt-[calc(var(--header-h)+2rem)]">
+        <div className="max-w-[44rem]">
+          <HeroFade delay={0.45}>
+            <p className="eyebrow mb-6 flex items-center gap-3 text-gold-pale md:mb-10">
+              <span className="h-px w-10 bg-current" /> The Burgundy Edit · Dubai
             </p>
           </HeroFade>
-          <h1 className="display text-[2.9rem] uppercase leading-[0.9] sm:text-[4.6rem] lg:text-[5.6rem] xl:text-[6.3rem]">
-            <HeroLine delay={0.6}>The art of</HeroLine>
-            <HeroLine delay={0.72}>
-              <span className="script text-gold-pale">timeless</span>
+          <h1 className="display text-[3.1rem] uppercase leading-[0.88] sm:text-[4.8rem] lg:text-[6rem] xl:text-[6.9rem]">
+            <HeroLine delay={0.55}>Gold,</HeroLine>
+            <HeroLine delay={0.68}>
+              <span className="script normal-case text-gold-pale">beyond</span>
             </HeroLine>
-            <HeroLine delay={0.84}>gold.</HeroLine>
+            <HeroLine delay={0.81}>the ordinary.</HeroLine>
           </h1>
-          <HeroFade delay={1.1}>
-            <p className="mt-4 max-w-[26rem] text-[0.92rem] leading-relaxed text-ivory/80 md:mt-9 md:text-base">
-              Discover exceptional gold jewellery crafted to celebrate every moment, every milestone and every legacy.
+          <HeroFade delay={1.05}>
+            <p className="mt-4 max-w-[24rem] text-[0.92rem] leading-relaxed text-ivory/80 md:mt-10 md:text-[1.05rem]">
+              Exceptional pieces. Enduring presence. A personal expression of luxury.
             </p>
           </HeroFade>
-          <HeroFade delay={1.25} className="mt-6 flex flex-col gap-2.5 sm:flex-row sm:gap-3 md:mt-11">
-            <ButtonLink href="/shop" variant="light" size="lg" className="max-sm:h-12">
+          <HeroFade delay={1.2} className="mt-7 flex flex-wrap gap-2.5 sm:gap-3 md:mt-12">
+            <ButtonLink href="/shop" variant="gold" size="lg" className="max-sm:h-11 max-sm:px-5">
               Explore the collection
             </ButtonLink>
-            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-12">
-              Discover LA Luxury Gold
+            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-11 max-sm:px-5">
+              Discover our story
             </ButtonLink>
           </HeroFade>
         </div>
       </div>
 
-      <HeroFade delay={1.6} className="absolute inset-x-0 bottom-0 hidden md:block">
-        <div className="container-luxe flex items-end justify-between pb-8 text-[0.62rem] uppercase tracking-[0.3em] text-ivory/70">
+      <HeroFade delay={1.5} className="absolute inset-x-0 bottom-0 hidden md:block">
+        <div className="container-luxe flex items-end justify-between pb-10 text-[0.62rem] uppercase tracking-[0.3em] text-ivory/60">
           <span className="flex items-center gap-4">
             <span className="relative block h-12 w-px overflow-hidden bg-ivory/20">
               <span className="absolute inset-x-0 top-0 h-1/2 animate-[scrollcue_2.4s_ease-in-out_infinite] bg-ivory" />
             </span>
             Scroll
           </span>
-          <span>18K — 24K Gold · Worldwide delivery</span>
+          <span>18K — 24K gold · Insured worldwide delivery</span>
         </div>
       </HeroFade>
     </section>

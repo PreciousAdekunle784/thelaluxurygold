@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import { getRelatedProducts } from "@/lib/data/catalogue";
 import { getCatalogue, getCatalogueProduct } from "@/lib/data/store-catalogue";
 import { getCategory } from "@/lib/data/categories";
+import { MobileBuyBar } from "@/components/product/MobileBuyBar";
+import { whatsappLink } from "@/lib/whatsapp";
 import { ProductGallery } from "@/components/product/ProductGallery";
 import { PurchasePanel } from "@/components/product/PurchasePanel";
 import { ProductCard } from "@/components/product/ProductCard";
@@ -54,9 +56,20 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
       </div>
 
       <section className="container-luxe mt-6 grid gap-10 md:mt-10 md:grid-cols-[1.15fr_1fr] md:gap-10 lg:grid-cols-[1.35fr_1fr] lg:gap-16 xl:gap-24">
-        <ProductGallery images={product.images} name={product.name} />
+        <div>
+          <ProductGallery images={product.images} name={product.name} />
+          {product.illustrativeImages && (
+            <p className="mt-4 text-[0.78rem] leading-relaxed text-stone">
+              Images are studio renderings of this design. Ask us on{" "}
+              <a href={whatsappLink(`Hello LA Luxury Gold, could you send me photographs of the ${product.name}?`)} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4 hover:text-ink">
+                WhatsApp
+              </a>{" "}
+              for photographs of the piece itself.
+            </p>
+          )}
+        </div>
 
-        <div className="md:sticky md:top-[calc(var(--header-h)+2rem)] md:self-start">
+        <div id="purchase-panel" className="scroll-mt-[calc(var(--header-h)+1rem)] md:sticky md:top-[calc(var(--header-h)+2rem)] md:self-start">
           <PurchasePanel product={product} />
 
           <div className="mt-10 border-t border-line">
@@ -85,8 +98,8 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             </AccordionItem>
             <AccordionItem title="Delivery">
               <p>
-                Every order is dispatched from Dubai with an insured, tracked courier. We deliver within the UAE and internationally. Shipping
-                costs and delivery timelines for your destination are confirmed at checkout or by our team before dispatch.
+                Every order is dispatched from Dubai with an insured, tracked courier and needs a signature on delivery. We deliver within the UAE and worldwide;
+                the delivery charge and expected date are confirmed by our team before you pay.
               </p>
               <p className="mt-3">
                 International orders may be subject to import duties and taxes in the destination country. <Link href="/shipping" className="underline underline-offset-4">Shipping information</Link>
@@ -94,13 +107,15 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             </AccordionItem>
             <AccordionItem title="Returns & exchanges">
               <p>
-                We want you to love your piece. Please read our <Link href="/returns" className="underline underline-offset-4">returns & exchange policy</Link> before ordering. Personalised,
-                engraved and made-to-order pieces, as well as gold bars, may be subject to different terms.
+                Unworn jewellery can be returned or exchanged within 14 days of delivery. Made-to-order, engraved and personalised pieces and gold bars cannot be
+                returned. Read the full <Link href="/returns" className="underline underline-offset-4">returns & exchange policy</Link>.
               </p>
             </AccordionItem>
           </div>
         </div>
       </section>
+
+      <MobileBuyBar product={product} />
 
       {related.length > 0 && (
         <section className="mt-28 bg-linen py-24 md:mt-36 md:py-32" aria-labelledby="related">

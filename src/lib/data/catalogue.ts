@@ -32,7 +32,26 @@ export interface ProductQuery {
   minPrice?: number | null;
   maxPrice?: number | null;
   inStockOnly?: boolean;
+  /** Variant values (e.g. "54", "45 cm", "M · 17.5 cm"); a product matches if it offers any of them. */
+  sizes?: string[];
+  /** Only pieces flagged as new. */
+  newOnly?: boolean;
   sort?: SortKey;
+}
+
+/** Size-type variant values offered across a list of products, grouped by variant name, in catalogue order. */
+export function sizeOptions(source: Product[]) {
+  const groups = new Map<string, string[]>();
+  for (const p of source) {
+    for (const v of p.variants ?? []) {
+      if (v.name === "Weight") continue;
+      const list = groups.get(v.name) ?? [];
+      for (const o of v.options) if (o.available !== false && !list.includes(o.value)) list.push(o.value);
+      groups.set(v.name, list);
+    }
+  }
+  const numeric = (x: string) => parseFloat(x.replace(/[^0-9.]/g, "")) || 0;
+  return [...groups.entries()].map(([name, values]) => ({ name, values: name === "Bracelet size" ? values : [...values].sort((a, b) => numeric(a) - numeric(b)) }));
 }
 
 const inStock: Availability[] = ["in_stock", "low_stock"];
@@ -68,6 +87,8 @@ export function queryProducts(query: ProductQuery, source: Product[]): Product[]
     if (query.collections?.length && !p.collections.some((c) => query.collections!.includes(c))) return false;
     if (query.purities?.length && !query.purities.includes(p.purity)) return false;
     if (query.inStockOnly && !inStock.includes(p.availability)) return false;
+    if (query.newOnly && !p.isNew) return false;
+    if (query.sizes?.length && !(p.variants ?? []).some((v) => v.options.some((o) => o.available !== false && query.sizes!.includes(o.value)))) return false;
     if (query.minPrice != null && (p.price == null || p.price < query.minPrice)) return false;
     if (query.maxPrice != null && (p.price == null || p.price > query.maxPrice)) return false;
     return true;
