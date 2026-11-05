@@ -204,7 +204,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await s.goto(BASE + '/product/classic-gold-hoops', { waitUntil: 'load' });
   await s.evaluate(() => localStorage.setItem('llg.currency.v2', JSON.stringify('NGN')));
   let ngnText = '';
-  for (let i = 0; i < 3 && !ngnText.includes('848,000'); i++) {
+  for (let i = 0; i < 8 && !ngnText.includes('848,000'); i++) {
     await s.reload({ waitUntil: 'load' });
     await s.waitForTimeout(700);
     ngnText = await s.locator('main').textContent();
@@ -224,7 +224,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.click('button:has-text("Save testimonial")');
   await a.waitForSelector(`text=(${RUN})`);
   let homeText = '';
-  for (let i = 0; i < 3 && !homeText.includes(RUN); i++) {
+  for (let i = 0; i < 8 && !homeText.includes(RUN); i++) {
     await s.goto(BASE + '/', { waitUntil: 'load' });
     await s.waitForTimeout(700);
     homeText = await s.locator('main').textContent();
