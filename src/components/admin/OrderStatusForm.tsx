@@ -6,6 +6,7 @@ import { setOrderStatus } from "@/app/admin/(panel)/orders/actions";
 import { adminBtnPrimary } from "./ui";
 
 const statuses = [
+  { id: "awaiting_payment", label: "Awaiting payment" },
   { id: "pending_confirmation", label: "Awaiting confirmation" },
   { id: "confirmed", label: "Confirmed" },
   { id: "paid", label: "Paid" },

@@ -100,6 +100,8 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `NEXT_PUBLIC_SITE_URL` | Canonical URL for metadata, sitemap and structured data |
 | `NEXT_PUBLIC_NGN_PER_USD` | Optional: naira rate used until one is saved in Store settings (default 1550) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
+| `PAYSTACK_SECRET_KEY` | Paystack secret key (`sk_live_…`), server only. Enables "Pay now" at checkout |
+| `PAYSTACK_CURRENCY` | Optional: `NGN` (default) or `USD` |
 | `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
 | `CONTACT_WEBHOOK_URL` | Receives contact-form messages |
@@ -162,12 +164,26 @@ The tables are created automatically, and the starting catalogue is copied into 
 
 ## Checkout & payments
 
-Checkout collects contact details, a delivery address with country selection, a shipping method and a payment option. **No payment is simulated.** Because no gateway is connected:
+Checkout collects contact details, a delivery address with country selection, a shipping method and a payment option. Prices are
+re-validated and recalculated on the server. **No payment is ever simulated.**
 
-* The only option shown is "Confirm & pay with our team". The card option is defined in `store.ts` but hidden until a gateway is connected.
-* Placing the order submits an **order request** to `/api/orders`. The server re-validates the request and recalculates prices from the catalogue, then returns a reference such as `LLG-1A2B3C4D`. The customer sees a "No payment has been taken" confirmation and a WhatsApp button pre-filled with the reference.
+* **Pay now (Paystack).** Shown only when `PAYSTACK_SECRET_KEY` is set. The order is saved as **Awaiting payment** and a Paystack
+  transaction is initialised on the server. The shopper is redirected to Paystack's hosted checkout (card, bank transfer, USSD…) and
+  returns to `/checkout/complete`. The order is marked **Paid** only after the server verifies the transaction with Paystack, and only if
+  the amount, currency and reference match what was requested. The signed webhook `/api/payments/paystack/webhook` settles payments
+  even if the shopper never returns. Abandoned payments can be retried from the completion page. Amounts are charged in naira at the
+  rate in Store settings (`PAYSTACK_CURRENCY=USD` charges dollars, if USD is enabled on the Paystack account). Pieces priced on request
+  can't be paid online.
+* **Confirm & pay with our team.** Submits an order request (`LLG-1A2B3C4D`). The team confirms the order and arranges payment
+  directly with the customer.
 
-To go live, implement `PaymentProvider` in `src/lib/payments` (e.g. Network International N-Genius, Checkout.com, Telr or Stripe). Then enable the card option in `store.ts`.
+### Setting up Paystack
+
+1. In the Paystack Dashboard → Settings → API Keys & Webhooks, copy the **secret key** (`sk_live_…`). Never put it in code or share it in chat.
+2. In Vercel → Project → Settings → Environment Variables, add `PAYSTACK_SECRET_KEY` (Production), and optionally
+   `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` (`pk_live_…`, not required by the hosted checkout). Then redeploy.
+3. In the same Paystack page, set the **Webhook URL** to `https://<your-domain>/api/payments/paystack/webhook`.
+4. Make a small live payment, and check that the order shows as **Paid** with its Paystack reference in `/admin/orders`.
 
 **Order tracking.** `/account` lets customers look up an order with its reference and email. They see its status, a progress timeline and the items. The lookup is rate-limited, and internal status notes are never shown.
 
@@ -211,6 +227,6 @@ The storefront suite covers:
 - [ ] Confirm the WhatsApp/phone country codes and add a contact email
 - [ ] Confirm shipping rates and timelines and the policy texts (legal review)
 - [ ] Set `ADMIN_PASSWORD` and a production `DATABASE_URL` (PostgreSQL)
-- [ ] Connect a payment gateway
+- [ ] Set `PAYSTACK_SECRET_KEY` in Vercel, add the webhook URL in Paystack, and make one small live test payment
 - [ ] Add real client testimonials (with permission) in the admin
 - [ ] Set `NEXT_PUBLIC_SITE_URL` and add analytics/cookie consent if required

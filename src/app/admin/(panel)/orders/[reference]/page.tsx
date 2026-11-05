@@ -116,7 +116,18 @@ export default async function OrderDetail({ params }: PageProps<"/admin/orders/[
                 Shopper viewed prices in naira: {formatMoney(r.subtotal + (r.shippingCost ?? 0), "NGN", { USD: 1, NGN: r.ngnPerUsd })} at ₦{r.ngnPerUsd.toLocaleString("en-US")} per $1.
               </p>
             )}
-            <p className="mt-3 text-xs text-stone">Payment option: {r.paymentMethod === "order-request" ? "Reserve & confirm with the team (no online payment taken)" : r.paymentMethod}</p>
+            <p className="mt-3 text-xs text-stone">
+              Payment option: {r.paymentMethod === "order-request" ? "Confirm & pay with the team (no online payment taken)" : r.paymentMethod === "paystack" ? "Paid online with Paystack" : r.paymentMethod}
+            </p>
+            {r.payment && (
+              <dl className="mt-3 space-y-1 border-t border-line pt-3 text-xs">
+                <div className="flex justify-between gap-4"><dt className="text-stone">Paystack status</dt><dd className="font-semibold">{{ success: "Paid — verified with Paystack", initialized: "Not paid yet", failed: "Failed", abandoned: "Abandoned", mismatch: "Amount mismatch — check in Paystack" }[r.payment.status]}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="text-stone">Amount</dt><dd className="tabular-nums">{formatMoney(r.payment.amount / 100, r.payment.currency, { USD: 1, NGN: 1 })}</dd></div>
+                <div className="flex justify-between gap-4"><dt className="text-stone">Reference</dt><dd className="font-mono">{r.payment.reference}</dd></div>
+                {r.payment.channel && <div className="flex justify-between gap-4"><dt className="text-stone">Channel</dt><dd>{r.payment.channel}</dd></div>}
+                {r.payment.paidAt && <div className="flex justify-between gap-4"><dt className="text-stone">Paid at</dt><dd>{new Date(r.payment.paidAt).toLocaleString("en-GB")}</dd></div>}
+              </dl>
+            )}
           </Card>
         </div>
       </div>

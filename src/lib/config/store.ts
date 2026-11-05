@@ -115,22 +115,23 @@ export function shippingMethodsFor(country: string) {
 
 /* --------------------------------------------------------------------------
    Payments
-   Orders are confirmed by the team, who arrange payment directly with the
-   customer. To add online card payments see src/lib/payments, then set the
-   "card" option below to available.
+   "paystack" takes payment online through Paystack's hosted checkout (card,
+   bank transfer, USSD…). It is offered only when PAYSTACK_SECRET_KEY is set on
+   the server — see src/lib/payments/paystack.ts. "order-request" lets the team
+   confirm the order and arrange payment directly with the customer.
    -------------------------------------------------------------------------- */
 export const paymentOptions = [
   {
-    id: "card",
-    label: "Credit / debit card",
-    description: "Online card payment.",
-    available: false,
+    id: "paystack",
+    label: "Pay now — card, bank transfer or USSD",
+    description: "You'll be taken to Paystack's secure checkout to pay. Your order is confirmed as soon as the payment clears.",
+    available: true,
   },
   {
     id: "order-request",
     label: "Confirm & pay with our team",
     description:
-      "Place your order now and our team will contact you, usually within one business day, to confirm availability, delivery and payment. No payment is taken online.",
+      "Place your order now and our team will contact you, usually within one business day, to confirm availability, delivery and payment. No payment is taken now.",
     available: true,
   },
 ] as const;

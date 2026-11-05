@@ -30,8 +30,8 @@ export function ClientConfidence({ reviews }: { reviews: number }) {
     },
     {
       icon: CreditCard,
-      title: "Payment, personally confirmed",
-      copy: "No payment is taken online. Our team confirms price, delivery and payment with you — and never asks for card details by message.",
+      title: "Secure payment",
+      copy: "Pay at checkout through Paystack's secure page (card, bank transfer or USSD), or confirm with our team first. We never ask for card details by message.",
       href: "/terms",
       link: "Terms of sale",
     },

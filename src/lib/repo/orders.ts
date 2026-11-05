@@ -1,9 +1,11 @@
 import "server-only";
 import { getDb } from "@/lib/db/client";
 import type { OrderRecord } from "@/lib/server/orders";
+import type { PaymentInfo } from "@/lib/payments/paystack";
 import { dayKey } from "@/lib/time";
 
 export const orderStatuses = [
+  { id: "awaiting_payment", label: "Awaiting payment" },
   { id: "pending_confirmation", label: "Awaiting confirmation" },
   { id: "confirmed", label: "Confirmed" },
   { id: "paid", label: "Paid" },
@@ -53,9 +55,9 @@ export async function insertOrder(o: OrderRecord) {
     `INSERT INTO orders (reference, created_at, day, status, email, name, phone, country, subtotal, item_count, has_por, data, history, updated_at)
      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
     [
-      o.reference, ts, dayKey(ts), "pending_confirmation", o.customer.email.toLowerCase(), `${o.customer.firstName} ${o.customer.lastName}`.trim(),
+      o.reference, ts, dayKey(ts), o.status, o.customer.email.toLowerCase(), `${o.customer.firstName} ${o.customer.lastName}`.trim(),
       o.customer.phone, o.shipping.country, Math.round(o.subtotal), o.resolvedLines.reduce((n, l) => n + l.quantity, 0), o.hasPriceOnRequest ? 1 : 0,
-      JSON.stringify(o), JSON.stringify([{ status: "pending_confirmation", at: ts }]), ts,
+      JSON.stringify(o), JSON.stringify([{ status: o.status, at: ts }]), ts,
     ],
   );
 }
@@ -106,6 +108,33 @@ export async function updateOrderStatus(reference: string, status: OrderStatus, 
   if (!o) throw new Error("Order not found");
   const history = [...o.history, { status, at: Date.now(), ...(note ? { note } : {}) }];
   await db.run("UPDATE orders SET status = $2, history = $3, updated_at = $4 WHERE reference = $1", [reference, status, JSON.stringify(history), Date.now()]);
+}
+
+/** Store the latest payment attempt on the order (no status change). */
+export async function setOrderPayment(reference: string, payment: PaymentInfo) {
+  const db = await getDb();
+  const o = await getOrder(reference);
+  if (!o) throw new Error("Order not found");
+  await db.run("UPDATE orders SET data = $2, updated_at = $3 WHERE reference = $1", [reference, JSON.stringify({ ...o.record, payment }), Date.now()]);
+}
+
+/**
+ * Mark an order paid after the payment provider has confirmed it. Idempotent: an order that is
+ * already paid (or further along) is left untouched, so the redirect and the webhook can both call it.
+ */
+export async function markOrderPaid(reference: string, payment: PaymentInfo, note: string) {
+  const db = await getDb();
+  const o = await getOrder(reference);
+  if (!o) throw new Error("Order not found");
+  if (PAID_STATUSES.includes(o.status)) return { order: o, changed: false };
+  const now = Date.now();
+  const history = [...o.history, { status: "paid" as const, at: now, note }];
+  const record = { ...o.record, payment };
+  await db.run(
+    "UPDATE orders SET status = 'paid', data = $2, history = $3, updated_at = $4 WHERE reference = $1 AND status NOT IN ('paid', 'shipped', 'delivered')",
+    [reference, JSON.stringify(record), JSON.stringify(history), now],
+  );
+  return { order: { ...o, status: "paid" as OrderStatus, record, history }, changed: true };
 }
 
 export async function orderStats(days: string[]) {

@@ -6,6 +6,8 @@ import { insertOrder } from "@/lib/repo/orders";
 import type { Product } from "@/lib/data/types";
 import { paymentOptions, shippingMethods, shippingMethodsFor } from "@/lib/config/store";
 import { unitPrice } from "@/lib/state/cart-math";
+import type { PaymentInfo } from "@/lib/payments/paystack";
+import { isPaystackConfigured } from "@/lib/payments/paystack";
 
 export interface OrderInput {
   customer: { email: string; phone: string; firstName: string; lastName: string; marketing?: boolean };
@@ -21,7 +23,10 @@ export interface OrderInput {
 export interface OrderRecord extends OrderInput {
   reference: string;
   createdAt: string;
-  status: "pending_confirmation";
+  /** Online payments start as "awaiting_payment"; order requests as "pending_confirmation". */
+  status: "pending_confirmation" | "awaiting_payment";
+  /** Latest online payment attempt (Paystack), if any. */
+  payment?: PaymentInfo;
   /** Amounts are stored in US dollars. */
   currency: "USD";
   /** Naira per dollar at the time of the order (for orders placed while viewing NGN). */
@@ -76,7 +81,8 @@ export async function validateOrder(body: unknown): Promise<OrderInput> {
   const shippingMethodId = str(b.shippingMethodId, 60);
   if (!shippingMethodsFor(shipping.country).some((m) => m.id === shippingMethodId)) errors.shippingMethodId = "Select a shipping method.";
   const paymentMethod = str(b.paymentMethod, 40);
-  if (!paymentOptions.some((p) => p.id === paymentMethod && p.available)) errors.paymentMethod = "Select an available payment option.";
+  if (!paymentOptions.some((p) => p.id === paymentMethod && p.available) || (paymentMethod === "paystack" && !isPaystackConfigured()))
+    errors.paymentMethod = "Select an available payment option.";
 
   const lines = Array.isArray(b.lines) ? b.lines.slice(0, 50) : [];
   const cleanLines = lines
@@ -108,7 +114,7 @@ export async function buildOrder(input: OrderInput, reference: string, createdAt
     ...input,
     reference,
     createdAt,
-    status: "pending_confirmation",
+    status: input.paymentMethod === "paystack" ? "awaiting_payment" : "pending_confirmation",
     currency: "USD",
     ngnPerUsd: (await getSiteSettings()).ngnPerUsd,
     resolvedLines,

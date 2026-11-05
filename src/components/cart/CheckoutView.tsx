@@ -12,7 +12,7 @@ import { Price } from "@/components/product/Price";
 import { buttonClass, Button } from "@/components/ui/Button";
 import { WhatsAppIcon } from "@/components/ui/Icons";
 import { whatsappLink } from "@/lib/whatsapp";
-import { cx } from "@/lib/format";
+import { cx, formatMoney } from "@/lib/format";
 import { useCurrency } from "@/lib/state/currency";
 
 type Fields = {
@@ -88,16 +88,20 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   );
 }
 
-export function CheckoutView() {
+/** `paystack` is set (by the server) when online payment is configured. */
+export function CheckoutView({ paystack = null }: { paystack?: { currency: "NGN" | "USD" } | null }) {
   const { lines, subtotal, hydrated, hasPriceOnRequest, clear } = useCart();
-  const { format, currency } = useCurrency();
+  const { format, currency, rates } = useCurrency();
   const [f, setF] = useState<Fields>(initial);
   const methods = useMemo(() => shippingMethodsFor(f.country), [f.country]);
   const [shippingPick, setShippingPick] = useState<string | null>(null);
   const shippingId = methods.some((m) => m.id === shippingPick) ? shippingPick : (methods[0]?.id ?? null);
-  const [payment, setPayment] = useState<PaymentOptionId | null>("order-request");
+  const [payment, setPayment] = useState<PaymentOptionId | null>(paystack ? "paystack" : "order-request");
+  const options = paymentOptions.filter((p) => p.available && (p.id !== "paystack" || paystack));
+  // pieces priced on request can't be paid online
+  const effectivePayment: PaymentOptionId | null = payment === "paystack" && hasPriceOnRequest ? "order-request" : payment;
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [status, setStatus] = useState<"idle" | "submitting" | "done" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "submitting" | "redirecting" | "done" | "error">("idle");
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState<{ reference: string; summary: string } | null>(null);
   const countryList = useMemo(() => countries(), []);
@@ -111,7 +115,7 @@ export function CheckoutView() {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const v = validate(f, shippingId, payment);
+    const v = validate(f, shippingId, effectivePayment);
     setErrors(v);
     if (Object.keys(v).length) {
       const first = document.querySelector<HTMLElement>(`[name="${Object.keys(v)[0]}"]`);
@@ -128,7 +132,7 @@ export function CheckoutView() {
           customer: { email: f.email, phone: f.phone, firstName: f.firstName, lastName: f.lastName, marketing: f.marketing },
           shipping: { address1: f.address1, address2: f.address2, city: f.city, region: f.region, postalCode: f.postalCode, country: f.country },
           shippingMethodId: shippingId,
-          paymentMethod: payment,
+          paymentMethod: effectivePayment,
           currency,
           notes: f.notes,
           lines: lines.map((l) => ({ productId: l.productId, quantity: l.quantity, variant: l.variant })),
@@ -138,6 +142,13 @@ export function CheckoutView() {
       if (!res.ok) {
         if (data.fields) setErrors(data.fields);
         throw new Error(data.error ?? "Something went wrong.");
+      }
+      if (effectivePayment === "paystack") {
+        // hand over to Paystack's hosted checkout; the order is saved and awaiting payment
+        setStatus("redirecting");
+        clear();
+        window.location.assign(data.authorizationUrl ?? `/checkout/complete?order=${encodeURIComponent(data.reference)}`);
+        return;
       }
       const summary = lines.map((l) => `${l.quantity} × ${l.product.name}${l.variant ? ` (${l.variant.value})` : ""}`).join(", ");
       setResult({ reference: data.reference, summary });
@@ -258,23 +269,38 @@ export function CheckoutView() {
 
         <Step n={4} title="Payment">
           <div className="space-y-3" role="radiogroup" aria-label="Payment method">
-            {paymentOptions.filter((p) => p.available).map((p) => (
-              <label
-                key={p.id}
-                className={cx(
-                  "flex items-start gap-4 border p-5 transition-colors",
-                  !p.available ? "cursor-not-allowed border-line opacity-60" : payment === p.id ? "cursor-pointer border-ink bg-white" : "cursor-pointer border-line hover:border-ink/50",
-                )}
-              >
-                <input type="radio" name="paymentMethod" disabled={!p.available} checked={payment === p.id} onChange={() => setPayment(p.id)} className="mt-1 accent-[var(--color-ink)]" />
-                <span className="flex-1">
-                  <span className="flex flex-wrap items-center justify-between gap-2">
-                    <span className="text-sm font-semibold">{p.label}</span>
+            {options.map((p) => {
+              const disabled = p.id === "paystack" && hasPriceOnRequest;
+              return (
+                <label
+                  key={p.id}
+                  className={cx(
+                    "flex items-start gap-4 border p-5 transition-colors",
+                    disabled ? "cursor-not-allowed border-line opacity-60" : effectivePayment === p.id ? "cursor-pointer border-ink bg-white" : "cursor-pointer border-line hover:border-ink/50",
+                  )}
+                >
+                  <input type="radio" name="paymentMethod" value={p.id} disabled={disabled} checked={effectivePayment === p.id} onChange={() => setPayment(p.id)} className="mt-1 accent-[var(--color-ink)]" />
+                  <span className="flex-1">
+                    <span className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="text-sm font-semibold">{p.label}</span>
+                      {p.id === "paystack" && <span className="text-[0.6rem] font-semibold uppercase tracking-[0.18em] text-stone">Secured by Paystack</span>}
+                    </span>
+                    <span className="mt-1 block text-xs leading-relaxed text-stone">{p.description}</span>
+                    {p.id === "paystack" && paystack && !disabled && (
+                      <span className="mt-2 block text-xs leading-relaxed text-ink">
+                        You&rsquo;ll pay{" "}
+                        <strong className="font-semibold">
+                          {formatMoney(total, paystack.currency, rates)}
+                        </strong>
+                        {paystack.currency === "NGN" && currency !== "NGN" && <> (charged in naira at ₦{rates.NGN.toLocaleString("en-US")} per $1)</>}.
+                        {shippingCost == null && " Any delivery charge for your destination is confirmed by our team before dispatch."}
+                      </span>
+                    )}
+                    {disabled && <span className="mt-2 block text-xs text-burgundy">Not available for pieces priced on request.</span>}
                   </span>
-                  <span className="mt-1 block text-xs leading-relaxed text-stone">{p.description}</span>
-                </span>
-              </label>
-            ))}
+                </label>
+              );
+            })}
             {errors.paymentMethod && <p className="text-xs text-burgundy">{errors.paymentMethod}</p>}
           </div>
           <label className="mt-6 block">
@@ -330,9 +356,9 @@ export function CheckoutView() {
             </div>
           </dl>
 
-          <Button type="submit" size="lg" className="mt-8 w-full" disabled={status === "submitting"}>
-            {status === "submitting" ? <Loader2 size={16} className="animate-spin" /> : <Lock size={14} strokeWidth={1.5} />}
-            {payment === "card" ? "Pay securely" : "Submit order request"}
+          <Button type="submit" size="lg" className="mt-8 w-full" disabled={status === "submitting" || status === "redirecting"}>
+            {status === "submitting" || status === "redirecting" ? <Loader2 size={16} className="animate-spin" /> : <Lock size={14} strokeWidth={1.5} />}
+            {status === "redirecting" ? "Opening secure payment…" : effectivePayment === "paystack" ? "Continue to secure payment" : "Submit order request"}
           </Button>
           {serverError && (
             <p role="alert" className="mt-4 text-sm text-burgundy">
@@ -340,7 +366,10 @@ export function CheckoutView() {
             </p>
           )}
           <p className="mt-5 text-xs leading-relaxed text-stone">
-            No payment is taken at this step. Our team will confirm your order, delivery and payment details before anything is charged. By submitting you agree to our{" "}
+            {effectivePayment === "paystack"
+              ? "You'll complete payment on Paystack's secure page — we never see or store your card details. "
+              : "No payment is taken at this step. Our team will confirm your order, delivery and payment details before anything is charged. "}
+            By continuing you agree to our{" "}
             <Link href="/terms" className="underline underline-offset-4">terms</Link> and <Link href="/privacy" className="underline underline-offset-4">privacy policy</Link>.
           </p>
         </div>

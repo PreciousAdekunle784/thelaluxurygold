@@ -2,21 +2,22 @@ import { NextResponse } from "next/server";
 import { getOrder, orderStatuses } from "@/lib/repo/orders";
 import { shippingMethods } from "@/lib/config/store";
 
-/** Best-effort throttle per IP so order references can't be guessed in bulk. */
-const attempts = new Map<string, { n: number; since: number }>();
+/** Best-effort throttle per IP: only failed lookups count, so order references can't be guessed in bulk. */
+const failures = new Map<string, { n: number; since: number }>();
 const WINDOW_MS = 10 * 60_000;
-const MAX_ATTEMPTS = 12;
+const MAX_FAILURES = 12;
 
 function throttled(ip: string) {
+  const a = failures.get(ip);
+  return !!a && Date.now() - a.since <= WINDOW_MS && a.n >= MAX_FAILURES;
+}
+function recordFailure(ip: string) {
   const now = Date.now();
-  const a = attempts.get(ip);
+  const a = failures.get(ip);
   if (!a || now - a.since > WINDOW_MS) {
-    attempts.set(ip, { n: 1, since: now });
-    if (attempts.size > 5000) attempts.clear();
-    return false;
-  }
-  a.n += 1;
-  return a.n > MAX_ATTEMPTS;
+    if (failures.size > 5000) failures.clear();
+    failures.set(ip, { n: 1, since: now });
+  } else a.n += 1;
 }
 
 export async function POST(request: Request) {
@@ -32,12 +33,16 @@ export async function POST(request: Request) {
   const reference = String(body.reference ?? "").trim().toUpperCase().replace(/^(?!LLG-)/, "LLG-");
   const email = String(body.email ?? "").trim().toLowerCase();
   if (!/^LLG-[A-F0-9]{8}$/.test(reference) || !email.includes("@")) {
+    recordFailure(ip);
     return NextResponse.json({ error: "Enter your order reference (e.g. LLG-1A2B3C4D) and the email address used for the order." }, { status: 422 });
   }
 
   try {
     const o = await getOrder(reference);
-    if (!o || o.email !== email) return NextResponse.json({ error: "We couldn't find an order with those details. Please check the reference and email address." }, { status: 404 });
+    if (!o || o.email !== email) {
+      recordFailure(ip);
+      return NextResponse.json({ error: "We couldn't find an order with those details. Please check the reference and email address." }, { status: 404 });
+    }
     const r = o.record;
     const label = (s: string) => orderStatuses.find((x) => x.id === s)?.label ?? s;
     return NextResponse.json({

@@ -34,7 +34,7 @@ const date = (ms: number) => new Date(ms).toLocaleDateString("en-GB", { day: "nu
 
 function OrderResult({ o }: { o: FoundOrder }) {
   const cancelled = o.status === "cancelled";
-  const reached = journey.findIndex((s) => s.id === o.status);
+  const reached = o.status === "awaiting_payment" ? -1 : journey.findIndex((s) => s.id === o.status);
   return (
     <div className="mt-10 border border-line bg-white p-6 md:p-8" aria-live="polite">
       <div className="flex flex-wrap items-baseline justify-between gap-3">

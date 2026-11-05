@@ -35,9 +35,9 @@ export default function TermsPage() {
 
       <h2>4. Placing an order</h2>
       <p>
-        When you submit an order on this website you are sending us an order request — no payment is taken at that stage. Our team will contact you, usually
-        within one business day, to confirm availability, the final price, delivery and payment. A contract between us is formed only when we confirm your order
-        and receive your payment in full.
+        When you pay online at checkout, your order is confirmed once the payment is received. When you choose to confirm with our team instead, you are sending
+        us an order request — no payment is taken at that stage, and our team will contact you, usually within one business day, to confirm availability, the
+        final price, delivery and payment. Either way, a contract between us is formed when your order is confirmed and payment is received in full.
       </p>
       <p>
         We may decline or cancel an order before it is confirmed — for example if a piece is no longer available, a price was shown in error, or we are unable to
@@ -46,12 +46,19 @@ export default function TermsPage() {
 
       <h2>5. Payment</h2>
       <p>
-        Payment is arranged directly with our team once your order is confirmed, using a method agreed with you. We never ask for card details over WhatsApp,
-        email or telephone. Pieces are reserved for you for a limited time after confirmation while payment is completed.
+        Where online payment is offered at checkout, you pay through our payment partner Paystack on its secure payment page, by card, bank transfer or
+        another method Paystack makes available to you. We never see or store your full card details. Your order is confirmed once Paystack confirms the payment
+        to us. Alternatively, you can place your order and have our team confirm it and arrange payment with you directly.
+      </p>
+      <p>
+        Online payments are charged in the currency shown on the payment page. If you pay in Nigerian naira, the amount is converted from our US dollar prices at
+        the exchange rate shown at checkout. Any delivery charge that is not shown at checkout is confirmed with you before dispatch. We never ask for card
+        details over WhatsApp, email or telephone.
       </p>
       <p>
         For high-value purchases and gold bullion we may ask for proof of identity and, where required, information about the source of funds. This is a legal
-        requirement for dealers in precious metals and helps protect you and us against fraud.
+        requirement for dealers in precious metals and helps protect you and us against fraud. If we cannot accept or fulfil an order you have paid for, we will
+        refund you in full.
       </p>
 
       <h2>6. Made-to-order & personalised pieces</h2>

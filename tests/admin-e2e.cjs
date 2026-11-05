@@ -64,6 +64,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await s.fill('input[name=lastName]', 'Test');
   await s.fill('input[name=address1]', '12 Marina Walk');
   await s.fill('input[name=city]', 'Dubai');
+  if (await s.locator('input[value=order-request]').count()) await s.locator('label:has(input[value=order-request])').click();
   await s.click('button:has-text("Submit order request")');
   await s.waitForSelector('text=Order request received');
   const ref = (await s.locator('strong:has-text("LLG-")').textContent()).trim();

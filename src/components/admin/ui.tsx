@@ -63,6 +63,7 @@ export function Empty({ children }: { children: ReactNode }) {
 }
 
 const statusStyles: Record<string, string> = {
+  awaiting_payment: "border border-dashed border-stone text-stone",
   pending_confirmation: "bg-gold-pale text-ink",
   confirmed: "bg-sage-mist text-forest",
   paid: "bg-forest text-ivory",
@@ -71,6 +72,7 @@ const statusStyles: Record<string, string> = {
   cancelled: "bg-burgundy/10 text-burgundy",
 };
 const statusLabels: Record<string, string> = {
+  awaiting_payment: "Awaiting payment",
   pending_confirmation: "Awaiting confirmation",
   confirmed: "Confirmed",
   paid: "Paid",

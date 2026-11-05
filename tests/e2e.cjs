@@ -225,6 +225,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     // checkout
     await p.goto(BASE + '/checkout', { waitUntil: 'load' });
     await p.waitForTimeout(700);
+    // when online payment is configured it is the default; these checks exercise the order-request path
+    if (await p.locator('input[value=order-request]').count()) await p.locator('label:has(input[value=order-request])').click();
     await p.locator('button:has-text("Submit order request")').click();
     ok('checkout validates required fields', await p.locator('text=Enter a valid email address.').isVisible());
     await p.fill('input[name=email]', 'test@example.com');
@@ -237,7 +239,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.selectOption('select[name=country]', 'GB');
     await p.waitForTimeout(200);
     ok('international country switches shipping method + customs note', (await p.locator('text=International insured express').isVisible()) && (await p.locator('text=import duties, taxes').isVisible()));
-    ok('only available payment options are shown', (await p.locator('input[name=paymentMethod]').count()) === 1 && !(await p.locator('text=Coming soon').count()));
+    ok('only available payment options are shown', (await p.locator('input[name=paymentMethod]').count()) >= 1 && !(await p.locator('text=Coming soon').count()));
     const [resp] = await Promise.all([p.waitForResponse((r) => r.url().includes('/api/orders')), p.locator('button:has-text("Submit order request")').click()]);
     ok('order API returns 201', resp.status() === 201, String(resp.status()));
     await p.waitForTimeout(600);
