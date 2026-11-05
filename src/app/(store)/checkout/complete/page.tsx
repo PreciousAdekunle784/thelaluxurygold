@@ -11,13 +11,14 @@ import { getOrder, type StoredOrder } from "@/lib/repo/orders";
 import type { Settlement } from "@/lib/server/payments";
 import { redirect } from "next/navigation";
 import { whatsappLink } from "@/lib/whatsapp";
+import { chargeFor } from "@/lib/payments/paystack";
 
 export const metadata: Metadata = { title: "Payment", robots: { index: false } };
 
 function money(order: StoredOrder) {
   const p = order.record.payment;
   if (!p) return null;
-  return new Intl.NumberFormat(p.currency === "NGN" ? "en-NG" : "en-US", { style: "currency", currency: p.currency, currencyDisplay: "narrowSymbol", maximumFractionDigits: 2 }).format(p.amount / 100);
+  return new Intl.NumberFormat(p.currency === "NGN" ? "en-NG" : "en-US", { style: "currency", currency: p.currency, currencyDisplay: "narrowSymbol", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(p.amount / 100);
 }
 
 async function Result({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
@@ -79,14 +80,39 @@ async function Result({ searchParams }: { searchParams: Promise<Record<string, s
       </Panel>
     );
   }
+  // retry in the currency the shopper chose — or switch to the other currency
+  const usedCurrency = order.record.payment?.currency ?? order.record.displayCurrency;
+  const other = usedCurrency === "USD" ? "NGN" : "USD";
+  const usdUnavailable = hint === "currency";
+  const fmt = (c: "NGN" | "USD") => {
+    const { major } = chargeFor(order.record, c);
+    return new Intl.NumberFormat(c === "NGN" ? "en-NG" : "en-US", { style: "currency", currency: c, currencyDisplay: "narrowSymbol", minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(major);
+  };
   return (
     <Panel icon={<X size={24} strokeWidth={1.2} />} eyebrow="Payment not completed" title="Your order is saved">
       <p>
-        The payment for order <strong className="font-semibold text-ink">{order.reference}</strong> wasn&rsquo;t completed, so you have not been charged. You can try again, or ask our team to arrange payment
-        with you.
+        {usdUnavailable ? (
+          <>
+            Paying in US dollars isn&rsquo;t available right now, so you have not been charged for order <strong className="font-semibold text-ink">{order.reference}</strong>. You can pay in
+            naira instead, or ask our team to arrange payment with you.
+          </>
+        ) : (
+          <>
+            The payment for order <strong className="font-semibold text-ink">{order.reference}</strong> wasn&rsquo;t completed, so you have not been charged. You can try again, or ask our team to
+            arrange payment with you.
+          </>
+        )}
       </p>
       <Actions>
-        {order.status === "awaiting_payment" && <RetryPayment reference={order.reference} />}
+        {order.status === "awaiting_payment" &&
+          (usdUnavailable ? (
+            <RetryPayment reference={order.reference} currency="NGN" label={`Pay ${fmt("NGN")} in naira`} />
+          ) : (
+            <>
+              <RetryPayment reference={order.reference} currency={usedCurrency} label={`Pay ${fmt(usedCurrency)} with Paystack`} />
+              <RetryPayment reference={order.reference} currency={other} variant="outline" label={`Pay ${fmt(other)} in ${other === "NGN" ? "naira" : "US dollars"}`} />
+            </>
+          ))}
         <a href={whatsappLink(`Hello LA Luxury Gold, I'd like help paying for order ${order.reference}.`)} target="_blank" rel="noopener noreferrer" className={buttonClass("outline", "lg")}>
           <WhatsAppIcon width={17} height={17} /> Pay with our team
         </a>

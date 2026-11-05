@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const PORT = Number(process.env.PORT || 4010);
 const SECRET = 'sk_test_mock';
 const tx = new Map();
+let usdEnabled = true; // POST /config?usd=0 simulates an account without USD enabled
 
 const json = (res, code, body) => { res.writeHead(code, { 'content-type': 'application/json' }); res.end(JSON.stringify(body)); };
 
@@ -15,9 +16,14 @@ http.createServer((req, res) => {
   req.on('data', (c) => (body += c));
   req.on('end', () => {
     const auth = req.headers.authorization === `Bearer ${SECRET}`;
+    if (req.method === 'POST' && url.pathname === '/config') {
+      usdEnabled = url.searchParams.get('usd') !== '0';
+      return json(res, 200, { usdEnabled });
+    }
     if (req.method === 'POST' && url.pathname === '/transaction/initialize') {
       if (!auth) return json(res, 401, { status: false, message: 'Invalid key' });
       const b = JSON.parse(body);
+      if (b.currency === 'USD' && !usdEnabled) return json(res, 400, { status: false, message: 'Currency not supported by merchant' });
       tx.set(b.reference, { ...b, status: 'ongoing' });
       return json(res, 200, { status: true, message: 'Authorization URL created', data: { authorization_url: `http://localhost:${PORT}/pay/${b.reference}`, access_code: 'x', reference: b.reference } });
     }

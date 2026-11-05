@@ -16,9 +16,13 @@ import type { OrderRecord } from "@/lib/server/orders";
  * An order is only ever marked paid after Paystack itself confirms a successful charge for the exact
  * amount and currency that was requested.
  *
+ * The shopper pays in the currency they were shopping in: US dollars (charged in cents, no conversion)
+ * or Nigerian naira (converted from the dollar price at the Store settings rate, exactly as displayed).
+ * USD must be enabled on the Paystack account; if it isn't, Paystack refuses the transaction and the
+ * shopper is offered naira instead.
+ *
  * Environment:
  *   PAYSTACK_SECRET_KEY   sk_live_… (server only — never exposed to the browser)
- *   PAYSTACK_CURRENCY     NGN (default) or USD, if USD is enabled on the Paystack account
  */
 
 const API = () => (process.env.PAYSTACK_API_BASE || "https://api.paystack.co").replace(/\/$/, "");
@@ -29,9 +33,6 @@ export function isPaystackConfigured() {
 }
 
 export type PaystackCurrency = "NGN" | "USD";
-export function paystackCurrency(): PaystackCurrency {
-  return process.env.PAYSTACK_CURRENCY?.toUpperCase() === "USD" ? "USD" : "NGN";
-}
 
 export interface PaymentInfo {
   provider: "paystack";
@@ -45,10 +46,9 @@ export interface PaymentInfo {
   channel?: string;
 }
 
-/** What the shopper pays online: items plus any fixed delivery rate, in the charge currency. */
-export function chargeFor(order: Pick<OrderRecord, "subtotal" | "shippingCost" | "ngnPerUsd">) {
+/** What the shopper pays online: items plus any fixed delivery rate, in the shopper's currency (or `currency`). */
+export function chargeFor(order: Pick<OrderRecord, "subtotal" | "shippingCost" | "ngnPerUsd" | "displayCurrency">, currency: PaystackCurrency = order.displayCurrency) {
   const usd = order.subtotal + (order.shippingCost ?? 0);
-  const currency = paystackCurrency();
   if (currency === "USD") return { currency, amount: Math.round(usd * 100), major: Math.round(usd * 100) / 100 };
   const naira = convert(usd, "NGN", { USD: 1, NGN: order.ngnPerUsd }); // rounded to ₦100, exactly as shown in the store
   return { currency, amount: naira * 100, major: naira };
@@ -62,13 +62,26 @@ async function call<T>(path: string, init?: RequestInit): Promise<T> {
     signal: AbortSignal.timeout(15_000),
   });
   const body = (await res.json().catch(() => ({}))) as { status?: boolean; message?: string; data?: T };
-  if (!res.ok || !body.status || !body.data) throw new Error(`Paystack ${path.split("?")[0]}: ${body.message ?? res.status}`);
+  if (!res.ok || !body.status || !body.data) throw new PaystackError(`Paystack ${path.split("?")[0]}: ${body.message ?? res.status}`, body.message ?? "");
   return body.data;
 }
 
+export class PaystackError extends Error {
+  constructor(
+    message: string,
+    public paystackMessage: string,
+  ) {
+    super(message);
+  }
+  /** Paystack refuses currencies that aren't enabled on the merchant account. */
+  get currencyNotEnabled() {
+    return /currency/i.test(this.paystackMessage);
+  }
+}
+
 /** Start a Paystack transaction for an order; returns the hosted payment page URL. */
-export async function initializePayment(order: OrderRecord, callbackUrl: string) {
-  const { currency, amount } = chargeFor(order);
+export async function initializePayment(order: OrderRecord, callbackUrl: string, currencyOverride?: PaystackCurrency) {
+  const { currency, amount } = chargeFor(order, currencyOverride);
   const reference = `${order.reference}-${randomBytes(3).toString("hex").toUpperCase()}`;
   const data = await call<{ authorization_url: string; reference: string }>("/transaction/initialize", {
     method: "POST",

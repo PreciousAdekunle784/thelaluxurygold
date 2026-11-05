@@ -88,8 +88,8 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
   );
 }
 
-/** `paystack` is set (by the server) when online payment is configured. */
-export function CheckoutView({ paystack = null }: { paystack?: { currency: "NGN" | "USD" } | null }) {
+/** `paystack` is true (set by the server) when online payment is configured. */
+export function CheckoutView({ paystack = false }: { paystack?: boolean }) {
   const { lines, subtotal, hydrated, hasPriceOnRequest, clear } = useCart();
   const { format, currency, rates } = useCurrency();
   const [f, setF] = useState<Fields>(initial);
@@ -147,7 +147,7 @@ export function CheckoutView({ paystack = null }: { paystack?: { currency: "NGN"
         // hand over to Paystack's hosted checkout; the order is saved and awaiting payment
         setStatus("redirecting");
         clear();
-        window.location.assign(data.authorizationUrl ?? `/checkout/complete?order=${encodeURIComponent(data.reference)}`);
+        window.location.assign(data.authorizationUrl ?? `/checkout/complete?order=${encodeURIComponent(data.reference)}&result=${data.paymentError === "currency" ? "currency" : "failed"}`);
         return;
       }
       const summary = lines.map((l) => `${l.quantity} × ${l.product.name}${l.variant ? ` (${l.variant.value})` : ""}`).join(", ");
@@ -288,11 +288,8 @@ export function CheckoutView({ paystack = null }: { paystack?: { currency: "NGN"
                     <span className="mt-1 block text-xs leading-relaxed text-stone">{p.description}</span>
                     {p.id === "paystack" && paystack && !disabled && (
                       <span className="mt-2 block text-xs leading-relaxed text-ink">
-                        You&rsquo;ll pay{" "}
-                        <strong className="font-semibold">
-                          {formatMoney(total, paystack.currency, rates)}
-                        </strong>
-                        {paystack.currency === "NGN" && currency !== "NGN" && <> (charged in naira at ₦{rates.NGN.toLocaleString("en-US")} per $1)</>}.
+                        You&rsquo;ll pay <strong className="font-semibold">{formatMoney(total, currency, rates)}</strong> in {currency === "NGN" ? "naira" : "US dollars"}.
+                        {" "}To pay in {currency === "NGN" ? "US dollars" : "naira"} instead, change the currency ($ USD | ₦ NGN) in the menu.
                         {shippingCost == null && " Any delivery charge for your destination is confirmed by our team before dispatch."}
                       </span>
                     )}

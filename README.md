@@ -100,7 +100,6 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `NEXT_PUBLIC_NGN_PER_USD` | Optional: naira rate used until one is saved in Store settings (default 1550) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
 | `PAYSTACK_SECRET_KEY` | Paystack secret key (`sk_live_…`), server only. Enables "Pay now" at checkout |
-| `PAYSTACK_CURRENCY` | Optional: `NGN` (default) or `USD` |
 | `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
 | `CONTACT_WEBHOOK_URL` | Receives contact-form messages |
@@ -170,9 +169,10 @@ re-validated and recalculated on the server. **No payment is ever simulated.**
   transaction is initialised on the server. The shopper is redirected to Paystack's hosted checkout (card, bank transfer, USSD…) and
   returns to `/checkout/complete`. The order is marked **Paid** only after the server verifies the transaction with Paystack, and only if
   the amount, currency and reference match what was requested. The signed webhook `/api/payments/paystack/webhook` settles payments
-  even if the shopper never returns. Abandoned payments can be retried from the completion page. Amounts are charged in naira at the
-  rate in Store settings (`PAYSTACK_CURRENCY=USD` charges dollars, if USD is enabled on the Paystack account). Pieces priced on request
-  can't be paid online.
+  even if the shopper never returns. Abandoned payments can be retried from the completion page. Shoppers pay **in the currency they are
+  shopping in**. Dollar shoppers are charged in US dollars without conversion. Naira shoppers are charged in naira, converted at the Store
+  settings rate exactly as displayed. US dollar payments must be enabled on the Paystack account. Until they are, Paystack refuses dollar
+  transactions and the shopper is offered "Pay in naira" or "Pay with our team" instead. Pieces priced on request can't be paid online.
 * **Confirm & pay with our team.** Submits an order request (`LLG-1A2B3C4D`). The team confirms the order and arranges payment
   directly with the customer.
 
@@ -182,7 +182,8 @@ re-validated and recalculated on the server. **No payment is ever simulated.**
 2. In Vercel → Project → Settings → Environment Variables, add `PAYSTACK_SECRET_KEY` (Production), and optionally
    `NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY` (`pk_live_…`, not required by the hosted checkout). Then redeploy.
 3. In the same Paystack page, set the **Webhook URL** to `https://<your-domain>/api/payments/paystack/webhook`.
-4. Make a small live payment, and check that the order shows as **Paid** with its Paystack reference in `/admin/orders`.
+4. To accept **US dollar** payments, ask Paystack to enable USD on your account (this needs a USD settlement account).
+5. Make one small live payment in each currency, and check that the orders show as **Paid** with their Paystack references in `/admin/orders`.
 
 **Order tracking.** `/account` lets customers look up an order with its reference and email. They see its status, a progress timeline and the items. The lookup is rate-limited, and internal status notes are never shown.
 

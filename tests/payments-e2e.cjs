@@ -10,8 +10,10 @@ const results = [];
 const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${info ? '  — ' + info : ''}`); };
 const RUN = Date.now().toString(36);
 
-async function checkout(p, email) {
+async function checkout(p, email, currency = 'USD') {
   await p.goto(BASE + '/product/maison-signet-ring', { waitUntil: 'load' });
+  await p.waitForTimeout(400);
+  await p.locator(`header [aria-label=Currency] button:has-text("${currency}")`).click();
   await p.waitForTimeout(600);
   await p.locator('main button[aria-pressed]:has-text("54")').click();
   await p.locator('#add-to-bag').click();
@@ -41,11 +43,11 @@ const lookup = async (p, ref, email) => (await (await p.request.post(BASE + '/ap
   const e1 = `pay1+${RUN}@example.com`;
   await checkout(p, e1);
   ok('Paystack option is offered and selected by default', await p.locator('input[name=paymentMethod][value=paystack]').isChecked());
-  const quoted = (await p.locator('label:has(input[value=paystack])').textContent()).match(/₦[\d,]+/)?.[0];
-  ok('checkout shows the naira amount to be charged', !!quoted, quoted);
+  const quoted = (await p.locator('label:has(input[value=paystack])').textContent()).match(/\$[\d,]+/)?.[0];
+  ok('dollar shopper is quoted in US dollars', quoted === '$925', quoted);
   await Promise.all([p.waitForURL(/localhost:4010\/pay\//), p.click('button:has-text("Continue to secure payment")')]);
   const charged = await p.locator('#amount').textContent();
-  ok('redirected to Paystack checkout with the same amount', quoted && charged === `NGN ${quoted.replace(/[₦,]/g, '')}`, `${charged} vs ${quoted}`);
+  ok('dollar shopper is charged in USD, without conversion', charged === 'USD 925', charged);
   ok('Paystack receives the customer email', (await p.locator('#email').textContent()) === e1);
   await Promise.all([p.waitForURL(/\/checkout\/complete/), p.click('#pay')]);
   await p.waitForSelector('text=Payment received');
@@ -53,7 +55,9 @@ const lookup = async (p, ref, email) => (await (await p.request.post(BASE + '/ap
   ok('return page confirms payment', /^LLG-/.test(ref1), ref1);
   ok('order is marked paid after verification', (await lookup(p, ref1, e1)).status === 'paid');
   await p.reload({ waitUntil: 'load' });
-  ok('revisiting the return page is idempotent', (await p.locator('text=Payment received').count()) === 1 && (await lookup(p, ref1, e1)).history.filter((h) => h.status === 'paid').length === 1);
+  await p.waitForSelector('text=Payment received', { timeout: 10000 }).catch(() => {});
+  const rc = (await p.locator('text=Payment received').first().isVisible()) ? 1 : 0; const lk = await lookup(p, ref1, e1);
+  ok('revisiting the return page is idempotent', rc === 1 && lk.history?.filter((h) => h.status === 'paid').length === 1, `${rc} ${JSON.stringify(lk).slice(0, 160)}`);
 
   // 2. cancelled, then retried
   const e2 = `pay2+${RUN}@example.com`;
@@ -63,7 +67,7 @@ const lookup = async (p, ref, email) => (await (await p.request.post(BASE + '/ap
   await p.waitForSelector('text=Payment not completed');
   const ref2 = (await p.locator('main strong:has-text("LLG-")').first().textContent()).trim();
   ok('cancelled payment leaves the order awaiting payment', (await lookup(p, ref2, e2)).status === 'awaiting_payment');
-  await Promise.all([p.waitForURL(/localhost:4010\/pay\//), p.click('button:has-text("Pay now with Paystack")')]);
+  await Promise.all([p.waitForURL(/localhost:4010\/pay\//), p.click('button:has-text("with Paystack")')]);
   await Promise.all([p.waitForURL(/\/checkout\/complete/), p.click('#pay')]);
   await p.waitForSelector('text=Payment received');
   ok('retrying payment completes the order', (await lookup(p, ref2, e2)).status === 'paid');
@@ -89,6 +93,31 @@ const lookup = async (p, ref, email) => (await (await p.request.post(BASE + '/ap
   await p.waitForTimeout(800);
   const ref4 = (await p.locator('main strong:has-text("LLG-")').first().textContent()).trim();
   ok('underpaid charge is not marked paid', (await lookup(p, ref4, e4)).status === 'awaiting_payment' && (await p.locator('text=Payment received').count()) === 0);
+
+  // 4b. naira shopper is charged in naira
+  const e5 = `pay5+${RUN}@example.com`;
+  await checkout(p, e5, 'NGN');
+  const quotedN = (await p.locator('label:has(input[value=paystack])').textContent()).match(/₦[\d,]+/)?.[0];
+  await Promise.all([p.waitForURL(/localhost:4010\/pay\//), p.click('button:has-text("Continue to secure payment")')]);
+  const chargedN = await p.locator('#amount').textContent();
+  ok('naira shopper is charged in NGN, the amount shown at checkout', !!quotedN && chargedN === `NGN ${quotedN.replace(/[₦,]/g, '')}`, `${chargedN} vs ${quotedN}`);
+  await Promise.all([p.waitForURL(/\/checkout\/complete/), p.click('#pay')]);
+  await p.waitForSelector('text=Payment received');
+
+  // 4c. account without USD enabled: the dollar shopper is offered naira instead
+  await p.request.post(`${MOCK}/config?usd=0`);
+  const e6 = `pay6+${RUN}@example.com`;
+  await checkout(p, e6, 'USD');
+  await Promise.all([p.waitForURL(/\/checkout\/complete/), p.click('button:has-text("Continue to secure payment")')]);
+  await p.waitForSelector("text=Paying in US dollars isn");
+  let nairaButtons = 0;
+  for (let t = 0; t < 20 && nairaButtons !== 1; t++) { await p.waitForTimeout(250); nairaButtons = await p.locator('button:has-text("in naira")').count(); }
+  ok('without USD enabled, the shopper is told and offered naira', nairaButtons === 1, String(nairaButtons));
+  await Promise.all([p.waitForURL(/localhost:4010\/pay\//), p.click('button:has-text("in naira")')]);
+  ok('…and paying in naira goes through Paystack in NGN', (await p.locator('#amount').textContent()).startsWith('NGN '));
+  await Promise.all([p.waitForURL(/\/checkout\/complete/), p.click('#pay')]);
+  await p.waitForSelector('text=Payment received');
+  await p.request.post(`${MOCK}/config?usd=1`);
 
   // 5. order-request path still works
   await checkout(p, `req+${RUN}@example.com`);

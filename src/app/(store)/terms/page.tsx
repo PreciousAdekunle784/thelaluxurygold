@@ -51,8 +51,9 @@ export default function TermsPage() {
         to us. Alternatively, you can place your order and have our team confirm it and arrange payment with you directly.
       </p>
       <p>
-        Online payments are charged in the currency shown on the payment page. If you pay in Nigerian naira, the amount is converted from our US dollar prices at
-        the exchange rate shown at checkout. Any delivery charge that is not shown at checkout is confirmed with you before dispatch. We never ask for card
+        You pay online in the currency you are shopping in: US dollars or Nigerian naira. Dollar payments are charged in US dollars without conversion;
+        naira prices are converted from our US dollar prices at the exchange rate shown in the store and at checkout. Any delivery charge that is not shown at
+        checkout is confirmed with you before dispatch. We never ask for card
         details over WhatsApp, email or telephone.
       </p>
       <p>

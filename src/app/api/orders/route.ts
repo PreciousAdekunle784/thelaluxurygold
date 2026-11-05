@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { buildOrder, saveOrder, validateOrder, ValidationError } from "@/lib/server/orders";
 import { startPaystackPayment } from "@/lib/server/payments";
+import { PaystackError } from "@/lib/payments/paystack";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -23,9 +24,10 @@ export async function POST(request: Request) {
         const authorizationUrl = await startPaystackPayment(order, new URL(request.url).origin);
         return NextResponse.json({ reference, status: order.status, authorizationUrl }, { status: 201 });
       } catch (err) {
-        // The order is saved; the shopper can retry payment from the completion page.
+        // The order is saved; the shopper can retry payment (or switch currency) from the completion page.
         console.error("[paystack] initialize failed", err);
-        return NextResponse.json({ reference, status: order.status, paymentError: true }, { status: 201 });
+        const reason = err instanceof PaystackError && err.currencyNotEnabled ? "currency" : "error";
+        return NextResponse.json({ reference, status: order.status, paymentError: reason }, { status: 201 });
       }
     }
     return NextResponse.json({ reference, status: order.status, subtotal: order.subtotal, hasPriceOnRequest: order.hasPriceOnRequest }, { status: 201 });

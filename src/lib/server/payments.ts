@@ -1,11 +1,14 @@
 import "server-only";
 import { getOrder, markOrderPaid, setOrderPayment, type StoredOrder } from "@/lib/repo/orders";
-import { initializePayment, orderReferenceFrom, verifyTransaction, type PaymentInfo } from "@/lib/payments/paystack";
+import { initializePayment, orderReferenceFrom, verifyTransaction, type PaymentInfo, type PaystackCurrency } from "@/lib/payments/paystack";
 import type { OrderRecord } from "./orders";
 
-/** Start (or restart) online payment for an order awaiting payment. Returns Paystack's checkout URL. */
-export async function startPaystackPayment(order: OrderRecord, origin: string) {
-  const { authorizationUrl, payment } = await initializePayment(order, `${origin}/api/payments/paystack/callback`);
+/**
+ * Start (or restart) online payment for an order awaiting payment, in the shopper's currency unless
+ * `currency` is given. Returns Paystack's checkout URL.
+ */
+export async function startPaystackPayment(order: OrderRecord, origin: string, currency?: PaystackCurrency) {
+  const { authorizationUrl, payment } = await initializePayment(order, `${origin}/api/payments/paystack/callback`, currency);
   await setOrderPayment(order.reference, payment);
   return authorizationUrl;
 }
