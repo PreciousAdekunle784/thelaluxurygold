@@ -6,6 +6,11 @@ export const mediaManifest: Record<string, [number, number, string]> = {
     2000,
     "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwCdABxIpjStUAD31BIXMbF1QRzhLRf5rZ7QIEuMuFlMULsV12P0pzgpNzuvu7MdX1X90M7zGEb+M7+YFbASED/t8NYAAAA="
   ],
+  "campaign/campaign-burgundy-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACQAwCdASoQABwAPu1kqk4ppaQiMAgBMB2JZQDE2GlfwHNOx+IAAP7+hu23CjKf3YgaRqb7iOx2zQkhW1/ZrIaT7zl6qqIUI89IBOSEPAAAAA=="
+  ],
   "campaign/campaign-burgundy": [
     2560,
     1280,
@@ -16,10 +21,30 @@ export const mediaManifest: Record<string, [number, number, string]> = {
     1600,
     "data:image/webp;base64,UklGRjwAAABXRUJQVlA4IDAAAACQAQCdASoQAAsAA4BaJQBOgCEBBAAA/mt4He4DUTlVoaLuST3WbK6OgQfRt8anYAA="
   ],
+  "campaign/emerald-desktop": [
+    2560,
+    1440,
+    "data:image/webp;base64,UklGRjIAAABXRUJQVlA4ICYAAABQAQCdASoQAAkAA4BaJZAABAAAAP7wnsuU0UVwUo7R/SXThXQAAA=="
+  ],
+  "campaign/emerald-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAAAwAwCdASoQABwAPu1kqU4tJaOiMAgBoB2JQAAPWE22zUQAAP7vBr28X0HxktQoZA9WxNFCsDANJUG5c9BJP4gA7dNHEkLHSQAaCQW0UQAAAA=="
+  ],
+  "campaign/gold-bars-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACQAwCdASoQABwAPu1iqU2ppaOiMAgBMB2JZQAD4wbipQkbi/igAP77nk3ovkuUP0ZGUesE7TuCGhni4G/dVgD6Kqtum7s3QDF9edCGv6Po8QziUYLuwE1kPSEhM14Ix3gTiYHgAAA="
+  ],
   "campaign/gold-bars-wide": [
     2400,
     1350,
     "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAACwAQCdASoQAAkAA4BaJZwAAp27WOmAAP74b42cRz7a93A4IZu2oY3HbEdTb/CV9Gv3kjxGE/C8wAAA"
+  ],
+  "campaign/gold-texture-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAADwAgCdASoQABwAPu1iqU2ppaOiMAgBMB2JZ1/2AIrIAAD++Tyj1foKwrDkEsODzsCym7gtF9snel7vP2xd+Zt61TWJ7epagAA="
   ],
   "campaign/hero-desktop": [
     2560,

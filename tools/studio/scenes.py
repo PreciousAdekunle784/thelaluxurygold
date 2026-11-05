@@ -896,3 +896,65 @@ def our_story():
     lay(p_bangle("22k"), -5, 2, h.z - 0.05, 0.17, rz=0.2)
     chain_on(surf, L.s_curve((-12, -6), (2, -5), 1.0, 0.7, 400, 0.9), "cable", "18k", 0.6)
     L.camera((-2, -32, 24), (-0.5, 0, 2), 70, 5.0, (0.6, -3.2, 1.5))
+
+
+# ============================================================================ hero slideshow (phone versions + emerald slide)
+# Phone slides are composed with the pieces in the lower half and dark headroom above for the headline.
+HW, HH = 1080, 1920
+
+
+def _burgundy_set():
+    surf = env_silk(L.hexrgb("#6a1631"), 1.15, (-46, -4, 9), seed=31, amp=3.6)
+    h = L.drape_on(surf, [(3, 1)])[0]
+    lay(p_bangle("22k"), 3, 1, h.z - 0.1, 0.17, rz=0.3)
+    h2 = L.drape_on(surf, [(9.5, -1.5)])[0]
+    lay(p_cuff("18k"), 9.5, -1.5, h2.z - 0.15, 2.95 * 0.82 + 0.1, rz=-0.5, rx=PI / 2)
+    chain_on(surf, L.s_curve((-6, -5), (16, 4), 2.2, 0.8, 500, 1.2), "rope", "22k", 1.4)
+
+
+@job("campaign/campaign-burgundy-mobile", HW, HH, 48)
+def campaign_burgundy_mobile():
+    _burgundy_set()
+    L.camera((7, -38, 17), (6.5, 0, 1.2), 55, 3.5, (6, 0, 1.5), shift=(0, 0.26))
+
+
+@job("campaign/gold-bars-mobile", HW, HH, 48)
+def bars_mobile():
+    env_gloss(key=1.1)
+    lay(p_cast(), -0.4, 2.2, 0, 0, rz=0.35)
+    lay(p_minted("50g"), 1.6, -1.4, 0, 0, rz=-0.3)
+    lay(p_minted("20g"), -1.9, -2.4, 0, 0, rz=0.25)
+    b = p_minted("10g")
+    L.transform(b, (-1.5, -2.6, BAR_SIZES["20g"][2] + 0.002), (0, 0, -0.1))
+    L.camera((0, -22, 11), (0, 0, 0.4), 70, 4.0, (0, -1, 0.4), shift=(0, 0.24))
+
+
+@job("campaign/gold-texture-mobile", HW, HH, 48)
+def texture_mobile():
+    surf = env_silk(L.hexrgb("#2b0915"), 0.75, (-30, -10, 14), seed=41, amp=1.0)
+    chain_on(surf, L.s_curve((-5, -1.6), (5, -0.4), 0.5, 0.7, 500, 0.4), "rope", "22k", 1.6)
+    L.camera((0, -9, 6.5), (0, 0, 0.4), 70, 2.8, (0, -1.0, 0.5), shift=(0, 0.17))
+
+
+def _emerald_set():
+    surf = env_velvet(L.EMERALD, 1.25, 14)
+    h = L.drape_on(surf, [(0, 1)])[0]
+    lay(p_bangle("22k"), 0, 1, h.z - 0.05, 0.17, rz=0.2)
+    h = L.drape_on(surf, [(1.4, 1.5)])[0]
+    lay(p_bangle("22k"), 1.3, 1.5, h.z + 0.3, 0.17, rz=0.2, rx=0.08)
+    h = L.drape_on(surf, [(-1.8, -4.2)])[0]
+    lay(p_cuff("18k"), -1.8, -4.2, h.z - 0.05, 0.11, rz=0.5)
+    chain_on(surf, necklace_loop(4.0, -4.6, 2.6, 2.0, 5, 0.2, 300), "cable", "18k", 1.75, closed=True)
+
+
+@job("campaign/emerald-desktop", 2560, 1440, 56)
+def emerald_desktop():
+    _emerald_set()
+    # pieces in the right third; dark velvet on the left for the headline
+    L.camera((-4, -22, 16), (-2.6, -1.6, 0.8), 55, 4.5, (0.5, -2, 1.2))
+
+
+@job("campaign/emerald-mobile", HW, HH, 48)
+def emerald_mobile():
+    _emerald_set()
+    L.camera((0.9, -28, 30), (0.9, -1.6, 0.8), 60, 4.5, (0.5, -2, 1.2), shift=(0, 0.22))

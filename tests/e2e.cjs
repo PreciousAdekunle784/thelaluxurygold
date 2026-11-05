@@ -125,6 +125,12 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('main navigation has Shop · New Arrivals · Collections · Fine Jewellery · Gold Bars · Our Story', ['Shop', 'New Arrivals', 'Collections', 'Fine Jewellery', 'Gold Bars', 'Our Story'].every((t) => navText.includes(t)), navText);
     const hero = await p.evaluate(() => { const i = document.querySelector('section[aria-label=Introduction] img'); return i ? { src: i.currentSrc, w: i.naturalWidth } : null; });
     ok('hero shows the raster campaign photograph', !!hero && /hero-desktop/.test(decodeURIComponent(hero.src)) && hero.w > 1000, JSON.stringify(hero));
+    await p.waitForSelector('button[aria-label="Show campaign image 5 of 5"]');
+    ok('hero slideshow has 5 campaign images', (await p.locator('button[aria-label^="Show campaign image"]').count()) === 5);
+    await p.locator('button[aria-label="Show campaign image 3 of 5"]').click();
+    await p.waitForTimeout(1800);
+    const shown = await p.evaluate(() => [...document.querySelectorAll('section[aria-label=Introduction] img')].find((i) => getComputedStyle(i).opacity === '1')?.currentSrc ?? '');
+    ok('slideshow switches image (emerald)', /emerald-desktop/.test(decodeURIComponent(shown)), shown.slice(0, 90));
     // header search
     await p.goto(BASE + '/', { waitUntil: 'load' });
     await p.waitForTimeout(700);

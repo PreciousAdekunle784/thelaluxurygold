@@ -62,7 +62,7 @@ tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 ### Imagery
 
 Every image in `public/images/laluxurygold/` is an **original physically based 3D render** made with Blender Cycles (`tools/studio/`).
-The library covers campaign images, six category images, macro details, packaging and three shots of every product.
+The library covers campaign images, six category images, macro details, packaging and three shots of every product. The homepage hero is a five-image crossfading slideshow (every 6 s), with a separately composed portrait image for phones behind centred type. A photo uploaded in Admin → Store settings becomes the first slide.
 There is no stock photography and no AI generation. These are renders, not photographs of the specific items, so
 starting products show a short "studio renderings" note on their page until real photos are uploaded (untick
 **Images are studio renders** in Admin → Products).

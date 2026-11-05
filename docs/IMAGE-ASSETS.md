@@ -51,18 +51,22 @@ three layered chains, the Médaille and a teardrop. This is a classic jewellery-
 
 | Key | Size | Shows | Used on |
 | --- | --- | --- | --- |
-| `campaign/hero-desktop` | 2560×1440 | Velvet bust with layered chains and the Médaille, obsidian with a burgundy halo; dark space on the left | Homepage hero (desktop), social share image |
-| `campaign/hero-mobile` | 1080×1920 | Same set, composed for phones with headroom for the headline | Homepage hero (phones) |
-| `campaign/campaign-burgundy` | 2560×1280 | 22K bangle, open cuff and rope chain on burgundy silk, raking light | Homepage campaign interlude |
+| `campaign/hero-desktop` | 2560×1440 | Velvet bust with layered chains and the Médaille, obsidian with a burgundy halo; dark space on the left | Hero slide 1 (desktop), social share image |
+| `campaign/hero-mobile` | 1080×1920 | Same set, composed for phones with headroom for the headline | Hero slide 1 (phones) |
+| `campaign/campaign-burgundy` | 2560×1280 | 22K bangle, open cuff and rope chain on burgundy silk, raking light | Homepage campaign interlude, hero slide 2 |
+| `campaign/campaign-burgundy-mobile` | 1080×1920 | The burgundy silk set, composed for phones | Hero slide 2 (phones) |
+| `campaign/emerald-desktop` / `campaign/emerald-mobile` | 2560×1440 / 1080×1920 | Stacked bangles, an open cuff and a cable bracelet on emerald velvet | Hero slide 3 |
+| `campaign/gold-bars-mobile` | 1080×1920 | Cast and minted bars on obsidian, composed for phones | Hero slide 4 (phones) |
+| `campaign/gold-texture-mobile` | 1080×1920 | Macro of a 22K rope chain, composed for phones | Hero slide 5 (phones) |
 | `campaign/campaign-editorial` | 2400×1600 | Bright editorial: rings, bangle and chain on travertine with window-light shadows | Fine Jewellery banner, Our Story, Signature mega-menu tile |
-| `campaign/gold-bars-wide` | 2400×1350 | Cast and minted bars on polished obsidian | Homepage gold-bars section, Gold Bars page, Investment Gold collection |
+| `campaign/gold-bars-wide` | 2400×1350 | Cast and minted bars on polished obsidian | Hero slide 4, homepage gold-bars section, Gold Bars page, Investment Gold collection |
 | `collections/collection-rings` | 1600×2000 | Four rings on a travertine plinth in sunlight | Rings category |
 | `collections/collection-necklaces` | 1600×2000 | Chains coiled on a stone drum, champagne backdrop | Necklaces category |
 | `collections/collection-bracelets` | 1600×2000 | Bangles, cuff and link bracelet on emerald velvet | Bracelets category |
 | `collections/collection-earrings` | 1600×2000 | Hoops, drops and a huggie on obsidian | Earrings category |
 | `collections/collection-sets` | 1600×2000 | Pendant and hoops in an open burgundy gift box | Jewellery Sets category |
 | `collections/collection-gold-bars` | 1600×2000 | Stacked minted and cast bars on obsidian | Gold Bars category, mega menu |
-| `details/gold-texture` | 2000×1400 | Macro of a 22K rope chain on dark silk | "The gold experience" |
+| `details/gold-texture` | 2000×1400 | Macro of a 22K rope chain on dark silk | Hero slide 5 (desktop), "The gold experience" |
 | `details/jewellery-craftsmanship` | 2000×1400 | Signet ring above a cable chain on travertine | "The gold experience" |
 | `details/premium-packaging` | 1600×2000 | Signet in an open burgundy presentation box | Client confidence, Gift Edit |
 | `brand/our-story` | 1600×2000 | Band, bangle and chain on ivory silk beside a gift box | Brand story, Signature Edit |
@@ -89,7 +93,7 @@ riviera-cable-bracelet, classic-hoops, petite-huggies, goutte-drop-earrings, min
 
 ```bash
 python3.13 -m venv .venv-studio && .venv-studio/bin/pip install bpy   # Blender 5.x as a Python module
-.venv-studio/bin/python tools/studio/render.py renders                 # all 86 images (~2–3 h on 4 CPU cores)
+.venv-studio/bin/python tools/studio/render.py renders                 # all 83 images (~2–3 h on 4 CPU cores)
 .venv-studio/bin/python tools/studio/render.py renders --preview hero  # fast low-res composition check
 node tools/studio/optimise.cjs renders && npm run media
 ```
