@@ -7,7 +7,7 @@ import { TextLink } from "@/components/ui/Button";
 import { cx } from "@/lib/format";
 
 /** Preferred pieces for the edit, in order; any that are hidden or deleted are replaced by featured pieces. */
-const EDIT = ["soleil-dome-ring", "medaille-coin-pendant", "halo-bangle", "goutte-drop-earrings", "riviera-cable-set"];
+const EDIT = ["soleil-dome-ring", "halo-bangle", "goutte-drop-earrings", "corde-rope-chain", "arc-cuff"];
 
 function pick(products: Product[]) {
   const bySlug = new Map(products.map((p) => [p.slug, p]));
@@ -55,7 +55,7 @@ export function EditorialShowcase({ products }: { products: Product[] }) {
   const [a, b, c, d, e] = pick(products);
   if (!a) return null;
   return (
-    <section className="overflow-hidden bg-ivory py-24 md:py-40" aria-labelledby="the-edit">
+    <section className="overflow-hidden bg-linen py-24 md:py-40" aria-labelledby="the-edit">
       <div className="container-luxe">
         <div className="grid gap-10 md:grid-cols-12 md:items-end">
           <Reveal className="md:col-span-7">
@@ -68,7 +68,7 @@ export function EditorialShowcase({ products }: { products: Product[] }) {
           </Reveal>
           <Reveal delay={0.1} className="md:col-span-4 md:col-start-9 md:pb-3">
             <p className="text-[0.98rem] leading-[1.8] text-stone">
-              Sculpted domes, polished medallions and bangles of rich 22K gold — a selection from the house, chosen for the way each piece holds the light.
+              Sculpted domes, rope chains and bangles of rich 22K gold — a selection from the house, chosen for the way each piece holds the light.
             </p>
             <div className="mt-6">
               <TextLink href="/shop">Shop the collection</TextLink>

@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Logo, Monogram } from "@/components/brand/Logo";
-import { NewsletterForm } from "@/components/forms/NewsletterForm";
 import { CurrencySwitch } from "./CurrencySwitch";
 import { socialIcon, WhatsAppIcon } from "@/components/ui/Icons";
 import { footerNav } from "@/lib/navigation";
@@ -29,29 +28,24 @@ export function Footer() {
     <footer className="relative overflow-hidden bg-obsidian text-ivory">
       <Monogram tone="ivory" className="pointer-events-none absolute -right-20 -top-10 h-[540px] w-auto opacity-[0.05]" />
       <div className="container-luxe relative">
-        <div className="grid gap-14 border-b border-line-light py-16 md:py-24 lg:grid-cols-[1.3fr_1fr] lg:gap-24">
+        <div className="flex flex-col gap-10 border-b border-line-light py-16 md:flex-row md:items-end md:justify-between md:py-20">
           <div>
             <Logo tone="ivory" className="text-[15px]" />
             <p className="mt-8 max-w-md text-[0.92rem] leading-relaxed text-ivory/70">
               A Dubai jewellery house offering authentic 18K–24K gold jewellery and 24K gold bars — timeless pieces worth owning and cherishing,
               delivered worldwide.
             </p>
-            <div className="mt-8 flex items-center gap-5">
-              {store.social.links.map((s) => {
-                const Icon = socialIcon[s.name];
-                return (
-                  <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`LA Luxury Gold on ${s.name}`} className="text-ivory/70 transition-colors hover:text-gold">
-                    <Icon width={19} height={19} />
-                  </a>
-                );
-              })}
-              <span className="text-[0.72rem] tracking-[0.18em] text-ivory/50">{store.social.handle}</span>
-            </div>
           </div>
-          <div>
-            <p className="display text-[2rem] uppercase leading-none md:text-[2.4rem]">A little luxury in your inbox</p>
-            <p className="mb-6 mt-4 text-sm text-ivory/65">New collections, exclusive releases and special updates.</p>
-            <NewsletterForm tone="ivory" source="footer" />
+          <div className="flex items-center gap-5">
+            {store.social.links.map((s) => {
+              const Icon = socialIcon[s.name];
+              return (
+                <a key={s.name} href={s.href} target="_blank" rel="noopener noreferrer" aria-label={`LA Luxury Gold on ${s.name}`} className="text-ivory/70 transition-colors hover:text-gold">
+                  <Icon width={19} height={19} />
+                </a>
+              );
+            })}
+            <span className="text-[0.72rem] tracking-[0.18em] text-ivory/50">{store.social.handle}</span>
           </div>
         </div>
 

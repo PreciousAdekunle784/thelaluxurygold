@@ -28,8 +28,8 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
       else ok(`page ${u} status`, false, String(status));
       // scroll to trigger lazy images
       await p.evaluate(async () => { for (let y = 0; y < document.body.scrollHeight; y += 700) { window.scrollTo(0, y); await new Promise((r) => setTimeout(r, 40)); } });
-      await p.waitForFunction(() => [...document.images].filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0).every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
-      const imgs = await p.$$eval('img', (els) => els.filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0).map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0, w: i.getBoundingClientRect().width })));
+      await p.waitForFunction(() => [...document.images].filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0 && i.getBoundingClientRect().right > 0 && i.getBoundingClientRect().left < window.innerWidth).every((i) => i.complete), null, { timeout: 15000 }).catch(() => {});
+      const imgs = await p.$$eval('img', (els) => els.filter((i) => i.offsetParent !== null && i.getBoundingClientRect().width > 0 && i.getBoundingClientRect().right > 0 && i.getBoundingClientRect().left < window.innerWidth).map((i) => ({ src: i.currentSrc || i.src, ok: i.complete && i.naturalWidth > 0, w: i.getBoundingClientRect().width })));
       const bad = imgs.filter((i) => !i.ok);
       svgPhotos += imgs.filter((i) => /\.svg(\?|$)/.test(decodeURIComponent(i.src)) && i.w > 120).length;
       if (bad.length) { badImages += bad.length; console.log('  bad images on', u, bad.slice(0, 3)); }
@@ -131,6 +131,15 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.waitForTimeout(1800);
     const shown = await p.evaluate(() => [...document.querySelectorAll('section[aria-label=Introduction] img')].find((i) => getComputedStyle(i).opacity === '1')?.currentSrc ?? '');
     ok('slideshow switches image (emerald)', /emerald-desktop/.test(decodeURIComponent(shown)), shown.slice(0, 90));
+    const rail = p.locator('section[aria-labelledby=new-arrivals] [role=region]');
+    await rail.scrollIntoViewIfNeeded();
+    await p.mouse.move(5, 5);
+    const x0 = await rail.evaluate((el) => el.scrollLeft);
+    await p.waitForTimeout(2500);
+    const x1 = await rail.evaluate((el) => el.scrollLeft);
+    ok('new arrivals section follows the hero and scrolls by itself', x1 > x0 + 20, `${x0} → ${x1}`);
+    const order = await p.$$eval('main > section, main section[aria-labelledby]', (els) => els.map((e) => e.getAttribute('aria-labelledby') || e.getAttribute('aria-label')).filter(Boolean).slice(0, 2));
+    ok('new arrivals comes straight after the hero', order[0] === 'Introduction' && order[1] === 'new-arrivals', order.join(' → '));
     // header search
     await p.goto(BASE + '/', { waitUntil: 'load' });
     await p.waitForTimeout(700);

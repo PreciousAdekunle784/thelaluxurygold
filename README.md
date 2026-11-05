@@ -22,9 +22,8 @@ npm run typecheck
 | `champagne` / `gold` / `gold-pale` | `#C6A46A` / `#D6BA84` / `#EAD9B6` | Eyebrows, hairlines, primary hero button, accents (used sparingly) |
 | `ivory` / `linen` / `sand` / white | `#F7F3EC` / `#F2ECE2` / `#EEE6D9` / `#FFFFFF` | Editorial light sections and product-image backgrounds |
 
-The homepage alternates light editorial sections with dark cinematic ones: obsidian hero → ivory edit → white
-categories → obsidian gold experience → linen story → burgundy campaign → white client confidence → emerald gold
-bars → newsletter → obsidian footer.
+The homepage: obsidian hero slideshow → ivory **New Arrivals** (an auto-scrolling rail of pieces flagged "new") → white
+categories → linen featured edit → white client confidence → emerald gold bars → (testimonials) → newsletter → obsidian footer.
 
 * **Type**: Cormorant Garamond for display headlines (uppercase); **Corinthia Bold**, a bold calligraphic script, for the accent word in each headline ("*beyond*", "*presence*", "*cherished*") via the `script` utility class; Manrope for navigation, UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
 * **Logo**: a typographic wordmark ("LA LUXURY GOLD" with a "Dubai" line) and an **LG monogram set inside an arch**, a nod to Dubai architecture. It works on light and dark backgrounds: `src/components/brand/Logo.tsx`, plus `src/app/icon.png` and `apple-icon.png`.

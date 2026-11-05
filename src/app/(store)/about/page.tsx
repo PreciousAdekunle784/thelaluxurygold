@@ -4,7 +4,6 @@ import { ImageReveal, Reveal } from "@/components/ui/Reveal";
 import { ButtonLink } from "@/components/ui/Button";
 import { Breadcrumbs } from "@/components/shop/PageIntro";
 import { Monogram } from "@/components/brand/Logo";
-import { WhyChooseUs } from "@/components/home/WhyChooseUs";
 
 export const metadata: Metadata = {
   title: "Our Story",
@@ -71,7 +70,6 @@ export default function AboutPage() {
         </div>
       </section>
 
-      <WhyChooseUs />
 
       <section className="container-luxe flex flex-col items-center py-24 text-center md:py-32">
         <h2 className="display text-4xl uppercase md:text-6xl">Discover <span className="script">the collection</span></h2>

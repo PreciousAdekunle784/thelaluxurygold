@@ -53,7 +53,7 @@ three layered chains, the Médaille and a teardrop. This is a classic jewellery-
 | --- | --- | --- | --- |
 | `campaign/hero-desktop` | 2560×1440 | Velvet bust with layered chains and the Médaille, obsidian with a burgundy halo; dark space on the left | Hero slide 1 (desktop), social share image |
 | `campaign/hero-mobile` | 1080×1920 | Same set, composed for phones with headroom for the headline | Hero slide 1 (phones) |
-| `campaign/campaign-burgundy` | 2560×1280 | 22K bangle, open cuff and rope chain on burgundy silk, raking light | Homepage campaign interlude, hero slide 2 |
+| `campaign/campaign-burgundy` | 2560×1280 | 22K bangle, open cuff and rope chain on burgundy silk, raking light | Hero slide 2 |
 | `campaign/campaign-burgundy-mobile` | 1080×1920 | The burgundy silk set, composed for phones | Hero slide 2 (phones) |
 | `campaign/emerald-desktop` / `campaign/emerald-mobile` | 2560×1440 / 1080×1920 | Stacked bangles, an open cuff and a cable bracelet on emerald velvet | Hero slide 3 |
 | `campaign/gold-bars-mobile` | 1080×1920 | Cast and minted bars on obsidian, composed for phones | Hero slide 4 (phones) |
@@ -66,10 +66,10 @@ three layered chains, the Médaille and a teardrop. This is a classic jewellery-
 | `collections/collection-earrings` | 1600×2000 | Hoops, drops and a huggie on obsidian | Earrings category |
 | `collections/collection-sets` | 1600×2000 | Pendant and hoops in an open burgundy gift box | Jewellery Sets category |
 | `collections/collection-gold-bars` | 1600×2000 | Stacked minted and cast bars on obsidian | Gold Bars category, mega menu |
-| `details/gold-texture` | 2000×1400 | Macro of a 22K rope chain on dark silk | Hero slide 5 (desktop), "The gold experience" |
-| `details/jewellery-craftsmanship` | 2000×1400 | Signet ring above a cable chain on travertine | "The gold experience" |
+| `details/gold-texture` | 2000×1400 | Macro of a 22K rope chain on dark silk | Hero slide 5 (desktop) |
+| `details/jewellery-craftsmanship` | 2000×1400 | Signet ring above a cable chain on travertine | Not currently used (kept for future editorial use) |
 | `details/premium-packaging` | 1600×2000 | Signet in an open burgundy presentation box | Client confidence, Gift Edit |
-| `brand/our-story` | 1600×2000 | Band, bangle and chain on ivory silk beside a gift box | Brand story, Signature Edit |
+| `brand/our-story` | 1600×2000 | Band, bangle and chain on ivory silk beside a gift box | Our Story page, Signature Edit |
 | `products/<product>-1` | 1200×1500 | Studio shot on an ivory seamless backdrop | Product cards, gallery |
 | `products/<product>-2` | 1200×1500 | Styled shot (stone, silk, velvet or obsidian) | Hover image, gallery, The Edit |
 | `products/<product>-3` | 1200×1500 | Macro detail | Gallery (zoomable) |
