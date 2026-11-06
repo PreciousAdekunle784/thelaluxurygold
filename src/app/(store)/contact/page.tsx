@@ -56,7 +56,7 @@ export default function ContactPage() {
               })}
             </ul>
           </div>
-          <p className="text-sm leading-relaxed text-stone">Based in {store.location}. Serving clients worldwide with insured international delivery.</p>
+          <p className="text-sm leading-relaxed text-stone">Based in {store.location}. Serving clients in the UAE and worldwide.</p>
         </div>
         <div className="lg:col-span-7 lg:col-start-6">
           <p className="eyebrow mb-8 font-semibold">Send us a message</p>

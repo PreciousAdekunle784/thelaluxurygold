@@ -71,7 +71,7 @@ export function CartView() {
           <Link href="/checkout" className={buttonClass("solid", "lg", "mt-8 w-full")}>
             Proceed to checkout
           </Link>
-          <p className="mt-5 text-center text-xs leading-relaxed text-stone">Insured worldwide delivery · Prices in USD or NGN</p>
+          <p className="mt-5 text-center text-xs leading-relaxed text-stone">Delivery within the UAE & worldwide · Prices in USD or NGN</p>
         </div>
       </aside>
     </div>

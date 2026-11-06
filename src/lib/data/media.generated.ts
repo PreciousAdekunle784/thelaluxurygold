@@ -6,6 +6,36 @@ export const mediaManifest: Record<string, [number, number, string]> = {
     2000,
     "data:image/webp;base64,UklGRmwAAABXRUJQVlA4IGAAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwCdABxIpjStUAD31BIXMbF1QRzhLRf5rZ7QIEuMuFlMULsV12P0pzgpNzuvu7MdX1X90M7zGEb+M7+YFbASED/t8NYAAAA="
   ],
+  "campaign/band-earrings-desktop": [
+    2560,
+    1300,
+    "data:image/webp;base64,UklGRjAAAABXRUJQVlA4ICQAAABQAQCdASoQAAgAA4BaJZAABAAAAP7w676O+UUCP+RzvZ9EAAA="
+  ],
+  "campaign/band-earrings-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRkQAAABXRUJQVlA4IDgAAADQAgCdASoQABwAPu1iqU2ppaOiMAgBMB2JQBhQBaSAAP7vVTebKAaxulafjZBTgTTL2RQu7itMAA=="
+  ],
+  "campaign/band-necklace-desktop": [
+    2560,
+    1300,
+    "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADQAQCdASoQAAgAA4BaJZgAAudlfjMiQAD++E6LfXMIVfzLuekgkqf/Xe2pb2DWcAAAAA=="
+  ],
+  "campaign/band-necklace-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRnIAAABXRUJQVlA4IGYAAACwAwCdASoQABwAPu1kqk2ppaQiMAgBMB2JQAALfSQeEtcRF6FUAAD+8qxoM4piMAFVvCeu4QkzoV+fg7sRf6u8j2HDLTqDT3vefkEGZCe1uoLf64lhiwH/sy5776p4I2pToRFQAAA="
+  ],
+  "campaign/bars-feature-desktop": [
+    2560,
+    1440,
+    "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAADQAQCdASoQAAkAA4BaJYwAD4AOl92LGAD++cjXQKn6aDrJ+c3xVH6XfqgFe16MndULWRSuV9V+fy7AN+mAHAAA"
+  ],
+  "campaign/bars-feature-mobile": [
+    1080,
+    1920,
+    "data:image/webp;base64,UklGRoYAAABXRUJQVlA4IHoAAABQBACdASoQABwAPu1iqU2ppaOiMAgBMB2JQAqkcvhAMCxIqY6cNL+nLAYAAP7+hu2oz/Ms/rUAfnp4zzR2fS2Z3j9U1t7ssYuBlPQD05+loIBGrHxfi4o/XI81VimMD1t6mELYWgZp916aetDzpyJ4kGk9FZ86274AAA=="
+  ],
   "campaign/campaign-burgundy-mobile": [
     1080,
     1920,

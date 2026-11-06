@@ -11,7 +11,7 @@ import { whatsappLink } from "@/lib/whatsapp";
 
 export const metadata: Metadata = {
   title: "24K Gold Bars",
-  description: "Explore 24K minted and cast gold bars from LA Luxury Gold, Dubai — a timeless way to own a piece of enduring value. Worldwide insured delivery.",
+  description: "Explore 24K minted and cast gold bars from LA Luxury Gold, Dubai — a timeless way to own a piece of enduring value. Delivered worldwide.",
   alternates: { canonical: "/gold-bars" },
 };
 
@@ -78,7 +78,7 @@ export default async function GoldBarsPage() {
               request, applies to your order at the time it is confirmed.
             </AccordionItem>
             <AccordionItem title="How are bars delivered?">
-              Bars are dispatched from Dubai in protective packaging with insured, tracked delivery. International shipments may be subject to customs
+              Bars are dispatched from Dubai; the delivery charge and timeline are confirmed with your order. International shipments may be subject to customs
               declarations, import duties and local regulations for precious metals in the destination country.
             </AccordionItem>
             <AccordionItem title="Is this investment advice?">

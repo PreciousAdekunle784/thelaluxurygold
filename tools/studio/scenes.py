@@ -958,3 +958,72 @@ def emerald_desktop():
 def emerald_mobile():
     _emerald_set()
     L.camera((0.9, -28, 30), (0.9, -1.6, 0.8), 60, 4.5, (0.5, -2, 1.2), shift=(0, 0.22))
+
+
+# ============================================================================ homepage campaign bands (distinct from the hero slides)
+def _band_lights_bust():
+    L.area((-55, -45, 70), (0, 0, 30), 24, 52000, (1, 0.93, 0.84))
+    L.area((50, 25, 50), (0, 0, 30), 8, 22000, (1, 0.86, 0.8), size_y=60)
+
+
+@job("campaign/band-necklace-desktop", 2560, 1300, 56)
+def band_necklace_desktop():
+    bust_set()
+    _band_lights_bust()
+    # close on the layered chains and medallion, pieces to the right, velvet shadow on the left
+    L.camera((-12, -58, 27), (-5.0, 0, 24.5), 85, 2.4, (0, -6, 24))
+
+
+@job("campaign/band-necklace-mobile", 1080, 1920, 48)
+def band_necklace_mobile():
+    bust_set()
+    _band_lights_bust()
+    L.camera((-4, -58, 28), (0, 0, 26), 85, 2.4, (0, -6, 24), shift=(0, 0.16))
+
+
+def _earrings_velvet():
+    surf = env_velvet(L.hexrgb("#5a1430"), 1.2, 18)
+    hz = L.drape_on(surf, [(0, 0)])[0].z
+    a, b = p_hoops_pair("18k", 3.4)
+    lay(a, -3.0, 1.0, hz, 0.12, rz=0.3)
+    lay(b, -0.6, 1.9, hz, 0.12, rz=-0.5)
+    d1, d2 = p_drop_earring(), p_drop_earring()
+    lay(d1, 1.0, -0.8, hz, 0.36, rz=-1.2)
+    lay(d2, 2.6, 0.5, hz, 0.36, rz=1.25)
+    stand_ring(p_huggie(), 3.6, -1.8, hz, rz=0.3, outer=0.62)
+    return hz
+
+
+@job("campaign/band-earrings-desktop", 2560, 1300, 56)
+def band_earrings_desktop():
+    hz = _earrings_velvet()
+    L.camera((-1.8, -12, hz + 8), (-0.6, 0.3, hz + 0.3), 42, 3.2, (1.0, -0.6, hz + 0.4))
+
+
+@job("campaign/band-earrings-mobile", 1080, 1920, 48)
+def band_earrings_mobile():
+    hz = _earrings_velvet()
+    L.camera((0.3, -12, hz + 15), (0.3, 0.2, hz + 0.3), 36, 3.2, (1.0, -0.6, hz + 0.4), shift=(0, 0.2))
+
+
+def _bars_stack():
+    env_gloss(key=1.15)
+    lay(p_cast(), 1.8, 2.2, 0, 0, rz=0.25)
+    lay(p_minted("50g"), 3.6, -1.2, 0, 0, rz=-0.4)
+    b2 = p_minted("20g")
+    L.transform(b2, (3.4, -1.1, BAR_SIZES["50g"][2] + 0.002), (0, 0, -0.15))
+    b3 = p_minted("10g")
+    L.transform(b3, (3.2, -1.0, BAR_SIZES["50g"][2] + BAR_SIZES["20g"][2] + 0.004), (0, 0, 0.12))
+    lay(p_minted("5g"), 6.4, 0.6, 0, 0, rz=0.6)
+
+
+@job("campaign/bars-feature-desktop", 2560, 1440, 56)
+def bars_feature_desktop():
+    _bars_stack()
+    L.camera((-2.5, -18, 6.5), (1.4, 0, 0.4), 85, 2.8, (3.4, -1.1, 0.4))
+
+
+@job("campaign/bars-feature-mobile", 1080, 1920, 48)
+def bars_feature_mobile():
+    _bars_stack()
+    L.camera((3.2, -15, 9), (3.2, 0.4, 0.5), 85, 2.8, (3.4, -1.1, 0.4), shift=(0, 0.2))

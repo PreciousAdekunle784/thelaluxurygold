@@ -146,13 +146,13 @@ export function PurchasePanel({ product }: { product: Product }) {
 
       <ul className="mt-9 space-y-3 border-t border-line pt-7 text-[0.85rem] text-ink/75">
         <li className="flex items-center gap-3">
-          <Truck size={17} strokeWidth={1.1} className="text-champagne" /> Insured worldwide delivery from Dubai
+          <Truck size={17} strokeWidth={1.1} className="text-champagne" /> Delivered from Dubai, within the UAE & worldwide
         </li>
         <li className="flex items-center gap-3">
           <ShieldCheck size={17} strokeWidth={1.1} className="text-champagne" /> Gold purity stated for every piece
         </li>
         <li className="flex items-center gap-3">
-          <RotateCcw size={17} strokeWidth={1.1} className="text-champagne" /> Returns & exchanges — see policy below
+          <RotateCcw size={17} strokeWidth={1.1} className="text-champagne" /> Questions about returns? Ask us before ordering
         </li>
       </ul>
     </div>

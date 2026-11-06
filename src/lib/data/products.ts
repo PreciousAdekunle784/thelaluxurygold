@@ -458,7 +458,7 @@ const seed: Omit<Product, "illustrativeImages">[] = [
     tagline: "The Riviera Cable Chain and Bracelet, presented together.",
     description: [
       "The Riviera Cable Chain and the Riviera Cable Bracelet in 18K gold — generous oval links with a fluid, polished drape, made to be worn together.",
-      "Presented together in a lined gift box. Choose the chain length below; our team confirms the bracelet size with you when your order is confirmed.",
+      "Offered together as a set. Choose the chain length below; our team confirms the bracelet size with you when your order is confirmed.",
     ],
     specs: [
       { label: "Gold purity", value: "18K" },
@@ -488,7 +488,7 @@ const seed: Omit<Product, "illustrativeImages">[] = [
     tagline: "The Soleil Dome Ring with the Halo Bangle, in rich 22K gold.",
     description: [
       "Two of our boldest silhouettes in 22K gold: the sculptural Soleil Dome Ring and the perfectly round Halo Bangle.",
-      "Presented together in a lined gift box. Choose the ring size below; our team confirms the bangle size with you when your order is confirmed.",
+      "Offered together as a set. Choose the ring size below; our team confirms the bangle size with you when your order is confirmed.",
     ],
     specs: [
       { label: "Gold purity", value: "22K" },
@@ -529,7 +529,7 @@ const seed: Omit<Product, "illustrativeImages">[] = [
       tagline: `A ${grams} g bar of 24K gold with a mirror-polished face.`,
       description: [
         `A minted bar of 24K gold weighing ${grams} grams, with a mirror-polished face framed by a fine raised border.`,
-        "A timeless way to own gold — for yourself, or as a gift that endures. Each bar is presented in protective packaging.",
+        "A timeless way to own gold — for yourself, or as a gift that endures.",
       ],
       specs: [
         { label: "Gold purity", value: "24K" },

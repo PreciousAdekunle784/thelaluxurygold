@@ -1,71 +1,50 @@
-import { MediaImage } from "@/components/ui/MediaImage";
-import { ImageReveal, Reveal } from "@/components/ui/Reveal";
-import { ButtonLink } from "@/components/ui/Button";
+import Link from "next/link";
+import { ArtImage } from "@/components/ui/ArtImage";
+import { Reveal } from "@/components/ui/Reveal";
 import { getCatalogue } from "@/lib/data/store-catalogue";
 
+/** 24K gold bars: one full-bleed photograph, the weights as shortcuts, one clear action. */
 export async function GoldInvestment() {
-  const weights = (await getCatalogue())
-    .filter((p) => p.category === "gold-bars" && p.weightGrams)
-    .map((p) => p.weightGrams!)
-    .sort((a, b) => a - b);
+  const bars = (await getCatalogue()).filter((p) => p.category === "gold-bars" && p.weightGrams).sort((a, b) => a.weightGrams! - b.weightGrams!);
 
   return (
-    <section className="relative overflow-hidden bg-emerald-deep text-ivory" aria-labelledby="gold-investment">
-      <div className="grid lg:min-h-[760px] lg:grid-cols-2">
-        <div className="relative order-1 aspect-[10/7] lg:order-2 lg:aspect-auto">
-          <ImageReveal className="absolute inset-0">
-            <MediaImage mediaKey="campaign/gold-bars-wide" alt="A 24K cast gold bar beside minted bars of several weights, reflected on polished obsidian" sizes="(min-width: 1024px) 50vw, 100vw" className="object-cover object-[38%_55%]" />
-          </ImageReveal>
-          <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(0deg,#0e3326_0%,transparent_30%)] lg:bg-[linear-gradient(90deg,#0e3326_0%,transparent_28%)]" />
+    <section className="relative overflow-hidden bg-obsidian text-ivory" aria-labelledby="gold-investment">
+      <div className="relative h-[92svh] max-h-[980px] min-h-[600px]">
+        <div className="parallax-img absolute inset-0">
+          <ArtImage
+            desktop="campaign/bars-feature-desktop"
+            mobile="campaign/bars-feature-mobile"
+            alt="A 24K cast gold bar beside a stack of minted bars, reflected on polished obsidian"
+            className="h-full w-full object-cover object-[65%_50%]"
+          />
         </div>
-
-        <div className="container-luxe order-2 flex items-center py-20 lg:order-1 lg:py-28 lg:pr-16">
-          <div className="max-w-xl xl:ml-[8%]">
-            <Reveal>
-              <p className="eyebrow mb-6 flex items-center gap-3 text-gold">
-                <span className="h-px w-8 bg-current" /> 24K gold bars
-              </p>
-              <h2 id="gold-investment" className="display text-[2.7rem] uppercase sm:text-5xl lg:text-[4.4rem]">
-                Own something
-                <br />
-                <span className="script text-gold-pale">that lasts.</span>
-              </h2>
-              <p className="mt-8 max-w-md text-[1rem] leading-[1.85] text-ivory/70">
-                Explore our collection of 24K gold bars. A timeless way to own a piece of enduring value.
-              </p>
-            </Reveal>
-
-            <Reveal delay={0.15}>
-              <dl className="mt-12 grid grid-cols-3 border-y border-line-light">
-                <div className="py-6 pr-4">
-                  <dt className="eyebrow text-ivory/50">Purity</dt>
-                  <dd className="mt-2 font-display text-3xl">24K</dd>
-                </div>
-                <div className="border-l border-line-light px-4 py-6">
-                  <dt className="eyebrow text-ivory/50">Weights</dt>
-                  <dd className="mt-2 font-display text-3xl">
-                    {weights.length ? `${weights[0]}–${weights[weights.length - 1]} g` : "—"}
-                  </dd>
-                </div>
-                <div className="border-l border-line-light py-6 pl-4">
-                  <dt className="eyebrow text-ivory/50">Finish</dt>
-                  <dd className="mt-2 font-display text-3xl">Minted · Cast</dd>
-                </div>
-              </dl>
-            </Reveal>
-
-            <Reveal delay={0.25} className="mt-12 flex flex-col gap-6 sm:flex-row sm:items-center">
-              <ButtonLink href="/gold-bars" variant="gold" size="lg">
-                Explore gold bars
-              </ButtonLink>
-            </Reveal>
-            <p className="mt-10 max-w-md text-[0.72rem] leading-relaxed text-ivory/45">
-              The value of gold can go down as well as up. Nothing on this website is financial advice; please seek independent advice before
-              making investment decisions.
-            </p>
-          </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-obsidian/85 via-obsidian/30 to-transparent to-60% md:bg-gradient-to-r md:from-obsidian/90 md:via-obsidian/45 md:to-transparent md:to-70%" />
+        <div className="container-luxe relative flex h-full flex-col justify-start pt-16 text-center md:items-start md:justify-center md:pt-0 md:text-left">
+          <Reveal>
+            <p className="eyebrow text-gold-pale">24K · Minted & cast</p>
+            <h2 id="gold-investment" className="display mt-5 text-[3rem] uppercase leading-[0.9] sm:text-6xl lg:text-[5.6rem]">
+              Gold <span className="script text-gold-pale">bars</span>
+            </h2>
+            {bars.length > 0 && (
+              <ul className="mt-8 flex flex-wrap justify-center gap-2 md:justify-start" aria-label="Gold bar weights">
+                {bars.map((b) => (
+                  <li key={b.id}>
+                    <Link href={`/product/${b.slug}`} className="inline-flex h-10 min-w-16 items-center justify-center border border-ivory/35 px-4 text-[0.72rem] tabular-nums tracking-[0.12em] transition-colors hover:border-gold-pale hover:bg-gold-pale hover:text-ink">
+                      {b.weightGrams} g
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            )}
+            <Link href="/gold-bars" className="mt-8 inline-flex h-12 items-center bg-champagne px-7 text-[0.68rem] font-semibold uppercase tracking-[0.24em] text-ink transition-colors hover:bg-gold">
+              Discover gold bars
+            </Link>
+          </Reveal>
         </div>
       </div>
+      <p className="container-luxe py-4 text-center text-[0.62rem] leading-relaxed text-ivory/45 md:text-left">
+        The value of gold can go down as well as up. Nothing on this website is financial advice.
+      </p>
     </section>
   );
 }

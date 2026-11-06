@@ -22,8 +22,11 @@ npm run typecheck
 | `champagne` / `gold` / `gold-pale` | `#C6A46A` / `#D6BA84` / `#EAD9B6` | Eyebrows, hairlines, primary hero button, accents (used sparingly) |
 | `ivory` / `linen` / `sand` / white | `#F7F3EC` / `#F2ECE2` / `#EEE6D9` / `#FFFFFF` | Editorial light sections and product-image backgrounds |
 
-The homepage: obsidian hero slideshow → ivory **New Arrivals** (an auto-scrolling rail of pieces flagged "new") → white
-categories → linen featured edit → white client confidence → emerald gold bars → (testimonials) → newsletter → obsidian footer.
+The homepage is image-first: hero slideshow → auto-scrolling **New Arrivals** → photographic collection mosaic → full-width
+campaign band (necklaces) → featured pieces → campaign band (earrings) → **The Gift Edit** on sage → full-bleed **24K gold bars**
+with weight shortcuts → slim service strip → (testimonials) → **@laluxurygold** gallery → newsletter. Copy is kept to short headlines
+and clear actions (Shop now, Explore collection, View product, Discover gold bars). Campaign photos drift gently on scroll through
+CSS scroll-driven animation, which is off for reduced-motion visitors.
 
 * **Type**: Cormorant Garamond for display headlines (uppercase); **Corinthia Bold**, a bold calligraphic script, for the accent word in each headline ("*beyond*", "*presence*", "*cherished*") via the `script` utility class; Manrope for navigation, UI and body text. Small uppercase "eyebrows" use 0.28em tracking.
 * **Logo**: a typographic wordmark ("LA LUXURY GOLD" with a "Dubai" line) and an **LG monogram set inside an arch**, a nod to Dubai architecture. It works on light and dark backgrounds: `src/components/brand/Logo.tsx`, plus `src/app/icon.png` and `apple-icon.png`.
@@ -56,7 +59,7 @@ tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 * **Products and prices** live in the database and are edited in `/admin → Products`. `src/lib/data/products.ts` is only the starting catalogue copied in on first run. Prices are in **US dollars**.
 * **Currency.** Prices are set in USD. Shoppers can switch to **Nigerian naira** (header, menu and footer). Visitors in Nigeria see naira first. The naira rate is set in `/admin → Store settings`, and naira prices are rounded to the nearest ₦100. Orders are stored in USD, and the order page also shows the naira amount the shopper saw.
 * **Testimonials** are added in `/admin → Testimonials`. The homepage section only appears once at least one is published. Only publish feedback a client actually gave, credited the way they agreed.
-* **Policies.** Terms, privacy, returns and shipping are written as finished copy for a Dubai-based jeweller: 14-day returns on unworn pieces, no returns on gold bars or made-to-order pieces, UAE governing law. Review them with the business before launch (ideally with a legal adviser). Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit them.
+* **Policies.** LA Luxury Gold does **not** offer a standard return period. The returns page, terms, FAQ and product pages say so, and ask customers to contact the team about a specific piece before ordering. No refund timelines, delivery times, insurance, tracking or packaging are promised anywhere. Delivery charges and timelines are confirmed with each order. If the business adopts a formal policy later, add it to `src/app/(store)/returns/page.tsx` and `shipping/page.tsx`. Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit a policy.
 
 ### Imagery
 

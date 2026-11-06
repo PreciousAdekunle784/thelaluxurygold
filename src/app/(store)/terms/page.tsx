@@ -36,7 +36,7 @@ export default function TermsPage() {
       <h2>4. Placing an order</h2>
       <p>
         When you pay online at checkout, your order is confirmed once the payment is received. When you choose to confirm with our team instead, you are sending
-        us an order request — no payment is taken at that stage, and our team will contact you, usually within one business day, to confirm availability, the
+        us an order request — no payment is taken at that stage, and our team will contact you to confirm availability, the
         final price, delivery and payment. Either way, a contract between us is formed when your order is confirmed and payment is received in full.
       </p>
       <p>
@@ -71,14 +71,14 @@ export default function TermsPage() {
 
       <h2>7. Delivery & ownership</h2>
       <p>
-        Every order is sent with insured, tracked delivery and requires a signature. Responsibility for the parcel passes to you when it is delivered and signed for.
+        Delivery arrangements, charges and timelines are confirmed with you for each order. Responsibility for the parcel passes to you when it is delivered.
         Ownership of the goods passes to you once we have received payment in full. Please see our <Link href="/shipping">shipping information</Link> for details.
       </p>
 
       <h2>8. Returns & faulty items</h2>
       <p>
-        Our <Link href="/returns">returns & exchange policy</Link> explains how to return or exchange a piece. If an item arrives damaged or faulty, contact us
-        within 48 hours of delivery and we will put it right.
+        LA Luxury Gold does not offer a standard return period. If you have a question about returning or exchanging a piece, please contact us before ordering
+        (see <Link href="/returns">returns & exchanges</Link>). If an item arrives damaged or not as described, please contact us as soon as possible.
       </p>
 
       <h2>9. Our responsibility to you</h2>

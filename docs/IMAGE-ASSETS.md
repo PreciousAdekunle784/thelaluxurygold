@@ -58,6 +58,9 @@ three layered chains, the Médaille and a teardrop. This is a classic jewellery-
 | `campaign/emerald-desktop` / `campaign/emerald-mobile` | 2560×1440 / 1080×1920 | Stacked bangles, an open cuff and a cable bracelet on emerald velvet | Hero slide 3 |
 | `campaign/gold-bars-mobile` | 1080×1920 | Cast and minted bars on obsidian, composed for phones | Hero slide 4 (phones) |
 | `campaign/gold-texture-mobile` | 1080×1920 | Macro of a 22K rope chain, composed for phones | Hero slide 5 (phones) |
+| `campaign/band-necklace-desktop` / `-mobile` | 2560×1300 / 1080×1920 | Close-up of layered chains and the medallion on the velvet bust | Homepage campaign band (Necklaces) |
+| `campaign/band-earrings-desktop` / `-mobile` | 2560×1300 / 1080×1920 | Hoops, drop earrings and a huggie on burgundy velvet | Homepage campaign band (Earrings) |
+| `campaign/bars-feature-desktop` / `-mobile` | 2560×1440 / 1080×1920 | Cast bar beside a stack of minted bars on obsidian | Homepage 24K gold bars section |
 | `campaign/campaign-editorial` | 2400×1600 | Bright editorial: rings, bangle and chain on travertine with window-light shadows | Fine Jewellery banner, Our Story, Signature mega-menu tile |
 | `campaign/gold-bars-wide` | 2400×1350 | Cast and minted bars on polished obsidian | Hero slide 4, homepage gold-bars section, Gold Bars page, Investment Gold collection |
 | `collections/collection-rings` | 1600×2000 | Four rings on a travertine plinth in sunlight | Rings category |

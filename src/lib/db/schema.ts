@@ -1,7 +1,7 @@
 import "server-only";
 import type { Db } from "./client";
 import { products as seedProducts } from "@/lib/data/products";
-import { refreshCatalogue, upgradeLegacyData } from "./upgrade";
+import { refreshCatalogue, refreshCatalogueCopyV3, upgradeLegacyData } from "./upgrade";
 
 const tables = (blob: string) => `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
@@ -38,12 +38,12 @@ export const SCHEMA_VERSION = "3";
 
 const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media"];
 
-const FLAGS = ["schema_version", "prices_usd", "catalogue_seeded", "catalogue_v2"];
+const FLAGS = ["schema_version", "prices_usd", "catalogue_seeded", "catalogue_v2", "catalogue_v3"];
 
 /** One read for every start-up flag (missing meta table → first run). */
 async function readFlags(db: Db): Promise<Record<string, string>> {
   try {
-    const rows = await db.all<{ key: string; value: string }>(`SELECT key, value FROM meta WHERE key IN ($1, $2, $3, $4)`, FLAGS);
+    const rows = await db.all<{ key: string; value: string }>(`SELECT key, value FROM meta WHERE key IN ($1, $2, $3, $4, $5)`, FLAGS);
     return Object.fromEntries(rows.map((r) => [r.key, r.value]));
   } catch {
     return {};
@@ -115,5 +115,9 @@ export async function migrate(db: Db) {
     // Catalogues seeded by an earlier version: add the jewellery sets and refresh starting-catalogue copy (runs once).
     await refreshCatalogue(db, seedProducts);
     await setFlag(db, "catalogue_v2", "1");
+  }
+  if (!flags.catalogue_v3) {
+    await refreshCatalogueCopyV3(db);
+    await setFlag(db, "catalogue_v3", "1");
   }
 }

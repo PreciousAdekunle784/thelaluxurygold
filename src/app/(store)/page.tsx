@@ -3,6 +3,9 @@ import { NewArrivals } from "@/components/home/NewArrivals";
 import { CategoryShowcase } from "@/components/home/CategoryShowcase";
 import { EditorialShowcase } from "@/components/home/EditorialShowcase";
 import { ClientConfidence } from "@/components/home/ClientConfidence";
+import { CampaignBand } from "@/components/home/CampaignBand";
+import { GiftEdit } from "@/components/home/GiftEdit";
+import { SocialGallery } from "@/components/home/SocialGallery";
 import { GoldInvestment } from "@/components/home/GoldInvestment";
 import { Testimonials } from "@/components/home/Testimonials";
 import { NewsletterSection } from "@/components/home/NewsletterSection";
@@ -17,8 +20,8 @@ function newArrivals(products: Product[]) {
   return [...flagged, ...newest.filter((p) => !p.isNew && p.category !== "gold-bars")].slice(0, Math.max(flagged.length, 6));
 }
 
-/* Rhythm: dark hero → ivory new arrivals → white categories → ivory edit → white confidence →
-   emerald gold bars → (testimonials) → newsletter. */
+/* Image-first rhythm: cinematic hero → new arrivals → collections → campaign → featured pieces →
+   campaign → gifting → 24K gold bars → service strip → (testimonials) → social gallery → newsletter. */
 export default async function HomePage() {
   const [products, settings] = await Promise.all([getCatalogue(), getSiteSettings()]);
   const arrivals = newArrivals(products);
@@ -27,10 +30,36 @@ export default async function HomePage() {
       <Hero />
       <NewArrivals products={arrivals} />
       <CategoryShowcase />
+      <CampaignBand
+        desktop="campaign/band-necklace-desktop"
+        mobile="campaign/band-necklace-mobile"
+        alt="Layered gold chains and a sun medallion on burgundy velvet"
+        eyebrow="Necklaces"
+        title="Layered"
+        script="in gold"
+        cta="Shop necklaces"
+        href="/collections/necklaces"
+        align="left"
+        tone="dark"
+      />
       <EditorialShowcase products={products.filter((p) => !arrivals.includes(p))} />
-      <ClientConfidence reviews={settings.testimonials.length} />
+      <CampaignBand
+        desktop="campaign/band-earrings-desktop"
+        mobile="campaign/band-earrings-mobile"
+        alt="Gold hoops, drop earrings and a huggie on burgundy velvet"
+        eyebrow="Earrings"
+        title="Made to be"
+        script="cherished"
+        cta="Shop earrings"
+        href="/collections/earrings"
+        align="left"
+        tone="burgundy"
+      />
+      <GiftEdit />
       <GoldInvestment />
+      <ClientConfidence />
       {settings.testimonials.length > 0 && <Testimonials testimonials={settings.testimonials} />}
+      <SocialGallery />
       <NewsletterSection />
     </>
   );

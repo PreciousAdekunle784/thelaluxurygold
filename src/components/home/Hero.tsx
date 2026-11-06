@@ -88,15 +88,15 @@ export async function Hero() {
           </h1>
           <HeroFade delay={1.05}>
             <p className="mx-auto mt-4 max-w-[19rem] text-[0.9rem] leading-relaxed text-ivory/80 md:mx-0 md:mt-8 md:max-w-[24rem] md:text-[1.05rem]">
-              Exceptional pieces. Enduring presence. A personal expression of luxury.
+              Exceptional pieces. Enduring presence.
             </p>
           </HeroFade>
           <HeroFade delay={1.2} className="mt-6 flex flex-wrap justify-center gap-2 sm:gap-3 md:mt-10 md:justify-start">
             <ButtonLink href="/shop" variant="gold" size="lg" className="max-sm:h-10 max-sm:px-4 max-sm:text-[0.6rem] max-sm:tracking-[0.18em]">
-              Explore the collection
+              Shop now
             </ButtonLink>
-            <ButtonLink href="/about" variant="outline-light" size="lg" className="max-sm:h-10 max-sm:px-4 max-sm:text-[0.6rem] max-sm:tracking-[0.18em]">
-              Discover our story
+            <ButtonLink href="/collections" variant="outline-light" size="lg" className="max-sm:h-10 max-sm:px-4 max-sm:text-[0.6rem] max-sm:tracking-[0.18em]">
+              Explore collections
             </ButtonLink>
           </HeroFade>
         </div>
@@ -104,7 +104,7 @@ export async function Hero() {
 
       <HeroFade delay={1.5} className="pointer-events-none absolute inset-x-0 bottom-0 hidden md:block">
         <div className="container-luxe flex items-end justify-end pb-10 text-[0.62rem] uppercase tracking-[0.3em] text-ivory/60">
-          <span>18K — 24K gold · Insured worldwide delivery</span>
+          <span>18K — 24K gold · Delivered worldwide</span>
         </div>
       </HeroFade>
     </section>

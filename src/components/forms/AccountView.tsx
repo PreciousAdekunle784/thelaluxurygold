@@ -147,9 +147,9 @@ export function AccountView() {
         </h2>
         <ol className="mt-10 space-y-5 text-sm leading-relaxed">
           <li><strong>Order received.</strong> Your piece is reserved while we review your order.</li>
-          <li><strong>Confirmed.</strong> Our team contacts you, usually within one business day, to confirm price, delivery and payment.</li>
+          <li><strong>Confirmed.</strong> Our team contacts you to confirm price, delivery and payment.</li>
           <li><strong>Paid & prepared.</strong> Your piece is inspected and packed securely for its journey.</li>
-          <li><strong>Shipped.</strong> Insured, tracked delivery with signature on arrival.</li>
+          <li><strong>Shipped.</strong> Your piece is on its way, and this page shows its progress.</li>
         </ol>
         <div className="mt-12 flex flex-col gap-4 border-t border-line pt-8 sm:flex-row sm:items-center sm:justify-between">
           <Link href="/wishlist" className="link-underline eyebrow font-semibold">View wishlist</Link>

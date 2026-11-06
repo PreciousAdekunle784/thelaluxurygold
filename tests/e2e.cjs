@@ -244,10 +244,10 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     await p.fill('input[name=lastName]', 'Customer');
     await p.fill('input[name=address1]', '1 Example Street');
     await p.fill('input[name=city]', 'Dubai');
-    ok('UAE shows UAE shipping method', await p.locator('text=UAE insured delivery').isVisible());
+    ok('UAE shows UAE shipping method', await p.locator('text=UAE delivery').first().isVisible());
     await p.selectOption('select[name=country]', 'GB');
     await p.waitForTimeout(200);
-    ok('international country switches shipping method + customs note', (await p.locator('text=International insured express').isVisible()) && (await p.locator('text=import duties, taxes').isVisible()));
+    ok('international country switches shipping method + customs note', (await p.locator('text=International delivery').first().isVisible()) && (await p.locator('text=import duties, taxes').isVisible()));
     ok('only available payment options are shown', (await p.locator('input[name=paymentMethod]').count()) >= 1 && !(await p.locator('text=Coming soon').count()));
     const [resp] = await Promise.all([p.waitForResponse((r) => r.url().includes('/api/orders')), p.locator('button:has-text("Submit order request")').click()]);
     ok('order API returns 201', resp.status() === 201, String(resp.status()));
@@ -268,6 +268,11 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('customer can track the order with reference + email', (await p.locator('main').textContent()).includes('Awaiting confirmation') && /Signet Ring|Gold Hoops/.test(await p.locator('main').textContent()));
     const wrong = await p.request.post(BASE + '/api/orders/lookup', { data: { reference: ref.trim(), email: 'someone-else@example.com' } });
     ok('order lookup with the wrong email is refused', wrong.status() === 404, String(wrong.status()));
+    for (const u of ['/', '/terms', '/returns', '/shipping', '/faq', '/product/maison-signet-ring', '/gold-bars', '/contact', '/cart']) {
+      const html = await (await p.request.get(BASE + u)).text();
+      const claim = html.replace(/<script[\s\S]*?<\/script>/g, '').match(/14[- ]days?|30[- ]days?|free returns|insured|signature on delivery|tracked delivery|within \d+ business days|48 hours/i);
+      ok(`${u} makes no unsupported return or delivery promises`, !claim, claim ? claim[0] : '');
+    }
     for (const u of ['/terms', '/privacy', '/returns', '/shipping', '/faq']) {
       const txt = await (await p.request.get(BASE + u)).text();
       const body = txt.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');

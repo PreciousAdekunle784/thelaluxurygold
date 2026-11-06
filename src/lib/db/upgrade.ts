@@ -138,3 +138,22 @@ export async function refreshCatalogue(db: Db, seed: Product[]) {
     await db.run("INSERT INTO products (id, slug, position, archived, data, updated_at) VALUES ($1, $2, $3, 0, $4, $5) ON CONFLICT DO NOTHING", [p.id, p.slug, maxPos + 1 + i, JSON.stringify(p), now]);
   }
 }
+
+/**
+ * Catalogue v3: remove packaging promises from the starting catalogue's copy ("presented in protective
+ * packaging", "presented together in a lined gift box"). Only exact starting sentences are replaced, so
+ * text the client has edited is left alone.
+ */
+export async function refreshCatalogueCopyV3(db: Db) {
+  const swaps: [string, string][] = [
+    ["Presented together in a lined gift box. Choose", "Offered together as a set. Choose"],
+    ["A timeless way to own gold — for yourself, or as a gift that endures. Each bar is presented in protective packaging.", "A timeless way to own gold — for yourself, or as a gift that endures."],
+  ];
+  const rows = await db.all<{ id: string; data: string }>("SELECT id, data FROM products");
+  for (const row of rows) {
+    if (!swaps.some(([from]) => row.data.includes(from))) continue;
+    const p = JSON.parse(row.data) as Product;
+    p.description = (p.description ?? []).map((d) => swaps.reduce((t, [from, to]) => t.replace(from, to), d));
+    await db.run("UPDATE products SET data = $1 WHERE id = $2", [JSON.stringify(p), row.id]);
+  }
+}

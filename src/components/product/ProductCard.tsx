@@ -30,7 +30,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
   };
 
   return (
-    <article className="group/card relative flex flex-col" onPointerEnter={(e) => e.pointerType === "mouse" && setHoverReady(true)} onFocus={() => setHoverReady(true)}>
+    <article className="card-lift group/card relative flex flex-col" onPointerEnter={(e) => e.pointerType === "mouse" && setHoverReady(true)} onFocus={() => setHoverReady(true)}>
       <div className="relative">
       <Link href={href} className="relative block aspect-[4/5] overflow-hidden bg-sand" aria-label={product.name}>
         <MediaImage

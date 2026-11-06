@@ -98,8 +98,8 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             </AccordionItem>
             <AccordionItem title="Delivery">
               <p>
-                Every order is dispatched from Dubai with an insured, tracked courier and needs a signature on delivery. We deliver within the UAE and worldwide;
-                the delivery charge and expected date are confirmed by our team before you pay.
+                We deliver from Dubai, within the UAE and internationally. The delivery charge and timeline for your destination are confirmed by our team with
+                your order.
               </p>
               <p className="mt-3">
                 International orders may be subject to import duties and taxes in the destination country. <Link href="/shipping" className="underline underline-offset-4">Shipping information</Link>
@@ -107,8 +107,11 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
             </AccordionItem>
             <AccordionItem title="Returns & exchanges">
               <p>
-                Unworn jewellery can be returned or exchanged within 14 days of delivery. Made-to-order, engraved and personalised pieces and gold bars cannot be
-                returned. Read the full <Link href="/returns" className="underline underline-offset-4">returns & exchange policy</Link>.
+                We don&rsquo;t offer a standard return period. If you have a question about returning or exchanging this piece, please{" "}
+                <a href={whatsappLink(`Hello LA Luxury Gold, I have a question about returns for the ${product.name}.`)} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
+                  ask us on WhatsApp
+                </a>{" "}
+                before ordering.
               </p>
             </AccordionItem>
           </div>

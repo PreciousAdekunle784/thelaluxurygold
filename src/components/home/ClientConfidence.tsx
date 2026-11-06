@@ -1,81 +1,41 @@
 import Link from "next/link";
-import { BadgeCheck, CreditCard, MessageCircle, PackageCheck, Quote, RotateCcw } from "lucide-react";
-import { MediaImage } from "@/components/ui/MediaImage";
-import { ImageReveal, Reveal } from "@/components/ui/Reveal";
-import { store } from "@/lib/config/store";
+import { BadgeCheck, CreditCard, MessageCircle, Truck } from "lucide-react";
+import { whatsappLink, defaultWhatsappMessage } from "@/lib/whatsapp";
 
-/* Every statement here mirrors the published policies (shipping, returns, terms, FAQ). */
-export function ClientConfidence({ reviews }: { reviews: number }) {
+/* A slim service strip — one line each, every point consistent with the published policies. */
+export function ClientConfidence(_: { reviews?: number }) {
   const items = [
-    {
-      icon: BadgeCheck,
-      title: "Purity, stated clearly",
-      copy: "Each piece lists its karat — and its weight where we give one — on the product page and in your order summary.",
-      href: "/faq",
-      link: "About gold purity",
-    },
-    {
-      icon: PackageCheck,
-      title: "Insured, tracked delivery",
-      copy: "Dispatched from Dubai with insurance, tracking and signature on delivery — within the UAE and worldwide.",
-      href: "/shipping",
-      link: "Shipping & delivery",
-    },
-    {
-      icon: RotateCcw,
-      title: "14-day returns",
-      copy: "Unworn jewellery can be returned or exchanged within 14 days of delivery. Made-to-order pieces and gold bars excepted.",
-      href: "/returns",
-      link: "Returns & exchanges",
-    },
-    {
-      icon: CreditCard,
-      title: "Secure payment",
-      copy: "Pay at checkout through Paystack's secure page (card, bank transfer or USSD), or confirm with our team first. We never ask for card details by message.",
-      href: "/terms",
-      link: "Terms of sale",
-    },
-    {
-      icon: MessageCircle,
-      title: "Personal assistance",
-      copy: `Speak with our team on WhatsApp (${store.contact.whatsapp.display}) for sizing, availability or a piece you have in mind.`,
-      href: "/contact",
-      link: "Contact us",
-    },
-    ...(reviews > 0
-      ? [{ icon: Quote, title: "In our clients' words", copy: "Read what clients have shared with us about their pieces and their experience.", href: "#testimonials", link: "Client reviews" }]
-      : []),
+    { icon: BadgeCheck, title: "Purity stated on every piece", href: "/faq" },
+    { icon: Truck, title: "Delivery in the UAE & worldwide", href: "/shipping" },
+    { icon: CreditCard, title: "Secure checkout & payment", href: "/terms" },
+    { icon: MessageCircle, title: "Personal help on WhatsApp", href: whatsappLink(defaultWhatsappMessage), external: true },
   ];
-
   return (
-    <section className="bg-white py-24 md:py-36" aria-labelledby="confidence">
-      <div className="container-luxe grid gap-14 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-4">
-          <Reveal>
-            <p className="eyebrow mb-6 flex items-center gap-3 text-champagne">
-              <span className="h-px w-8 bg-current" /> With confidence
-            </p>
-            <h2 id="confidence" className="display text-[2.5rem] uppercase sm:text-5xl lg:text-[3.6rem]">
-              Buying gold, <span className="script">simply</span>
-            </h2>
-          </Reveal>
-          <ImageReveal className="relative mt-12 aspect-[4/5] overflow-hidden bg-sand max-lg:hidden" delay={0.1}>
-            <MediaImage mediaKey="details/premium-packaging" alt="A signet ring in an open burgundy presentation box lined with ivory satin" sizes="30vw" className="object-cover" />
-          </ImageReveal>
-        </div>
-        <ul className="grid gap-px self-start border border-line bg-line sm:grid-cols-2 lg:col-span-7 lg:col-start-6">
-          {items.map((it, i) => (
-            <Reveal as="li" key={it.title} delay={(i % 2) * 0.08} className="flex flex-col bg-white p-8 sm:[&:last-child:nth-child(odd)]:col-span-2 md:p-10">
-              <it.icon size={26} strokeWidth={1} className="text-champagne" aria-hidden />
-              <h3 className="mt-7 font-display text-[1.6rem] leading-[1.1]">{it.title}</h3>
-              <p className="mt-3 flex-1 text-sm leading-relaxed text-stone">{it.copy}</p>
-              <Link href={it.href} className="mt-7 self-start border-b border-line pb-1 text-[0.66rem] font-semibold uppercase tracking-[0.2em] transition-colors hover:border-ink">
-                {it.link}
-              </Link>
-            </Reveal>
-          ))}
-        </ul>
-      </div>
+    <section className="border-y border-line bg-white" aria-label="Our service">
+      <ul className="container-luxe grid grid-cols-2 lg:grid-cols-4">
+        {items.map((it) => {
+          const inner = (
+            <>
+              <it.icon size={22} strokeWidth={1} className="shrink-0 text-champagne" aria-hidden />
+              <span className="text-[0.7rem] font-semibold uppercase leading-snug tracking-[0.14em] md:text-[0.74rem]">{it.title}</span>
+            </>
+          );
+          const cls = "flex h-full items-center gap-4 px-2 py-7 transition-colors hover:text-champagne md:px-6 md:py-9";
+          return (
+            <li key={it.title} className="border-line [&:nth-child(odd)]:border-r lg:border-r lg:last:border-r-0">
+              {it.external ? (
+                <a href={it.href} target="_blank" rel="noopener noreferrer" className={cls}>
+                  {inner}
+                </a>
+              ) : (
+                <Link href={it.href} className={cls}>
+                  {inner}
+                </Link>
+              )}
+            </li>
+          );
+        })}
+      </ul>
     </section>
   );
 }

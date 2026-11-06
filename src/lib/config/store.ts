@@ -91,16 +91,16 @@ export interface ShippingMethod {
 export const shippingMethods: ShippingMethod[] = [
   {
     id: "uae-delivery",
-    label: "UAE insured delivery",
-    description: "Insured, signature-on-delivery service within the United Arab Emirates.",
+    label: "UAE delivery",
+    description: "Delivery within the United Arab Emirates. Charge and timeline confirmed with your order.",
     regions: ["AE"],
     rate: null,
     estimate: null,
   },
   {
     id: "international-express",
-    label: "International insured express",
-    description: "Insured express courier with tracking. Duties and taxes may apply on arrival.",
+    label: "International delivery",
+    description: "Delivery worldwide. Charge and timeline confirmed with your order; import duties and taxes may apply on arrival.",
     regions: "*",
     rate: null,
     estimate: null,
@@ -131,7 +131,7 @@ export const paymentOptions = [
     id: "order-request",
     label: "Confirm & pay with our team",
     description:
-      "Place your order now and our team will contact you, usually within one business day, to confirm availability, delivery and payment. No payment is taken now.",
+      "Place your order now and our team will contact you to confirm availability, delivery and payment. No payment is taken now.",
     available: true,
   },
 ] as const;

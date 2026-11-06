@@ -30,14 +30,14 @@ export function CartDrawer() {
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-[90]" role="dialog" aria-modal="true" aria-label="Shopping bag">
-          <m.div className="absolute inset-0 bg-ink/40" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={close} />
+          <m.div className="absolute inset-0 bg-ink/40 backdrop-blur-[2px]" initial={{ opacity: 0 }} animate={{ opacity: 1, transition: { duration: 0.5 } }} exit={{ opacity: 0, transition: { duration: 0.35 } }} onClick={close} />
           <m.div
             ref={panel}
             tabIndex={-1}
-            initial={{ x: "100%" }}
-            animate={{ x: 0 }}
-            exit={{ x: "100%" }}
-            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            initial={{ x: "100%", opacity: 0.6 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: "100%", opacity: 0.6, transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] } }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
             className="absolute inset-y-0 right-0 flex w-full max-w-[460px] flex-col bg-ivory outline-none"
           >
             <div className="flex h-16 items-center justify-between border-b border-line px-6 md:h-20">
@@ -60,7 +60,7 @@ export function CartDrawer() {
               </div>
             ) : (
               <>
-                <ul className="flex-1 divide-y divide-line overflow-y-auto px-6">
+                <ul className="cart-stagger flex-1 divide-y divide-line overflow-y-auto px-6">
                   {lines.map((l) => (
                     <CartLineItem key={l.key} line={l} onNavigate={close} />
                   ))}
