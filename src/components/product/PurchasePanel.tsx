@@ -14,6 +14,7 @@ import { store } from "@/lib/config/store";
 import { cx } from "@/lib/format";
 import { Price } from "./Price";
 import { WishlistButton } from "./WishlistButton";
+import { productHref } from "@/lib/links";
 
 export function PurchasePanel({ product }: { product: Product }) {
   const { add } = useCart();
@@ -27,7 +28,7 @@ export function PurchasePanel({ product }: { product: Product }) {
   const onRequest = product.price == null;
   const unavailable = product.availability === "out_of_stock";
   const price = unitPrice(product, variant && selected ? { name: variant.name, value: selected } : undefined);
-  const url = `${store.url}/product/${product.slug}`;
+  const url = `${store.url}${productHref(product)}`;
 
   const commit = (thenCheckout: boolean) => {
     if (variant && !selected) {

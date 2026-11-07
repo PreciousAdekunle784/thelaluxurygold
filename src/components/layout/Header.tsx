@@ -30,7 +30,7 @@ export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeTimer = useRef<number | null>(null);
 
-  const overlay = pathname === "/" && !scrolled && !menu && !searchOpen;
+  const overlay = (pathname === "/" || pathname === "/private" || pathname === "/private/collection") && !scrolled && !menu && !searchOpen;
   const closeAll = useCallback(() => {
     setMenu(null);
     setSearchOpen(false);

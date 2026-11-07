@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState, type ReactNode } from "react";
-import { BarChart3, ExternalLink, Gem, Inbox, LayoutDashboard, LogOut, Mail, Menu, Quote, Settings, ShoppingBag, Users, X } from "lucide-react";
+import { BarChart3, ExternalLink, Gem, Inbox, KeyRound, LayoutDashboard, LogOut, Mail, Menu, Quote, Settings, ShoppingBag, Users, X } from "lucide-react";
 import { Monogram } from "@/components/brand/Logo";
 import { useLive, NotificationToggle } from "./LiveProvider";
 import { logout } from "@/app/admin/actions";
@@ -17,6 +17,7 @@ const nav = [
   { href: "/admin/products", label: "Products", icon: Gem },
   { href: "/admin/messages", label: "Messages", icon: Inbox, badge: "unread" as const },
   { href: "/admin/subscribers", label: "Subscribers", icon: Mail },
+  { href: "/admin/private", label: "Private Access", icon: KeyRound },
   { href: "/admin/testimonials", label: "Testimonials", icon: Quote },
   { href: "/admin/settings", label: "Store settings", icon: Settings },
 ];

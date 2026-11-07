@@ -1,9 +1,24 @@
 import Link from "next/link";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { ImageReveal, Reveal } from "@/components/ui/Reveal";
+import type { Product } from "@/lib/data/types";
 
-/** Gifting, told almost entirely in photographs. */
-export function GiftEdit() {
+/** Preferred gift pieces; any that are hidden, deleted or moved to the Private Collection are replaced from the public catalogue. */
+const GIFTS = ["riviera-cable-set", "medaille-coin-pendant"];
+
+function pickGifts(products: Product[]) {
+  const bySlug = new Map(products.map((p) => [p.slug, p]));
+  const chosen = GIFTS.map((s) => bySlug.get(s)).filter((p): p is Product => !!p);
+  const rest = products
+    .filter((p) => p.category !== "gold-bars" && !chosen.includes(p) && p.collections.includes("gifting"))
+    .concat(products.filter((p) => p.category !== "gold-bars" && !chosen.includes(p)))
+    .filter((p, i, all) => all.indexOf(p) === i);
+  return [...chosen, ...rest].slice(0, 2);
+}
+
+/** Gifting, told almost entirely in photographs. `products` must be the public catalogue. */
+export function GiftEdit({ products }: { products: Product[] }) {
+  const gifts = pickGifts(products);
   return (
     <section className="overflow-hidden bg-sage-mist py-20 md:py-32" aria-labelledby="gift-edit">
       <div className="container-luxe grid gap-4 md:grid-cols-12 md:gap-6">
@@ -35,14 +50,15 @@ export function GiftEdit() {
         </Link>
 
         <Reveal className="grid grid-cols-2 gap-4 md:col-span-5 md:gap-6" delay={0.15}>
-          <Link href="/product/riviera-cable-set" className="group relative block aspect-square overflow-hidden bg-sand">
-            <MediaImage mediaKey="products/riviera-set-2" alt="The Riviera Cable Set" sizes="(min-width: 768px) 20vw, 50vw" className="object-cover transition-transform duration-[2000ms] ease-[var(--ease-luxe)] group-hover:scale-[1.06]" />
-            <span className="absolute bottom-3 left-3 bg-ivory/90 px-2.5 py-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-ink">View product</span>
-          </Link>
-          <Link href="/product/medaille-coin-pendant" className="group relative block aspect-square overflow-hidden bg-sand">
-            <MediaImage mediaKey="products/medaille-coin-pendant-2" alt="The Médaille Coin Pendant" sizes="(min-width: 768px) 20vw, 50vw" className="object-cover transition-transform duration-[2000ms] ease-[var(--ease-luxe)] group-hover:scale-[1.06]" />
-            <span className="absolute bottom-3 left-3 bg-ivory/90 px-2.5 py-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-ink">View product</span>
-          </Link>
+          {gifts.map((p) => {
+            const img = p.images[1] ?? p.images[0];
+            return (
+              <Link key={p.id} href={`/product/${p.slug}`} className="group relative block aspect-square overflow-hidden bg-sand">
+                {img && <MediaImage mediaKey={img.media} alt={`The ${p.name}`} sizes="(min-width: 768px) 20vw, 50vw" className="object-cover transition-transform duration-[2000ms] ease-[var(--ease-luxe)] group-hover:scale-[1.06]" />}
+                <span className="absolute bottom-3 left-3 bg-ivory/90 px-2.5 py-1.5 text-[0.58rem] font-semibold uppercase tracking-[0.18em] text-ink">View product</span>
+              </Link>
+            );
+          })}
         </Reveal>
       </div>
     </section>

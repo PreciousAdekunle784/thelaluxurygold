@@ -3,14 +3,15 @@ import { Reveal } from "@/components/ui/Reveal";
 import { InstagramIcon } from "@/components/ui/Icons";
 import { store } from "@/lib/config/store";
 
-/* A gallery of the house's imagery, linking to the brand's Instagram profile. */
+/* A gallery of the house's imagery, linking to the brand's Instagram profile.
+   Alt texts describe the scene without naming products, so a piece moved into the Private Collection is never named here. */
 const tiles = [
-  { media: "products/maison-signet-2", alt: "Maison Signet Ring on polished obsidian", cls: "col-span-2 row-span-2 aspect-square" },
-  { media: "products/corda-twist-2", alt: "Corda Twisted Ring beside a stone drum", cls: "aspect-square" },
-  { media: "products/riviera-cable-bracelet-2", alt: "Riviera Cable Bracelet on burgundy silk", cls: "aspect-square" },
-  { media: "products/goutte-teardrop-pendant-2", alt: "Goutte Teardrop Pendant on ivory silk", cls: "aspect-square" },
-  { media: "products/corde-rope-chain-3", alt: "Close detail of the Corde Rope Chain", cls: "aspect-square" },
-  { media: "products/petite-huggies-2", alt: "Petite Huggie Earrings on a stone drum", cls: "col-span-2 aspect-[2/1] lg:col-span-1 lg:aspect-square" },
+  { media: "products/maison-signet-2", alt: "A gold signet ring on polished obsidian", cls: "col-span-2 row-span-2 aspect-square" },
+  { media: "products/corda-twist-2", alt: "A twisted gold ring beside a stone drum", cls: "aspect-square" },
+  { media: "products/riviera-cable-bracelet-2", alt: "A gold cable bracelet on burgundy silk", cls: "aspect-square" },
+  { media: "products/goutte-teardrop-pendant-2", alt: "A gold teardrop pendant on ivory silk", cls: "aspect-square" },
+  { media: "products/corde-rope-chain-3", alt: "Close detail of a gold rope chain", cls: "aspect-square" },
+  { media: "products/petite-huggies-2", alt: "Gold huggie earrings on a stone drum", cls: "col-span-2 aspect-[2/1] lg:col-span-1 lg:aspect-square" },
   { media: "products/minted-gold-bar-20g-2", alt: "24K minted gold bars on obsidian", cls: "aspect-square max-lg:hidden" },
 ];
 

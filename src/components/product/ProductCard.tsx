@@ -11,6 +11,7 @@ import { cx } from "@/lib/format";
 import { whatsappLink, productEnquiry } from "@/lib/whatsapp";
 import { Price } from "./Price";
 import { WishlistButton } from "./WishlistButton";
+import { productHref } from "@/lib/links";
 
 export function ProductCard({ product, priority, sizes }: { product: Product; priority?: boolean; sizes?: string }) {
   const { add } = useCart();
@@ -20,7 +21,7 @@ export function ProductCard({ product, priority, sizes }: { product: Product; pr
   const [hoverReady, setHoverReady] = useState(false);
   const variant = product.variants?.[0];
   const unavailable = product.availability === "out_of_stock";
-  const href = `/product/${product.slug}`;
+  const href = productHref(product);
 
   const doAdd = (value?: string) => {
     add(product.id, 1, variant && value ? { name: variant.name, value } : undefined);

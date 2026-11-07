@@ -45,13 +45,16 @@ export class ValidationError extends Error {
 
 const str = (v: unknown, max = 200) => (typeof v === "string" ? v.trim().slice(0, max) : "");
 
-/** Live product list straight from the database (never cached) so prices and availability are always current. */
-async function liveCatalogue() {
-  return (await listProductRows()).map((r) => r.product);
+/**
+ * Live product list straight from the database (never cached) so prices and availability are always current.
+ * Private Collection pieces are included only for visitors with private access.
+ */
+async function liveCatalogue(privateAccess: boolean) {
+  return (await listProductRows({ visibility: privateAccess ? "all" : "public" })).map((r) => r.product);
 }
 
-export async function validateOrder(body: unknown): Promise<OrderInput> {
-  const catalogue = await liveCatalogue();
+export async function validateOrder(body: unknown, opts: { privateAccess?: boolean } = {}): Promise<OrderInput> {
+  const catalogue = await liveCatalogue(!!opts.privateAccess);
   const getProductById = (id: string) => catalogue.find((p) => p.id === id);
   const b = (body ?? {}) as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   const errors: Record<string, string> = {};
@@ -103,7 +106,7 @@ export async function validateOrder(body: unknown): Promise<OrderInput> {
 }
 
 export async function buildOrder(input: OrderInput, reference: string, createdAt: string): Promise<OrderRecord> {
-  const catalogue = await liveCatalogue();
+  const catalogue = await liveCatalogue(true); // lines were already validated against what this visitor may order
   const getProductById = (id: string): Product | undefined => catalogue.find((p) => p.id === id);
   const resolvedLines = input.lines.map((l) => {
     const p = getProductById(l.productId)!;

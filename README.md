@@ -103,6 +103,7 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `NEXT_PUBLIC_NGN_PER_USD` | Optional: naira rate used until one is saved in Store settings (default 1550) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
 | `PAYSTACK_SECRET_KEY` | Paystack secret key (`sk_live_…`), server only. Enables "Pay now" at checkout |
+| `PRIVATE_ACCESS_SECRET` | Optional secret for fingerprinting Private Collection codes. If unset, a random one is generated and stored in the database. Changing it invalidates every issued code |
 | `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
 | `CONTACT_WEBHOOK_URL` | Receives contact-form messages |
@@ -124,6 +125,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
 | **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
+| **Private Access** | Invite customers to The Private Collection. Generate a unique code for a name, email or reference, optionally single-use and/or with an expiry date. Copy it or send it by WhatsApp or email. Then activate/deactivate, revoke, change the expiry or regenerate it, and see uses, active sessions, first use and last access. |
 | **Testimonials** | Add, edit, hide or delete client testimonials. The homepage section is hidden until one is published. |
 | **Store settings** | The naira-per-dollar exchange rate, and the homepage hero. By default the hero shows the campaign image; upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back at any time. |
 | **Messages** / **Subscribers** | Contact-form messages (mark read, reply by email or WhatsApp) and newsletter sign-ups (CSV export). |
@@ -162,6 +164,16 @@ The app connects server-side with SSL, using a driver configured for the pooler 
 The tables are created automatically, and the starting catalogue is copied into the database on first run. From then on, products are managed in the admin, and `src/lib/data/products.ts` is only the initial seed. Uploaded images are stored in the database and served from `/media/<id>`.
 
 **Security.** Admin pages and APIs are protected twice: by `src/proxy.ts`, and again inside every page and action. Sessions are signed, HTTP-only cookies lasting 12 hours. Login attempts are rate-limited. Use a long, unique `ADMIN_PASSWORD`. Optionally set `ADMIN_SESSION_SECRET`; changing it signs every session out.
+
+## The Private Collection
+
+An invitation-only collection at **`/private`**. Customers enter the access code you sent them; after that they can browse the collection, open each piece, choose options, add to bag, check out and ask on WhatsApp.
+
+* **Choosing pieces.** Tick **Private Collection only** on a product in Admin → Products. The product then never appears in the shop, collections, search, recommendations, the sitemap, the homepage, structured data or the public product API, and its public address (`/product/…`) returns 404. It is only served at `/private/product/…` to someone with access.
+* **Codes.** Codes look like `LLG-7KQM-XR2D-9HTW`: 12 random characters (about 59 bits), generated on the server. Only an HMAC fingerprint and the last 4 characters are stored, so a code is shown once and can't be shown again (regenerate it if lost).
+* **Sessions.** A valid code starts a secure, HTTP-only session (up to 30 days, never past the code's expiry). Every request re-checks the code, so deactivating, revoking, regenerating or expiring a code ends access immediately. Single-use codes can be redeemed once.
+* **Abuse protection.** Failed attempts are limited to 8 per 15 minutes per network address, and the error never reveals whether a code exists, has expired or was revoked.
+* **Server-side only.** Access is checked on the server for the pages, the private product API and order validation (orders with private pieces are refused without access). Signed-in admins can preview the collection.
 
 ## Checkout & payments
 
@@ -209,6 +221,7 @@ The site is tuned for slow mobile connections. On a simulated 1.6 Mbps / 300 ms 
 npm run build && npm start   # port 3000; or: npx next start -p 3100
 BASE=http://localhost:3000 node tests/e2e.cjs                               # storefront
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/private-e2e.cjs    # Private Collection
 ```
 
 Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.
@@ -220,6 +233,12 @@ The storefront suite covers:
 * **Cart and checkout**: variant validation, cart drawer, quantity and subtotal updates, persistence across reloads, wishlist, checkout validation, country-dependent shipping, order submission, and API validation.
 * **Forms**: newsletter consent and contact form.
 * **Mobile**: menu, filter drawer and quick add, plus horizontal-overflow checks on key pages.
+
+The Private Collection suite marks one piece private for the run (and makes it public again at the end). It checks:
+
+* **No public exposure**: the piece's public URL is 404, and it is absent from the homepage, shop, collections, search, sitemap and the private API without a session. Orders containing it are refused without access.
+* **Access**: invalid, forged, deactivated, revoked, regenerated, expired and single-use codes; sessions ending immediately when a code changes; leaving the collection; rate limiting after 8 failed attempts.
+* **Invited client journey**: unlock, collection, private product page, add to bag, checkout and order. Also admin usage tracking and admin preview.
 
 ## Launch checklist
 

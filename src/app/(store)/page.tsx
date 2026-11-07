@@ -55,7 +55,7 @@ export default async function HomePage() {
         align="left"
         tone="burgundy"
       />
-      <GiftEdit />
+      <GiftEdit products={products} />
       <GoldInvestment />
       <ClientConfidence />
       {settings.testimonials.length > 0 && <Testimonials testimonials={settings.testimonials} />}

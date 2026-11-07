@@ -34,8 +34,10 @@ create table if not exists products (
   position   integer not null default 0,      -- display order (lower first)
   archived   integer not null default 0,      -- 1 = hidden from the store
   data       text not null,                   -- product JSON
-  updated_at bigint not null                  -- milliseconds since epoch
+  updated_at bigint not null,                 -- milliseconds since epoch
+  private    integer not null default 0       -- 1 = Private Collection only (never in the public store)
 );
+alter table products add column if not exists private integer not null default 0;
 
 -- Orders placed through checkout (order requests — no payment is taken online yet).
 create table if not exists orders (
@@ -113,8 +115,41 @@ create table if not exists media (
   created_at   bigint not null
 );
 
+-- The Private Collection: invitation codes (stored only as keyed hashes) and access sessions.
+create table if not exists private_codes (
+  id            text primary key,
+  code_hash     text unique not null,         -- HMAC of the code; the code itself is never stored
+  code_hint     text not null,                -- last 4 characters, to recognise a code
+  name          text,                         -- invited customer
+  email         text,
+  reference     text,
+  single_use    integer not null default 0,
+  status        text not null default 'active', -- active | inactive | revoked
+  expires_at    bigint,
+  created_at    bigint not null,
+  uses          integer not null default 0,
+  first_used_at bigint,
+  last_used_at  bigint,
+  revoked_at    bigint,
+  updated_at    bigint not null
+);
+create table if not exists private_sessions (
+  token_hash   text primary key,              -- SHA-256 of the session cookie
+  code_id      text not null,
+  created_at   bigint not null,
+  expires_at   bigint not null,
+  last_seen_at bigint not null,
+  revoked      integer not null default 0
+);
+create index if not exists private_sessions_code on private_sessions (code_id);
+create table if not exists rate_limits (
+  key          text primary key,
+  count        integer not null,
+  window_start bigint not null
+);
+
 -- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
-insert into meta (key, value) values ('schema_version', '3')
+insert into meta (key, value) values ('schema_version', '4')
 on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
@@ -127,6 +162,9 @@ alter table page_views  enable row level security;
 alter table subscribers enable row level security;
 alter table messages    enable row level security;
 alter table media       enable row level security;
+alter table private_codes    enable row level security;
+alter table private_sessions enable row level security;
+alter table rate_limits      enable row level security;
 
 -- -----------------------------------------------------------------------------
 -- Optional: readable views for browsing data in the Supabase Table Editor.

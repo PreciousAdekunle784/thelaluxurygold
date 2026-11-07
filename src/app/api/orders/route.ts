@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { buildOrder, saveOrder, validateOrder, ValidationError } from "@/lib/server/orders";
 import { startPaystackPayment } from "@/lib/server/payments";
 import { PaystackError } from "@/lib/payments/paystack";
+import { hasPrivateAccess } from "@/lib/private/access";
 
 export async function POST(request: Request) {
   let body: unknown;
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Invalid request." }, { status: 400 });
   }
   try {
-    const input = await validateOrder(body);
+    const input = await validateOrder(body, { privateAccess: await hasPrivateAccess() });
     const reference = `LLG-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
     const order = await buildOrder(input, reference, new Date().toISOString());
     if (order.paymentMethod === "paystack" && order.hasPriceOnRequest) {

@@ -9,6 +9,7 @@ import { queryProducts } from "@/lib/data/catalogue";
 import { useCatalogue } from "@/lib/state/catalogue";
 import { MediaImage } from "@/components/ui/MediaImage";
 import { Price } from "@/components/product/Price";
+import { productHref } from "@/lib/links";
 
 const suggestions = ["Rings", "Hoops", "Chain", "24K", "Gold bar", "Signet"];
 
@@ -91,7 +92,7 @@ export function SearchOverlay({ open, onClose }: { open: boolean; onClose: () =>
                   <ul className="grid grid-cols-2 gap-x-5 gap-y-6 sm:grid-cols-3 lg:grid-cols-6">
                     {results.map((p) => (
                       <li key={p.id}>
-                        <Link href={`/product/${p.slug}`} onClick={onClose} className="group block">
+                        <Link href={productHref(p)} onClick={onClose} className="group block">
                           <div className="relative aspect-[4/5] overflow-hidden bg-sand">
                             <MediaImage mediaKey={p.images[0].media} alt={p.images[0].alt} sizes="200px" className="object-cover transition-transform duration-700 group-hover:scale-105" />
                           </div>

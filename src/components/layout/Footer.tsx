@@ -94,6 +94,11 @@ export function Footer() {
                 Returns & exchanges
               </Link>
             </li>
+            <li>
+              <Link href="/private" prefetch={false} className="hover:text-ivory">
+                Private client access
+              </Link>
+            </li>
           </ul>
           <CurrencySwitch tone="light" className="text-ivory/80" />
         </div>

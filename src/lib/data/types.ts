@@ -50,6 +50,8 @@ export interface Product {
   isNew?: boolean;
   /** True while the images are studio renders rather than photographs of the piece itself. */
   illustrativeImages?: boolean;
+  /** Private Collection only: never listed in the public store; visible to invited customers. */
+  private?: boolean;
 }
 
 export interface Category {

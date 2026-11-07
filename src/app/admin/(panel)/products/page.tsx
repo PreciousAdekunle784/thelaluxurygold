@@ -18,7 +18,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
   await connection();
   const sp = await searchParams;
   const view = sp.view === "archived" ? "archived" : "live";
-  const all = await listProductRows({ includeArchived: true });
+  const all = await listProductRows({ includeArchived: true, visibility: "all" });
   const rows = all.filter((r) => (view === "archived" ? r.archived : !r.archived));
 
   return (
@@ -47,6 +47,7 @@ export default async function ProductsPage({ searchParams }: PageProps<"/admin/p
               <td className="px-4 py-2.5">
                 <Link href={`/admin/products/${p.id}`} className="font-semibold hover:underline">{p.name}</Link>
                 <span className="mt-0.5 flex flex-wrap gap-1.5 text-[0.62rem] font-semibold uppercase tracking-wide text-stone">
+                  {p.private && <span className="bg-forest px-1.5 py-0.5 text-ivory">Private</span>}
                   {p.featured && <span className="bg-gold-pale px-1.5 py-0.5 text-ink">Featured</span>}
                   {p.isNew && <span className="bg-sage-mist px-1.5 py-0.5 text-forest">New</span>}
                 </span>

@@ -254,6 +254,13 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
 
         <div className="space-y-6">
           <Section title="Visibility & labels">
+            <label className="flex items-start gap-3 border border-forest/30 bg-sage-mist/40 p-3 text-sm">
+              <input type="checkbox" name="private" className="mt-0.5 h-4 w-4" checked={!!p.private} onChange={(e) => set("private", e.target.checked)} />
+              <span>
+                <strong className="font-semibold">Private Collection only</strong>
+                <span className="block text-xs text-stone">Hidden from the public store, search and sitemap. Only invited customers with an access code can see and buy it.</span>
+              </span>
+            </label>
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.featured} onChange={(e) => set("featured", e.target.checked)} /> Featured on the homepage</label>
             <label className="flex items-center gap-3 text-sm"><input type="checkbox" className="h-4 w-4" checked={!!p.isNew} onChange={(e) => set("isNew", e.target.checked)} /> Show “New” label</label>
             <label className="flex items-start gap-3 text-sm">

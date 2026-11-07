@@ -7,7 +7,8 @@ const tables = (blob: string) => `
 CREATE TABLE IF NOT EXISTS meta (key TEXT PRIMARY KEY, value TEXT);
 CREATE TABLE IF NOT EXISTS products (
   id TEXT PRIMARY KEY, slug TEXT UNIQUE NOT NULL, position INTEGER NOT NULL DEFAULT 0,
-  archived INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL, updated_at BIGINT NOT NULL
+  archived INTEGER NOT NULL DEFAULT 0, data TEXT NOT NULL, updated_at BIGINT NOT NULL,
+  private INTEGER NOT NULL DEFAULT 0
 );
 CREATE TABLE IF NOT EXISTS orders (
   reference TEXT PRIMARY KEY, created_at BIGINT NOT NULL, day TEXT NOT NULL, status TEXT NOT NULL,
@@ -28,15 +29,37 @@ CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, source TEXT, cre
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY, created_at BIGINT NOT NULL, name TEXT, email TEXT, phone TEXT, topic TEXT, message TEXT, is_read INTEGER NOT NULL DEFAULT 0
 );
+CREATE TABLE IF NOT EXISTS private_codes (
+  id TEXT PRIMARY KEY, code_hash TEXT UNIQUE NOT NULL, code_hint TEXT NOT NULL,
+  name TEXT, email TEXT, reference TEXT, single_use INTEGER NOT NULL DEFAULT 0,
+  status TEXT NOT NULL DEFAULT 'active', expires_at BIGINT, created_at BIGINT NOT NULL,
+  uses INTEGER NOT NULL DEFAULT 0, first_used_at BIGINT, last_used_at BIGINT, revoked_at BIGINT, updated_at BIGINT NOT NULL
+);
+CREATE TABLE IF NOT EXISTS private_sessions (
+  token_hash TEXT PRIMARY KEY, code_id TEXT NOT NULL, created_at BIGINT NOT NULL,
+  expires_at BIGINT NOT NULL, last_seen_at BIGINT NOT NULL, revoked INTEGER NOT NULL DEFAULT 0
+);
+CREATE INDEX IF NOT EXISTS private_sessions_code ON private_sessions (code_id);
+CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS media (
   id TEXT PRIMARY KEY, content_type TEXT NOT NULL, width INTEGER, height INTEGER, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL
 );
 `;
 
 /** Bump when the DDL above changes; the full migration then runs once. */
-export const SCHEMA_VERSION = "3";
+export const SCHEMA_VERSION = "4";
 
-const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media"];
+const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits"];
+
+/** Products created before the Private Collection have no `private` column yet (v4). */
+async function ensurePrivateColumn(db: Db) {
+  if (db.dialect === "postgres") {
+    await db.exec("SET LOCAL lock_timeout = '4s';\nALTER TABLE products ADD COLUMN IF NOT EXISTS private INTEGER NOT NULL DEFAULT 0;");
+    return;
+  }
+  const cols = await db.all<{ name: string }>("SELECT name FROM pragma_table_info('products')");
+  if (!cols.some((c) => c.name === "private")) await db.exec("ALTER TABLE products ADD COLUMN private INTEGER NOT NULL DEFAULT 0");
+}
 
 const FLAGS = ["schema_version", "prices_usd", "catalogue_seeded", "catalogue_v2", "catalogue_v3"];
 
@@ -81,6 +104,7 @@ export async function migrate(db: Db) {
         END $$;`;
         await db.exec(`SET LOCAL lock_timeout = '4s';\nSET LOCAL statement_timeout = '30s';\n${ddl}\n${rls}`);
       }
+      await ensurePrivateColumn(db);
       await setFlag(db, "schema_version", SCHEMA_VERSION);
     } catch (err) {
       // Another instance may be migrating at the same moment. If the tables already exist,
