@@ -95,6 +95,10 @@ const strip = (html) => html.replace(/<script[\s\S]*?<\/script>/g, '');
 
     // ---------------------------------------------------------------- mark a product private
     await setPrivate(true);
+    await a.reload({ waitUntil: 'load' });
+    await a.locator('a[target=_blank]:text-is("View")').waitFor({ timeout: 15000 });
+    ok('admin View button opens the private product page', (await a.locator('a[target=_blank]:text-is("View")').getAttribute('href')) === `/private/product/${SLUG}`);
+    ok('admin says the product is in the Private Collection', await a.locator('text=live in the Private Collection').isVisible());
     await a.goto(BASE + '/admin/products', { waitUntil: 'load' });
     ok('admin product list labels it Private', await a.locator(`tr:has-text("${NAME}") >> text=Private`).first().isVisible());
 

@@ -9,6 +9,7 @@ import { MediaImage } from "@/components/ui/MediaImage";
 import { deleteProductAction, saveProductAction, setArchivedAction, uploadImageAction } from "@/app/admin/(panel)/products/actions";
 import { adminBtnOutline, adminBtnPrimary } from "./ui";
 import { cx } from "@/lib/format";
+import { productHref } from "@/lib/links";
 
 const slugify = (s: string) =>
   s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 80);
@@ -284,7 +285,7 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
           </Section>
           {!isNew && (
             <Section title="Manage">
-              <p className="text-sm text-stone">{archived ? "This product is hidden from the store." : "This product is live on the store."}</p>
+              <p className="text-sm text-stone">{archived ? "This product is hidden from the store." : initial.private ? "This product is live in the Private Collection (invited customers only)." : "This product is live on the store."}</p>
               <div className="flex flex-wrap gap-2">
                 <button type="button" className={adminBtnOutline} onClick={() => startSave(async () => { await setArchivedAction(p.id, !archived); router.refresh(); })}>
                   {archived ? "Show on store" : "Hide from store"}
@@ -309,7 +310,7 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
         <div className="mx-auto flex max-w-[1400px] items-center justify-between gap-4 px-4 py-3 md:px-8">
           <p role="status" className={cx("text-sm", message?.kind === "error" ? "text-burgundy" : "text-forest")}>{message?.text}</p>
           <div className="flex gap-2">
-            {!isNew && !archived && <a href={`/product/${initial.slug}`} target="_blank" className={adminBtnOutline}>View</a>}
+            {!isNew && !archived && <a href={productHref(initial)} target="_blank" className={adminBtnOutline}>View</a>}
             <button type="button" onClick={save} disabled={saving || uploading} className={adminBtnPrimary}>
               {saving && <Loader2 size={14} className="animate-spin" />} {isNew ? "Create product" : "Save changes"}
             </button>
