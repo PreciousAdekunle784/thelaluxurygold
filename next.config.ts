@@ -20,6 +20,10 @@ const nextConfig: NextConfig = {
       { source: "/images/:path*", headers: longCache },
     ];
   },
+  // The returns & exchanges page was removed; send old links and bookmarks to the homepage.
+  async redirects() {
+    return [{ source: "/returns", destination: "/", permanent: true }];
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     minimumCacheTTL: 2678400, // 31 days for optimised images

@@ -268,12 +268,20 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond, info 
     ok('customer can track the order with reference + email', (await p.locator('main').textContent()).includes('Awaiting confirmation') && /Signet Ring|Gold Hoops/.test(await p.locator('main').textContent()));
     const wrong = await p.request.post(BASE + '/api/orders/lookup', { data: { reference: ref.trim(), email: 'someone-else@example.com' } });
     ok('order lookup with the wrong email is refused', wrong.status() === 404, String(wrong.status()));
-    for (const u of ['/', '/terms', '/returns', '/shipping', '/faq', '/product/maison-signet-ring', '/gold-bars', '/contact', '/cart']) {
+    for (const u of ['/', '/terms', '/shipping', '/faq', '/product/maison-signet-ring', '/gold-bars', '/contact', '/cart']) {
       const html = await (await p.request.get(BASE + u)).text();
       const claim = html.replace(/<script[\s\S]*?<\/script>/g, '').match(/14[- ]days?|30[- ]days?|free returns|insured|signature on delivery|tracked delivery|within \d+ business days|48 hours/i);
       ok(`${u} makes no unsupported return or delivery promises`, !claim, claim ? claim[0] : '');
     }
-    for (const u of ['/terms', '/privacy', '/returns', '/shipping', '/faq']) {
+    // there is no returns & exchanges policy anywhere on the site
+    for (const u of ['/', '/terms', '/privacy', '/shipping', '/faq', '/contact', '/about', '/shop', '/product/maison-signet-ring', '/checkout', '/cart']) {
+      const text = (await (await p.request.get(BASE + u)).text()).replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');
+      const hit = text.match(/returns?\b(?! home)|exchanges?\b(?! rate)|returning|returned/i);
+      ok(`${u} has no returns or exchanges wording`, !hit, hit ? text.slice(Math.max(0, hit.index - 40), hit.index + 40) : '');
+    }
+    const oldReturns = await p.request.get(BASE + '/returns', { maxRedirects: 0 });
+    ok('/returns is gone (permanent redirect to the homepage)', oldReturns.status() === 308 && oldReturns.headers()['location'] === '/', `${oldReturns.status()} ${oldReturns.headers()['location']}`);
+    for (const u of ['/terms', '/privacy', '/shipping', '/faq']) {
       const txt = await (await p.request.get(BASE + u)).text();
       const body = txt.replace(/<script[\s\S]*?<\/script>/g, '').replace(/<[^>]+>/g, ' ');
       ok(`${u} has no draft notes or [placeholders]`, !/Draft for review|\[[A-Za-z][^\]]{3,}\]|AED|to be confirmed/i.test(body), (body.match(/Draft for review|\[[A-Za-z][^\]]{3,}\]|AED|to be confirmed/i) || [''])[0]);

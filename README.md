@@ -37,7 +37,7 @@ CSS scroll-driven animation, which is off for reduced-motion visitors.
 ```
 src/app/(store)/         Storefront routes: home, shop, collections/[slug], gold-bars, product/[slug],
                          cart, checkout, wishlist, account, about, contact, faq, shipping,
-                         returns, privacy, terms, api/{orders,newsletter,contact}, sitemap, robots
+                         privacy, terms, api/{orders,newsletter,contact}, sitemap, robots
 src/components/          brand · layout · home · shop · product · cart · forms · ui
 src/lib/config/store.ts  Business settings: contact numbers, socials, currencies, shipping, payment options
 src/lib/data/            Starting catalogue (products.ts), categories & collections, site settings, media registry
@@ -59,7 +59,7 @@ tests/e2e.cjs            Playwright end-to-end checks (run against `npm start`)
 * **Products and prices** live in the database and are edited in `/admin → Products`. `src/lib/data/products.ts` is only the starting catalogue copied in on first run. Prices are in **US dollars**.
 * **Currency.** Prices are set in USD. Shoppers can switch to **Nigerian naira** (header, menu and footer). Visitors in Nigeria see naira first. The naira rate is set in `/admin → Store settings`, and naira prices are rounded to the nearest ₦100. Orders are stored in USD, and the order page also shows the naira amount the shopper saw.
 * **Testimonials** are added in `/admin → Testimonials`. The homepage section only appears once at least one is published. Only publish feedback a client actually gave, credited the way they agreed.
-* **Policies.** LA Luxury Gold does **not** offer a standard return period. The returns page, terms, FAQ and product pages say so, and ask customers to contact the team about a specific piece before ordering. No refund timelines, delivery times, insurance, tracking or packaging are promised anywhere. Delivery charges and timelines are confirmed with each order. If the business adopts a formal policy later, add it to `src/app/(store)/returns/page.tsx` and `shipping/page.tsx`. Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit a policy.
+* **Policies.** The site has no returns or exchanges page and makes no returns or exchange promises (`/returns` redirects to the homepage). Customers are asked to contact the team about a specific piece before ordering. No refund timelines, delivery times, insurance, tracking or packaging are promised anywhere. Delivery charges and timelines are confirmed with each order. If the business adopts a formal policy later, add a page for it and link it from `footerNav` in `src/lib/navigation.ts`. Change the "Last updated" date in `src/components/shop/LegalPage.tsx` whenever you edit a policy.
 
 ### Imagery
 

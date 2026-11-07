@@ -36,7 +36,6 @@ export const footerNav = {
   service: [
     { label: "Contact us", href: "/contact" },
     { label: "Shipping & delivery", href: "/shipping" },
-    { label: "Returns & exchanges", href: "/returns" },
     { label: "Frequently asked questions", href: "/faq" },
     { label: "Track your order", href: "/account" },
   ],

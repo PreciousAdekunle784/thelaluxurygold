@@ -90,11 +90,6 @@ export function Footer() {
               </Link>
             </li>
             <li>
-              <Link href="/returns" className="hover:text-ivory">
-                Returns & exchanges
-              </Link>
-            </li>
-            <li>
               <Link href="/private" prefetch={false} className="hover:text-ivory">
                 Private client access
               </Link>

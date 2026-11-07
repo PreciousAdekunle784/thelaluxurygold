@@ -11,8 +11,7 @@ export default function TermsPage() {
       <p>
         These terms apply to your use of this website and to every order placed with LA Luxury Gold, a jewellery house based in Dubai, United Arab Emirates
         (&ldquo;we&rdquo;, &ldquo;us&rdquo;). By placing an order you confirm that you are at least 18 years old and that you accept these terms. Please read them
-        together with our <Link href="/shipping">shipping information</Link>, <Link href="/returns">returns & exchange policy</Link> and{" "}
-        <Link href="/privacy">privacy policy</Link>.
+        together with our <Link href="/shipping">shipping information</Link> and <Link href="/privacy">privacy policy</Link>.
       </p>
 
       <h2>2. Our products</h2>
@@ -75,11 +74,8 @@ export default function TermsPage() {
         Ownership of the goods passes to you once we have received payment in full. Please see our <Link href="/shipping">shipping information</Link> for details.
       </p>
 
-      <h2>8. Returns & faulty items</h2>
-      <p>
-        LA Luxury Gold does not offer a standard return period. If you have a question about returning or exchanging a piece, please contact us before ordering
-        (see <Link href="/returns">returns & exchanges</Link>). If an item arrives damaged or not as described, please contact us as soon as possible.
-      </p>
+      <h2>8. Damaged or incorrect items</h2>
+      <p>If an item arrives damaged or not as described, please contact us as soon as possible.</p>
 
       <h2>9. Our responsibility to you</h2>
       <p>

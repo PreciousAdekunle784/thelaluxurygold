@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Check, Truck, RotateCcw, ShieldCheck } from "lucide-react";
+import { Check, Truck, MessageCircle, ShieldCheck } from "lucide-react";
 import type { Product } from "@/lib/data/types";
 import { availabilityLabel } from "@/lib/data/catalogue";
 import { useCart, unitPrice } from "@/lib/state/cart";
@@ -153,7 +153,7 @@ export function PurchasePanel({ product }: { product: Product }) {
           <ShieldCheck size={17} strokeWidth={1.1} className="text-champagne" /> Gold purity stated for every piece
         </li>
         <li className="flex items-center gap-3">
-          <RotateCcw size={17} strokeWidth={1.1} className="text-champagne" /> Questions about returns? Ask us before ordering
+          <MessageCircle size={17} strokeWidth={1.1} className="text-champagne" /> Questions about a piece? Ask us before ordering
         </li>
       </ul>
     </div>

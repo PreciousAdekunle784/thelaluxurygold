@@ -14,7 +14,6 @@ const faqs: { q: string; a: React.ReactNode }[] = [
   { q: "Which currency are prices shown in?", a: "Prices are set in US dollars (USD). You can switch to Nigerian naira (NGN) at any time using the currency selector at the top of the page or in the menu; naira prices are converted at our current exchange rate. The amount you pay is the one our team confirms with your order." },
   { q: "How should I care for my gold jewellery?", a: "Store pieces separately in a soft pouch, remove them before swimming, exercising or using cleaning products, and clean gently with warm water, mild soap and a soft cloth." },
   { q: "Why can the price of gold bars change?", a: "Gold is traded daily, so the price of gold bars and heavier pieces follows the market. If a price changes between your order and our confirmation, we will tell you before you pay." },
-  { q: "Can I return or exchange a piece?", a: <>We don&rsquo;t offer a standard return period. If you have a question about returning or exchanging a piece, please <Link href="/contact" className="underline underline-offset-4">contact our team</Link> before ordering.</> },
 ];
 
 export default function FaqPage() {

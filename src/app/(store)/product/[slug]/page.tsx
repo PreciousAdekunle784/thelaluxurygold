@@ -105,15 +105,6 @@ export default async function ProductPage({ params }: PageProps<"/product/[slug]
                 International orders may be subject to import duties and taxes in the destination country. <Link href="/shipping" className="underline underline-offset-4">Shipping information</Link>
               </p>
             </AccordionItem>
-            <AccordionItem title="Returns & exchanges">
-              <p>
-                We don&rsquo;t offer a standard return period. If you have a question about returning or exchanging this piece, please{" "}
-                <a href={whatsappLink(`Hello LA Luxury Gold, I have a question about returns for the ${product.name}.`)} target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">
-                  ask us on WhatsApp
-                </a>{" "}
-                before ordering.
-              </p>
-            </AccordionItem>
           </div>
         </div>
       </section>
