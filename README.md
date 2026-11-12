@@ -124,7 +124,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Visitors** | Today / 7 / 30-day traffic and a full visit log: time, page, anonymous visitor ID, new or returning, country, device, browser and source. |
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
-| **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Changes go live on the store immediately. |
+| **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Uploads accept any picture format (JPG, PNG, iPhone HEIC/HEIF, WebP, AVIF, GIF, TIFF, BMP, SVG) at any size: photos are resized and converted to WebP, and large files are sent in pieces so they stay under the hosting platform's request limit. Changes go live on the store immediately. |
 | **Private Access** | Invite customers to The Private Collection. Generate a unique code for a name, email or reference, optionally single-use and/or with an expiry date. Copy it or send it by WhatsApp or email. Then activate/deactivate, revoke, change the expiry or regenerate it, and see uses, active sessions, first use and last access. |
 | **Testimonials** | Add, edit, hide or delete client testimonials. The homepage section is hidden until one is published. |
 | **Store settings** | The naira-per-dollar exchange rate, and the homepage hero. By default the hero shows the campaign image; upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back at any time. |
@@ -222,6 +222,7 @@ npm run build && npm start   # port 3000; or: npx next start -p 3100
 BASE=http://localhost:3000 node tests/e2e.cjs                               # storefront
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/private-e2e.cjs    # Private Collection
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/upload-e2e.cjs     # image uploads in every format
 ```
 
 Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.

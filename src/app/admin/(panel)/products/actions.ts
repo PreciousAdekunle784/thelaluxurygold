@@ -1,11 +1,11 @@
 "use server";
 
 import { updateTag, revalidatePath, revalidateTag } from "next/cache";
-import sharp from "sharp";
+import { processUpload, UnreadableImageError } from "@/lib/server/images";
 import { requireAdmin } from "@/lib/auth/admin";
 import { CATALOGUE_TAG } from "@/lib/data/store-catalogue";
 import { deleteProduct, getProductRow, saveProduct, setArchived, slugTaken } from "@/lib/repo/products";
-import { saveMedia } from "@/lib/repo/misc";
+import { saveMedia, saveUploadChunk, takeUploadChunks } from "@/lib/repo/misc";
 import { builtInMediaKeys } from "@/lib/data/media";
 import { categories, collections, purities } from "@/lib/data/categories";
 import { newId } from "@/lib/db/client";
@@ -96,23 +96,50 @@ export async function deleteProductAction(id: string) {
   refreshStore(row?.product.slug);
 }
 
-export async function uploadImageAction(form: FormData): Promise<{ ok: true; key: string } | { ok: false; error: string }> {
-  const large = form.get("purpose") === "hero";
-  await requireAdmin();
-  const file = form.get("file");
-  if (!(file instanceof File) || !file.size) return { ok: false, error: "Choose an image to upload." };
-  if (file.size > 15 * 1024 * 1024) return { ok: false, error: "Images must be under 15 MB." };
-  if (!/^image\/(jpeg|png|webp|avif|heic|heif)$/.test(file.type)) return { ok: false, error: "Upload a JPG, PNG, WebP or AVIF image." };
+type UploadResult = { ok: true; key: string } | { ok: false; error: string };
+
+/** Largest file accepted (in pieces); bigger than any phone or camera JPEG/HEIC, and most TIFFs. */
+const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
+const MAX_CHUNK_BYTES = 4 * 1024 * 1024;
+
+async function storeUpload(bytes: Buffer, purpose: FormDataEntryValue | null, name: string): Promise<UploadResult> {
   try {
-    const { data, info } = await sharp(Buffer.from(await file.arrayBuffer()))
-      .rotate()
-      .resize(large ? { width: 2800, height: 2800, fit: "inside", withoutEnlargement: true } : { width: 1600, height: 2000, fit: "inside", withoutEnlargement: true })
-      .webp({ quality: 84 })
-      .toBuffer({ resolveWithObject: true });
-    const id = await saveMedia(data, "image/webp", info.width, info.height);
+    const img = await processUpload(bytes, { large: purpose === "hero" });
+    const id = await saveMedia(img.data, "image/webp", img.width, img.height);
     return { ok: true, key: `uploads/${id}` };
   } catch (err) {
-    console.error("[upload]", err);
-    return { ok: false, error: "That file could not be processed as an image." };
+    if (!(err instanceof UnreadableImageError)) console.error("[upload]", err);
+    const label = name ? `\u201c${name.slice(0, 80)}\u201d` : "That file";
+    return { ok: false, error: `${label} couldn\u2019t be read as a picture. If it opens on your device, export or screenshot it as a JPG or PNG and try again.` };
   }
+}
+
+/** Upload one picture (any format) in a single request. The admin page uses this for files under ~3.5 MB. */
+export async function uploadImageAction(form: FormData): Promise<UploadResult> {
+  await requireAdmin();
+  const file = form.get("file");
+  if (!(file instanceof Blob) || !file.size) return { ok: false, error: "Choose an image to upload." };
+  if (file.size > MAX_UPLOAD_BYTES) return { ok: false, error: "Images must be under 100 MB." };
+  return storeUpload(Buffer.from(await file.arrayBuffer()), form.get("purpose"), String(form.get("name") ?? ""));
+}
+
+/**
+ * Upload a large picture in pieces (hosting platforms cap a single request at ~4.5 MB). Pieces are sent in
+ * order; the last one joins them, converts the picture and returns its key. Unfinished uploads expire after an hour.
+ */
+export async function uploadImageChunkAction(form: FormData): Promise<UploadResult | { ok: true; key: null }> {
+  await requireAdmin();
+  const uploadId = String(form.get("uploadId") ?? "");
+  const index = Number(form.get("index"));
+  const total = Number(form.get("total"));
+  const chunk = form.get("chunk");
+  if (!/^[a-f0-9]{32}$/.test(uploadId) || !Number.isInteger(index) || !Number.isInteger(total) || total < 1 || index < 0 || index >= total)
+    return { ok: false, error: "Upload failed. Please try again." };
+  if (total * MAX_CHUNK_BYTES > MAX_UPLOAD_BYTES + MAX_CHUNK_BYTES) return { ok: false, error: "Images must be under 100 MB." };
+  if (!(chunk instanceof Blob) || !chunk.size || chunk.size > MAX_CHUNK_BYTES) return { ok: false, error: "Upload failed. Please try again." };
+  await saveUploadChunk(uploadId, index, Buffer.from(await chunk.arrayBuffer()));
+  if (index < total - 1) return { ok: true, key: null };
+  const parts = await takeUploadChunks(uploadId);
+  if (parts.length !== total) return { ok: false, error: "Part of the upload went missing. Please try again." };
+  return storeUpload(Buffer.concat(parts), form.get("purpose"), String(form.get("name") ?? ""));
 }

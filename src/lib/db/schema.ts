@@ -44,12 +44,15 @@ CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT 
 CREATE TABLE IF NOT EXISTS media (
   id TEXT PRIMARY KEY, content_type TEXT NOT NULL, width INTEGER, height INTEGER, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS upload_chunks (
+  upload_id TEXT NOT NULL, idx INTEGER NOT NULL, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL, PRIMARY KEY (upload_id, idx)
+);
 `;
 
 /** Bump when the DDL above changes; the full migration then runs once. */
-export const SCHEMA_VERSION = "4";
+export const SCHEMA_VERSION = "5";
 
-const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits"];
+const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits", "upload_chunks"];
 
 /** Products created before the Private Collection have no `private` column yet (v4). */
 async function ensurePrivateColumn(db: Db) {

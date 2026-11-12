@@ -6,7 +6,8 @@ import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Plus, Trash2, Upload, X
 import type { Product, ProductVariant } from "@/lib/data/types";
 import { categories, collections, purities } from "@/lib/data/categories";
 import { MediaImage } from "@/components/ui/MediaImage";
-import { deleteProductAction, saveProductAction, setArchivedAction, uploadImageAction } from "@/app/admin/(panel)/products/actions";
+import { deleteProductAction, saveProductAction, setArchivedAction } from "@/app/admin/(panel)/products/actions";
+import { IMAGE_ACCEPT, uploadImage } from "./upload-image";
 import { adminBtnOutline, adminBtnPrimary } from "./ui";
 import { cx } from "@/lib/format";
 import { productHref } from "@/lib/links";
@@ -97,13 +98,15 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
     if (!files?.length) return;
     setUploading(true);
     setMessage(null);
-    for (const file of Array.from(files)) {
-      const fd = new FormData();
-      fd.set("file", file);
-      const res = await uploadImageAction(fd);
+    const list = Array.from(files);
+    const failed: string[] = [];
+    for (const [i, file] of list.entries()) {
+      if (list.length > 1) setMessage({ kind: "ok", text: `Uploading ${i + 1} of ${list.length}\u2026` });
+      const res = await uploadImage(file, "product");
       if (res.ok) setP((x) => ({ ...x, images: [...x.images, { media: res.key, alt: x.name }] }));
-      else setMessage({ kind: "error", text: res.error });
+      else failed.push(res.error);
     }
+    setMessage(failed.length ? { kind: "error", text: failed.join(" ") } : list.length > 1 ? { kind: "ok", text: `${list.length} images added. Save to publish them.` } : null);
     setUploading(false);
     if (fileInput.current) fileInput.current.value = "";
   };
@@ -173,7 +176,7 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
             </Field>
           </Section>
 
-          <Section title="Images" desc="The first image is the main one; the second appears when shoppers hover over the product. Portrait (4:5) photos look best.">
+          <Section title="Images" desc="The first image is the main one; the second appears when shoppers hover over the product. Portrait (4:5) photos look best. Any picture format works (JPG, PNG, HEIC from iPhone, WebP, AVIF, GIF, TIFF, BMP, SVG); large photos are resized automatically.">
             {errors.images && <p className="text-xs text-burgundy">{errors.images}</p>}
             <ul className="grid grid-cols-2 gap-4 sm:grid-cols-3">
               {p.images.map((img, i) => (
@@ -195,7 +198,7 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
                 </li>
               ))}
               <li className="flex aspect-[4/5] flex-col items-center justify-center gap-3 border border-dashed border-ink/30 p-3 text-center">
-                <input ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp,image/avif" multiple className="hidden" onChange={(e) => upload(e.target.files)} />
+                <input ref={fileInput} type="file" accept={IMAGE_ACCEPT} multiple className="hidden" onChange={(e) => upload(e.target.files)} />
                 <button type="button" onClick={() => fileInput.current?.click()} disabled={uploading} className={adminBtnOutline}>
                   {uploading ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload
                 </button>

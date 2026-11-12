@@ -148,8 +148,18 @@ create table if not exists rate_limits (
   window_start bigint not null
 );
 
+-- Large admin image uploads arrive in pieces (hosting platforms cap request size); pieces are
+-- joined, converted to WebP and deleted straight away. Leftovers older than an hour are removed.
+create table if not exists upload_chunks (
+  upload_id  text not null,
+  idx        integer not null,
+  bytes      bytea not null,
+  created_at bigint not null,
+  primary key (upload_id, idx)
+);
+
 -- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
-insert into meta (key, value) values ('schema_version', '4')
+insert into meta (key, value) values ('schema_version', '5')
 on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
@@ -165,6 +175,7 @@ alter table media       enable row level security;
 alter table private_codes    enable row level security;
 alter table private_sessions enable row level security;
 alter table rate_limits      enable row level security;
+alter table upload_chunks    enable row level security;
 
 -- -----------------------------------------------------------------------------
 -- Optional: readable views for browsing data in the Supabase Table Editor.

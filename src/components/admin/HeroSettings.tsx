@@ -4,7 +4,7 @@ import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Loader2, RotateCcw, Upload } from "lucide-react";
 import { MediaImage } from "@/components/ui/MediaImage";
-import { uploadImageAction } from "@/app/admin/(panel)/products/actions";
+import { IMAGE_ACCEPT, uploadImage } from "./upload-image";
 import { setHeroImage } from "@/app/admin/(panel)/settings/actions";
 import { adminBtnOutline, adminBtnPrimary } from "./ui";
 
@@ -20,10 +20,7 @@ function Slot({ slot, title, hint, current, fallback, aspect }: { slot: SlotKey;
     if (!file) return;
     start(async () => {
       setMsg(null);
-      const fd = new FormData();
-      fd.set("file", file);
-      fd.set("purpose", "hero");
-      const res = await uploadImageAction(fd);
+      const res = await uploadImage(file, "hero");
       if (!res.ok) {
         setMsg({ ok: false, text: res.error });
         return;
@@ -54,7 +51,7 @@ function Slot({ slot, title, hint, current, fallback, aspect }: { slot: SlotKey;
             {current ? "Your photo" : "Default: campaign image"}
           </span>
         </div>
-        <input ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/avif" className="hidden" aria-label={`Upload ${title}`} onChange={(e) => upload(e.target.files?.[0])} />
+        <input ref={input} type="file" accept={IMAGE_ACCEPT} className="hidden" aria-label={`Upload ${title}`} onChange={(e) => upload(e.target.files?.[0])} />
         <div className="flex flex-wrap gap-2">
           <button type="button" disabled={busy} onClick={() => input.current?.click()} className={adminBtnPrimary}>
             {busy ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />} Upload new image

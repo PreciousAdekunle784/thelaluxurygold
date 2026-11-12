@@ -78,6 +78,25 @@ export async function saveMedia(bytes: Buffer, contentType: string, width: numbe
   return id;
 }
 
+/** Store one piece of a large upload; also clears pieces of uploads abandoned more than an hour ago. */
+export async function saveUploadChunk(uploadId: string, idx: number, bytes: Buffer) {
+  const db = await getDb();
+  const now = Date.now();
+  await db.run("DELETE FROM upload_chunks WHERE created_at < $1", [now - 3_600_000]);
+  await db.run(
+    "INSERT INTO upload_chunks (upload_id, idx, bytes, created_at) VALUES ($1, $2, $3, $4) ON CONFLICT (upload_id, idx) DO UPDATE SET bytes = excluded.bytes, created_at = excluded.created_at",
+    [uploadId, idx, bytes, now],
+  );
+}
+
+/** All pieces of an upload, in order, removed from storage. */
+export async function takeUploadChunks(uploadId: string) {
+  const db = await getDb();
+  const rows = await db.all<{ bytes: Uint8Array | Buffer }>("SELECT bytes FROM upload_chunks WHERE upload_id = $1 ORDER BY idx", [uploadId]);
+  await db.run("DELETE FROM upload_chunks WHERE upload_id = $1", [uploadId]);
+  return rows.map((r) => Buffer.from(r.bytes));
+}
+
 export async function getMedia(id: string) {
   const db = await getDb();
   const r = await db.get<{ content_type: string; bytes: Uint8Array | Buffer }>("SELECT content_type, bytes FROM media WHERE id = $1", [id]);

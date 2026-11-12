@@ -2,6 +2,8 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
+  // The HEIC decoder loads its own WebAssembly at runtime; keep it out of the server bundle.
+  serverExternalPackages: ["heic-decode", "libheif-js"],
   partialPrefetching: true,
   turbopack: {
     rules: {
