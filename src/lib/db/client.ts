@@ -140,8 +140,17 @@ async function postgresDb(url: string): Promise<Db> {
     prepare: false,
     ssl: local ? false : "require",
     types: { bigint: postgres.BigInt },
+    // We use no custom or array types, so skip the type lookup a new connection would otherwise do
+    // before its first query (one round trip saved on every cold start).
+    fetch_types: false,
   });
-  const norm = (params: unknown[] = []) => params.map((p) => (p === undefined ? null : p)) as never[];
+  // Parameters are sent as PostgreSQL's "unknown" type (oid 705). The server then infers each type from
+  // the query exactly as it does for an untyped parameter, but the driver no longer needs a separate
+  // Describe round trip to ask for the types first: every query costs one network round trip, not two.
+  // (Byte arrays keep the driver's own bytea type.)
+  const UNKNOWN = 705;
+  const norm = (params: unknown[] = []) =>
+    params.map((p) => (p instanceof Uint8Array ? p : sql.typed((p === undefined ? null : p) as never, UNKNOWN))) as never[];
   const fix = <T,>(rows: T[]) =>
     rows.map((r) => {
       const o = { ...(r as Record<string, unknown>) };

@@ -1,18 +1,16 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { isAdmin } from "@/lib/auth/admin";
 import { liveVisitors, recentViews } from "@/lib/repo/analytics";
-import { countOrders, listOrders } from "@/lib/repo/orders";
-import { unreadMessageCount } from "@/lib/repo/misc";
+import { adminBadgeCounts, listOrderSummaries } from "@/lib/repo/orders";
 
 export async function GET(req: NextRequest) {
   if (!(await isAdmin())) return NextResponse.json({ error: "Unauthorised" }, { status: 401 });
   const since = Number(req.nextUrl.searchParams.get("since")) || Date.now() - 30 * 60_000;
-  const [live, views, orders, pending, unread] = await Promise.all([
+  const [live, views, orders, { pending, unread }] = await Promise.all([
     liveVisitors(),
     recentViews({ since, limit: 40 }),
-    listOrders({ since, limit: 20 }),
-    countOrders({ status: "pending_confirmation" }),
-    unreadMessageCount(),
+    listOrderSummaries({ since, limit: 20 }),
+    adminBadgeCounts(),
   ]);
   return NextResponse.json(
     {

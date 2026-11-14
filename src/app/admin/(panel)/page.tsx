@@ -6,7 +6,7 @@ import { ColumnChart } from "@/components/admin/charts";
 import { BarList } from "@/components/admin/BarList";
 import { LiveCount, LivePanel } from "@/components/admin/LivePanel";
 import { trafficSeries, trafficSummary } from "@/lib/repo/analytics";
-import { listOrders, orderStats } from "@/lib/repo/orders";
+import { listOrderSummaries, orderStats } from "@/lib/repo/orders";
 import { dayKey, formatDateTime, lastDays, requestTime } from "@/lib/time";
 import { formatMoney } from "@/lib/format";
 
@@ -22,13 +22,14 @@ export default async function Dashboard() {
   const days7 = days14.slice(-7);
   const today = dayKey(now);
 
-  const [series, todayTraffic, week, stats, recent] = await Promise.all([
+  // Today's visitors and views come from the 14-day series (same figures, no separate set of queries).
+  const [series, week, stats, recent] = await Promise.all([
     trafficSeries(days14),
-    trafficSummary([today]),
-    trafficSummary(days7),
+    trafficSummary(days7, { sessions: false }),
     orderStats(days14),
-    listOrders({ limit: 6 }),
+    listOrderSummaries({ limit: 6 }),
   ]);
+  const todayTraffic = series.find((s) => s.day === today) ?? { visitors: 0, views: 0 };
   const todayOrders = stats.series.find((s) => s.day === today)?.orders ?? 0;
   const aov = stats.paidOrders ? Math.round(stats.paid / stats.paidOrders) : 0;
 

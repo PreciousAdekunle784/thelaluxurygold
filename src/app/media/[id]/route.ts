@@ -8,6 +8,8 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/media/[id]">) {
   const m = await getMedia(id);
   if (!m) return new NextResponse("Not found", { status: 404 });
   return new NextResponse(new Uint8Array(m.bytes), {
-    headers: { "Content-Type": m.contentType, "Cache-Control": "public, max-age=31536000, immutable", "Content-Length": String(m.bytes.length) },
+    // Uploads are never changed in place (a new upload gets a new id), so browsers AND the CDN may keep them:
+    // s-maxage lets Vercel's edge cache serve repeat requests without touching the database.
+    headers: { "Content-Type": m.contentType, "Cache-Control": "public, max-age=31536000, s-maxage=31536000, immutable", "Content-Length": String(m.bytes.length) },
   });
 }

@@ -7,10 +7,20 @@ export async function addSubscriber(email: string, source: string) {
   await db.run("INSERT INTO subscribers (email, source, created_at) VALUES ($1, $2, $3) ON CONFLICT DO NOTHING", [email.toLowerCase(), source, Date.now()]);
 }
 
-export async function listSubscribers() {
+/** Newest first. Without a limit it returns everyone (CSV export). */
+export async function listSubscribers(opts: { limit?: number; offset?: number } = {}) {
   const db = await getDb();
-  const rows = await db.all<{ email: string; source: string; created_at: number }>("SELECT * FROM subscribers ORDER BY created_at DESC LIMIT 5000");
+  const page = opts.limit ? " LIMIT $1 OFFSET $2" : "";
+  const rows = await db.all<{ email: string; source: string; created_at: number }>(
+    `SELECT email, source, created_at FROM subscribers ORDER BY created_at DESC, email${page}`,
+    opts.limit ? [opts.limit, opts.offset ?? 0] : [],
+  );
   return rows.map((r) => ({ email: r.email, source: r.source, createdAt: Number(r.created_at) }));
+}
+
+export async function countSubscribers() {
+  const db = await getDb();
+  return Number((await db.get<{ n: number }>("SELECT COUNT(*) AS n FROM subscribers"))?.n ?? 0);
 }
 
 export async function removeSubscriber(email: string) {
@@ -43,9 +53,9 @@ export async function addMessage(m: Omit<Message, "id" | "createdAt" | "read">) 
   ]);
 }
 
-export async function listMessages() {
+export async function listMessages(opts: { limit?: number; offset?: number } = {}) {
   const db = await getDb();
-  const rows = await db.all<Record<string, unknown>>("SELECT * FROM messages ORDER BY created_at DESC LIMIT 500");
+  const rows = await db.all<Record<string, unknown>>("SELECT * FROM messages ORDER BY created_at DESC, id LIMIT $1 OFFSET $2", [opts.limit ?? 500, opts.offset ?? 0]);
   return rows.map(
     (r): Message => ({
       id: String(r.id),
@@ -65,9 +75,10 @@ export async function setMessageRead(id: string, read: boolean) {
   await db.run("UPDATE messages SET is_read = $2 WHERE id = $1", [id, read ? 1 : 0]);
 }
 
-export async function unreadMessageCount() {
+export async function messageCounts() {
   const db = await getDb();
-  return Number((await db.get<{ n: number }>("SELECT COUNT(*) AS n FROM messages WHERE is_read = 0"))?.n ?? 0);
+  const r = await db.get<{ total: number; unread: number }>("SELECT COUNT(*) AS total, COALESCE(SUM(CASE WHEN is_read = 0 THEN 1 ELSE 0 END), 0) AS unread FROM messages");
+  return { total: Number(r?.total ?? 0), unread: Number(r?.unread ?? 0) };
 }
 
 // ---------------------------------------------------------------- uploaded media

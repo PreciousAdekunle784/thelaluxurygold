@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Download, Search } from "lucide-react";
 import { Card, Empty, PageHeader, StatusPill, Table, Tabs, adminBtnOutline, DownloadLink, countryLabel } from "@/components/admin/ui";
-import { countOrdersByStatus, listOrders, orderStatuses } from "@/lib/repo/orders";
+import { countOrdersByStatus, listOrderSummaries, orderStatuses } from "@/lib/repo/orders";
 import { formatDateTime } from "@/lib/time";
 import { formatMoney } from "@/lib/format";
 
@@ -18,7 +18,7 @@ export default async function OrdersPage({ searchParams }: PageProps<"/admin/ord
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
   const page = Math.max(1, Number(sp.page) || 1);
   const [orders, byStatus] = await Promise.all([
-    listOrders({ status: status || undefined, q: q || undefined, limit: PAGE + 1, offset: (page - 1) * PAGE }),
+    listOrderSummaries({ status: status || undefined, q: q || undefined, limit: PAGE + 1, offset: (page - 1) * PAGE }),
     countOrdersByStatus(),
   ]);
   const total = byStatus.all;

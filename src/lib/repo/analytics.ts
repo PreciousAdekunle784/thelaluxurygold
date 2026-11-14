@@ -79,31 +79,81 @@ export async function countViews(day?: string) {
   return Number(r?.n ?? 0);
 }
 
+const placeholders = (n: number, from = 1) => Array.from({ length: n }, (_, i) => `$${i + from}`).join(",");
+
+/**
+ * Unique visitors and page views per day.
+ *
+ * Page views are only ever recorded for the current day, so a day's figures are final once it is over.
+ * Days before yesterday are therefore computed once and kept in `traffic_daily`; only yesterday and today
+ * (and any day not cached yet) are counted from the raw visit log. Same numbers, a fraction of the work.
+ */
 export async function trafficSeries(days: string[]) {
   if (!days.length) return [];
   const db = await getDb();
-  const ph = days.map((_, i) => `$${i + 1}`).join(",");
-  const rows = await db.all<Raw>(`SELECT day, COUNT(DISTINCT visitor_id) AS visitors, COUNT(*) AS views FROM page_views WHERE day IN (${ph}) GROUP BY day`, days);
-  const m = new Map(rows.map((r) => [String(r.day), { visitors: Number(r.visitors), views: Number(r.views) }]));
+  const yesterday = dayKey(Date.now() - 86_400_000);
+  const closed = days.filter((d) => d < yesterday);
+  const open = days.filter((d) => d >= yesterday);
+  const [cached, live] = await Promise.all([
+    closed.length ? db.all<Raw>(`SELECT day, visitors, views FROM traffic_daily WHERE day IN (${placeholders(closed.length)})`, closed) : Promise.resolve([] as Raw[]),
+    countByDay(db, open),
+  ]);
+  const m = new Map<string, { visitors: number; views: number }>();
+  for (const r of cached) m.set(String(r.day), { visitors: Number(r.visitors), views: Number(r.views) });
+  for (const [d, v] of live) m.set(d, v);
+  const missing = closed.filter((d) => !m.has(d));
+  if (missing.length) {
+    const counted = await countByDay(db, missing);
+    const now = Date.now();
+    const rows = missing.map((d) => [d, counted.get(d)?.visitors ?? 0, counted.get(d)?.views ?? 0, now]);
+    await db.run(
+      `INSERT INTO traffic_daily (day, visitors, views, computed_at) VALUES ${rows.map((_, i) => `(${placeholders(4, i * 4 + 1)})`).join(", ")} ON CONFLICT (day) DO NOTHING`,
+      rows.flat(),
+    );
+    for (const [d, visitors, views] of rows) m.set(String(d), { visitors: Number(visitors), views: Number(views) });
+  }
   return days.map((d) => ({ day: d, ...(m.get(d) ?? { visitors: 0, views: 0 }) }));
 }
 
-export async function trafficSummary(days: string[]) {
+/** Visitors/views per day straight from the visit log (count per visitor first: hash aggregation, no big sort). */
+async function countByDay(db: Awaited<ReturnType<typeof getDb>>, days: string[]) {
+  const out = new Map<string, { visitors: number; views: number }>();
+  if (!days.length) return out;
+  const rows = await db.all<Raw>(
+    `SELECT day, COUNT(*) AS visitors, SUM(c) AS views FROM (SELECT day, visitor_id, COUNT(*) AS c FROM page_views WHERE day IN (${placeholders(days.length)}) GROUP BY day, visitor_id) v GROUP BY day`,
+    days,
+  );
+  for (const r of rows) out.set(String(r.day), { visitors: Number(r.visitors), views: Number(r.views) });
+  return out;
+}
+
+/**
+ * Totals and top pages / referrers / countries / devices over a set of days. Every figure is exact: unique
+ * visitors are counted by grouping per visitor first, which PostgreSQL does with a hash table instead of the
+ * large sort (and on-disk spill) that COUNT(DISTINCT ...) needs over weeks of visits.
+ */
+export async function trafficSummary(days: string[], opts: { sessions?: boolean } = {}) {
   const db = await getDb();
-  const ph = days.map((_, i) => `$${i + 1}`).join(",");
+  const ph = placeholders(days.length);
   const top = async (col: "path" | "referrer" | "country" | "device", limit = 8) =>
     (
       await db.all<Raw>(
-        `SELECT ${col} AS k, COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors FROM page_views WHERE day IN (${ph}) GROUP BY ${col} ORDER BY visitors DESC, views DESC LIMIT ${limit}`,
+        `SELECT k, SUM(c) AS views, COUNT(*) AS visitors
+           FROM (SELECT ${col} AS k, visitor_id, COUNT(*) AS c FROM page_views WHERE day IN (${ph}) GROUP BY ${col}, visitor_id) v
+          GROUP BY k ORDER BY visitors DESC, views DESC LIMIT ${limit}`,
         days,
       )
     ).map((r) => ({ key: String(r.k ?? "") || "—", views: Number(r.views), visitors: Number(r.visitors) }));
-  // All five queries run at the same time (one round trip of latency instead of five).
-  const [totals, pages, referrers, countries, devices] = await Promise.all([
+  // Independent queries, sent together (one round trip of latency, not six).
+  const [totals, sessions, pages, referrers, countries, devices] = await Promise.all([
     db.get<Raw>(
-      `SELECT COUNT(*) AS views, COUNT(DISTINCT visitor_id) AS visitors, COUNT(DISTINCT session_id) AS sessions, COALESCE(SUM(is_new),0) AS new_visitors FROM page_views WHERE day IN (${ph})`,
+      `SELECT COUNT(*) AS visitors, COALESCE(SUM(c), 0) AS views, COALESCE(SUM(n), 0) AS new_visitors
+         FROM (SELECT visitor_id, COUNT(*) AS c, SUM(is_new) AS n FROM page_views WHERE day IN (${ph}) GROUP BY visitor_id) v`,
       days,
     ),
+    opts.sessions === false
+      ? Promise.resolve(undefined)
+      : db.get<Raw>(`SELECT COUNT(*) AS sessions FROM (SELECT DISTINCT session_id FROM page_views WHERE day IN (${ph}) AND session_id IS NOT NULL) s`, days),
     top("path"),
     top("referrer"),
     top("country"),
@@ -112,7 +162,7 @@ export async function trafficSummary(days: string[]) {
   return {
     views: Number(totals?.views ?? 0),
     visitors: Number(totals?.visitors ?? 0),
-    sessions: Number(totals?.sessions ?? 0),
+    sessions: Number(sessions?.sessions ?? 0),
     newVisitors: Number(totals?.new_visitors ?? 0),
     pages,
     referrers,

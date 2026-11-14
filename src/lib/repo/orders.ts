@@ -48,6 +48,22 @@ const parse = (r: Raw): StoredOrder => ({
   history: JSON.parse(String(r.history)),
 });
 
+/** An order as shown in lists: everything except the full stored record and status history. */
+export type OrderSummary = Omit<StoredOrder, "record" | "history">;
+const SUMMARY_COLUMNS = "reference, created_at, status, email, name, phone, country, subtotal, item_count, has_por";
+const parseSummary = (r: Raw): OrderSummary => ({
+  reference: String(r.reference),
+  createdAt: Number(r.created_at),
+  status: r.status as OrderStatus,
+  email: String(r.email),
+  name: String(r.name),
+  phone: String(r.phone ?? ""),
+  country: String(r.country ?? ""),
+  subtotal: Number(r.subtotal),
+  itemCount: Number(r.item_count),
+  hasPriceOnRequest: !!Number(r.has_por),
+});
+
 export async function insertOrder(o: OrderRecord) {
   const db = await getDb();
   const ts = Date.parse(o.createdAt);
@@ -62,8 +78,7 @@ export async function insertOrder(o: OrderRecord) {
   );
 }
 
-export async function listOrders(opts: { status?: string; q?: string; limit?: number; offset?: number; since?: number } = {}) {
-  const db = await getDb();
+function orderFilter(opts: { status?: string; q?: string; since?: number }) {
   const where: string[] = [];
   const params: unknown[] = [];
   if (opts.status) { params.push(opts.status); where.push(`status = $${params.length}`); }
@@ -73,15 +88,35 @@ export async function listOrders(opts: { status?: string; q?: string; limit?: nu
     const n = params.length;
     where.push(`(LOWER(reference) LIKE $${n} OR email LIKE $${n} OR LOWER(name) LIKE $${n} OR phone LIKE $${n})`);
   }
+  return { where: where.length ? "WHERE " + where.join(" AND ") : "", params };
+}
+
+/** Full orders, including the stored record (CSV export). Lists should use `listOrderSummaries`. */
+export async function listOrders(opts: { status?: string; q?: string; limit?: number; offset?: number; since?: number } = {}) {
+  const db = await getDb();
+  const { where, params } = orderFilter(opts);
   params.push(opts.limit ?? 50, opts.offset ?? 0);
-  const rows = await db.all<Raw>(`SELECT * FROM orders ${where.length ? "WHERE " + where.join(" AND ") : ""} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
+  const rows = await db.all<Raw>(`SELECT * FROM orders ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
   return rows.map(parse);
 }
 
-export async function countOrders(opts: { status?: string } = {}) {
+/** Orders for lists and tables: only the columns they show (no order record or history JSON). */
+export async function listOrderSummaries(opts: { status?: string; q?: string; limit?: number; offset?: number; since?: number } = {}) {
   const db = await getDb();
-  const r = await db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM orders ${opts.status ? "WHERE status = $1" : ""}`, opts.status ? [opts.status] : []);
-  return Number(r?.n ?? 0);
+  const { where, params } = orderFilter(opts);
+  params.push(opts.limit ?? 50, opts.offset ?? 0);
+  const rows = await db.all<Raw>(`SELECT ${SUMMARY_COLUMNS} FROM orders ${where} ORDER BY created_at DESC LIMIT $${params.length - 1} OFFSET $${params.length}`, params);
+  return rows.map(parseSummary);
+}
+
+/** The buyer's other orders (same email), newest first. Runs alongside `getOrder` rather than after it. */
+export async function otherOrdersOf(reference: string, limit = 20) {
+  const db = await getDb();
+  const rows = await db.all<Raw>(
+    `SELECT ${SUMMARY_COLUMNS} FROM orders WHERE email = (SELECT email FROM orders WHERE reference = $1) AND reference <> $1 ORDER BY created_at DESC LIMIT $2`,
+    [reference, limit],
+  );
+  return rows.map(parseSummary);
 }
 
 /** Order counts for every status in one query: { all, pending_confirmation, paid, ... }. */
@@ -94,6 +129,15 @@ export async function countOrdersByStatus() {
     counts.all += Number(r.n);
   }
   return counts;
+}
+
+/** Badge counts for the admin sidebar (orders awaiting confirmation, unread messages) in one query. */
+export async function adminBadgeCounts() {
+  const db = await getDb();
+  const r = await db.get<Raw>(
+    "SELECT (SELECT COUNT(*) FROM orders WHERE status = 'pending_confirmation') AS pending, (SELECT COUNT(*) FROM messages WHERE is_read = 0) AS unread",
+  );
+  return { pending: Number(r?.pending ?? 0), unread: Number(r?.unread ?? 0) };
 }
 
 export async function getOrder(reference: string) {
@@ -166,19 +210,19 @@ export async function orderStats(days: string[]) {
   };
 }
 
-export async function listCustomers(opts: { q?: string; limit?: number } = {}) {
+export async function listCustomers(opts: { q?: string; limit?: number; offset?: number } = {}) {
   const db = await getDb();
   const paidList = PAID_STATUSES.map((s) => `'${s}'`).join(",");
   const params: unknown[] = [];
   let where = "";
   if (opts.q) { params.push(`%${opts.q.toLowerCase()}%`); where = "WHERE email LIKE $1 OR LOWER(name) LIKE $1 OR phone LIKE $1"; }
-  params.push(opts.limit ?? 200);
+  params.push(opts.limit ?? 200, opts.offset ?? 0);
   const rows = await db.all<Raw>(
     `SELECT email, MAX(name) AS name, MAX(phone) AS phone, MAX(country) AS country, COUNT(*) AS orders,
             COALESCE(SUM(CASE WHEN status <> 'cancelled' THEN subtotal ELSE 0 END),0) AS requested,
             COALESCE(SUM(CASE WHEN status IN (${paidList}) THEN subtotal ELSE 0 END),0) AS paid,
             MAX(created_at) AS last_order, MIN(created_at) AS first_order
-       FROM orders ${where} GROUP BY email ORDER BY paid DESC, requested DESC LIMIT $${params.length}`,
+       FROM orders ${where} GROUP BY email ORDER BY paid DESC, requested DESC, email LIMIT $${params.length - 1} OFFSET $${params.length}`,
     params,
   );
   return rows.map((r) => ({
@@ -192,4 +236,23 @@ export async function listCustomers(opts: { q?: string; limit?: number } = {}) {
     lastOrder: Number(r.last_order),
     firstOrder: Number(r.first_order),
   }));
+}
+
+/** Totals across ALL matching buyers (not just the page being shown). */
+export async function customerStats(opts: { q?: string } = {}) {
+  const db = await getDb();
+  const paidList = PAID_STATUSES.map((s) => `'${s}'`).join(",");
+  const params: unknown[] = [];
+  let where = "";
+  if (opts.q) { params.push(`%${opts.q.toLowerCase()}%`); where = "WHERE email LIKE $1 OR LOWER(name) LIKE $1 OR phone LIKE $1"; }
+  const r = await db.get<Raw>(
+    `SELECT COUNT(*) AS buyers, COALESCE(SUM(CASE WHEN orders > 1 THEN 1 ELSE 0 END), 0) AS repeat_buyers,
+            COALESCE(SUM(paid), 0) AS paid, COALESCE(SUM(requested), 0) AS requested
+       FROM (SELECT email, COUNT(*) AS orders,
+                    SUM(CASE WHEN status IN (${paidList}) THEN subtotal ELSE 0 END) AS paid,
+                    SUM(CASE WHEN status <> 'cancelled' THEN subtotal ELSE 0 END) AS requested
+               FROM orders ${where} GROUP BY email) b`,
+    params,
+  );
+  return { buyers: Number(r?.buyers ?? 0), repeat: Number(r?.repeat_buyers ?? 0), paid: Number(r?.paid ?? 0), requested: Number(r?.requested ?? 0) };
 }

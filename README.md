@@ -212,8 +212,25 @@ The site is tuned for slow mobile connections. On a simulated 1.6 Mbps / 300 ms 
 * Fonts are trimmed to the weights in use (Cormorant 400/500, Corinthia 700, Manrope).
 * Images are served as AVIF/WebP at the right size, with blur placeholders. Product hover photos load only on hover. Images are cached between visits.
 * The hero is a single responsive image (separately composed for desktop and phones), fetched with high priority.
-* Admin data is fetched in parallel. The connection check is reused for 30 s, and order counts come from one grouped query.
 * Server functions run next to the database (`vercel.json` → `dub1`).
+
+### Admin dashboard
+
+Measured with a production-sized history (360,000 visits over 90 days, 3,000 orders) and a 50 ms round trip to the database:
+
+| | Before | After |
+| --- | --- | --- |
+| Dashboard, server time | 332 ms (14 queries) | 125 ms (10 queries) |
+| Visitors, last 30 days | 412 ms | 228 ms |
+| First request on a new serverless instance | 2.2 s | 0.83 s |
+| Messages / subscribers pages | 2.1 MB / 2.7 MB of HTML | 0.25 MB / 0.23 MB |
+
+* **One round trip per query.** Query parameters are sent as PostgreSQL's `unknown` type, so the driver no longer makes an extra Describe round trip before every query; type lookups on new connections are off (`src/lib/db/client.ts`).
+* **No waterfall.** Pages no longer wait for a separate database check; the status line loads alongside the page, and `error.tsx` shows the database diagnostics if a page's data can't be loaded.
+* **Exact, cheaper statistics.** Unique visitors are counted per visitor first (hash aggregation instead of large sorts), backed by a `(day, visitor_id, is_new)` index. Finished days never change, so their totals are kept in `traffic_daily` and only yesterday and today are counted live. The dashboard takes today's figures from the daily series instead of a second set of queries.
+* **Lists load what they show.** Order lists read summary columns only (not each order's full record); buyers, messages and subscribers are paginated, and their totals are counted in the database over every row rather than over the rows on screen. Orders have indexes for status tabs and charts.
+* **Live updates.** The live feed uses 4 queries instead of 5, never overlaps a slow request, backs off when the server struggles, and keeps unchanged lists as they are so nothing re-renders needlessly. Order alerts reuse one audio context (they used to create a new one per alert).
+* Uploaded images can be cached by the CDN (`s-maxage`), so thumbnails don't read the database on every view.
 
 ## Testing
 

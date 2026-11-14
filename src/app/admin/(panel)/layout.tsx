@@ -4,36 +4,36 @@ import { LiveProvider } from "@/components/admin/LiveProvider";
 import { requireAdmin } from "@/lib/auth/admin";
 import { databaseInfo, databaseStatus } from "@/lib/db/client";
 
+/**
+ * Checks the session, then renders the page straight away. The database status line is filled in
+ * alongside the page (never before it), and a page whose data can't be loaded shows the database
+ * diagnostics through `error.tsx`.
+ */
 async function Guard({ children }: { children: React.ReactNode }) {
   await requireAdmin();
+  return (
+    <>
+      <Suspense fallback={<p className="mb-6 h-4" aria-hidden />}>
+        <DatabaseLine />
+      </Suspense>
+      {children}
+    </>
+  );
+}
+
+async function DatabaseLine() {
   const db = await databaseStatus();
   if (!db.ok) {
     return (
-      <div className="border-l-2 border-burgundy bg-white p-6">
-        <p className="text-[0.68rem] font-semibold uppercase tracking-[0.18em] text-burgundy">Database not connected</p>
-        <p className="mt-3 text-sm">
-          The admin could not reach {db.dialect === "postgres" ? `PostgreSQL at ${db.host}` : "the local database"}
-          {db.user ? ` as user “${db.user}”` : ""}.
-        </p>
-        <p className="mt-2 break-words font-mono text-xs text-stone">{db.message}</p>
-        {db.hints.length > 0 && (
-          <ul className="mt-4 list-disc space-y-1.5 pl-5 text-sm">
-            {db.hints.map((h) => (
-              <li key={h}>{h}</li>
-            ))}
-          </ul>
-        )}
-        <p className="mt-4 text-sm text-stone">Check the <code>DATABASE_URL</code> environment variable on your host, then redeploy. See “Connecting Supabase” in the README.</p>
-      </div>
+      <p className="mb-6 flex items-center gap-2 text-xs text-burgundy">
+        <span className="h-2 w-2 rounded-full bg-burgundy" /> Database not connected
+      </p>
     );
   }
   return (
-    <>
-      <p className="mb-6 flex items-center gap-2 text-xs text-stone">
-        <span className="h-2 w-2 rounded-full bg-forest" /> Database connected · {db.dialect === "postgres" ? (db.host.includes("supabase") ? `Supabase (${db.host})` : `PostgreSQL (${db.host})`) : "local SQLite file"}
-      </p>
-      {children}
-    </>
+    <p className="mb-6 flex items-center gap-2 text-xs text-stone">
+      <span className="h-2 w-2 rounded-full bg-forest" /> Database connected · {db.dialect === "postgres" ? (db.host.includes("supabase") ? `Supabase (${db.host})` : `PostgreSQL (${db.host})`) : "local SQLite file"}
+    </p>
   );
 }
 

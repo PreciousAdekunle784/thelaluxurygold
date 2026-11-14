@@ -67,6 +67,8 @@ do $$ begin
 end $$;
 create index if not exists orders_created on orders (created_at);
 create index if not exists orders_email   on orders (email);
+create index if not exists orders_status_created on orders (status, created_at);  -- status tabs and counts
+create index if not exists orders_day     on orders (day);                       -- order charts
 
 -- Anonymous page views (no IP addresses or personal data).
 create table if not exists page_views (
@@ -83,7 +85,8 @@ create table if not exists page_views (
   is_new     integer not null default 0
 );
 create index if not exists pv_ts  on page_views (ts);
-create index if not exists pv_day on page_views (day);
+create index if not exists pv_day_visitor on page_views (day, visitor_id, is_new);  -- visitor statistics by day
+drop index if exists pv_day;                                                        -- covered by pv_day_visitor
 create index if not exists pv_visitor on page_views (visitor_id);
 
 -- Newsletter sign-ups.
@@ -158,8 +161,20 @@ create table if not exists upload_chunks (
   primary key (upload_id, idx)
 );
 
+-- Visitors and page views per finished day (a day's figures never change once it is over), so charts
+-- don't recount weeks of raw visits. Filled in automatically by the app.
+create table if not exists traffic_daily (
+  day         text primary key,
+  visitors    integer not null,
+  views       integer not null,
+  computed_at bigint not null
+);
+create index if not exists subscribers_created on subscribers (created_at);
+create index if not exists messages_created    on messages (created_at);
+create index if not exists messages_unread     on messages (is_read, created_at);
+
 -- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
-insert into meta (key, value) values ('schema_version', '5')
+insert into meta (key, value) values ('schema_version', '6')
 on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
@@ -176,6 +191,7 @@ alter table private_codes    enable row level security;
 alter table private_sessions enable row level security;
 alter table rate_limits      enable row level security;
 alter table upload_chunks    enable row level security;
+alter table traffic_daily    enable row level security;
 
 -- -----------------------------------------------------------------------------
 -- Optional: readable views for browsing data in the Supabase Table Editor.

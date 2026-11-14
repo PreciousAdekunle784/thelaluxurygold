@@ -1,24 +1,27 @@
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Mail, Phone } from "lucide-react";
-import { Card, Empty, PageHeader } from "@/components/admin/ui";
+import { Card, Empty, PageHeader, Pager } from "@/components/admin/ui";
 import { ReadToggle } from "@/components/admin/SmallActions";
 import { WhatsAppIcon } from "@/components/ui/Icons";
-import { listMessages } from "@/lib/repo/misc";
+import { listMessages, messageCounts } from "@/lib/repo/misc";
 import { formatDateTime } from "@/lib/time";
 import { cx } from "@/lib/format";
 
 export const instant = false;
 export const metadata: Metadata = { title: "Messages" };
+const PAGE = 25;
 
-export default async function MessagesPage() {
+export default async function MessagesPage({ searchParams }: PageProps<"/admin/messages">) {
   await connection();
-  const messages = await listMessages();
-  const unread = messages.filter((m) => !m.read).length;
+  const sp = await searchParams;
+  const page = Math.max(1, Number(sp.page) || 1);
+  const [list, { total, unread }] = await Promise.all([listMessages({ limit: PAGE + 1, offset: (page - 1) * PAGE }), messageCounts()]);
+  const messages = list.slice(0, PAGE);
   return (
     <>
       <PageHeader title="Messages" subtitle={`Contact form messages · ${unread} unread`} />
-      {messages.length === 0 ? (
+      {messages.length === 0 && page === 1 ? (
         <Card><Empty>No messages yet. Messages sent through the contact page appear here.</Empty></Card>
       ) : (
         <ul className="space-y-3">
@@ -43,6 +46,11 @@ export default async function MessagesPage() {
             );
           })}
         </ul>
+      )}
+      {(page > 1 || list.length > PAGE) && (
+        <div className="mt-4 border border-line bg-white">
+          <Pager page={page} hasMore={list.length > PAGE} href={(p) => (p > 1 ? `/admin/messages?page=${p}` : "/admin/messages")} note={`Page ${page} of ${Math.max(1, Math.ceil(total / PAGE))} · ${total.toLocaleString("en-US")} messages`} />
+        </div>
       )}
     </>
   );

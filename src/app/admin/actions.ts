@@ -3,6 +3,8 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { ADMIN_COOKIE, SESSION_TTL_MS, adminConfigured, checkPassword, createToken } from "@/lib/auth/session";
+import { requireAdmin } from "@/lib/auth/admin";
+import { databaseStatus } from "@/lib/db/client";
 
 const attempts = new Map<string, { n: number; first: number }>();
 
@@ -37,4 +39,10 @@ export async function logout() {
   const jar = await cookies();
   jar.delete(ADMIN_COOKIE);
   redirect("/admin/login");
+}
+
+/** Database diagnostics for the admin error screen (admin only; never includes the password). */
+export async function databaseDiagnostics() {
+  await requireAdmin();
+  return databaseStatus();
 }

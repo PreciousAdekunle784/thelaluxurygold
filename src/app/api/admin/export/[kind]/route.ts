@@ -26,7 +26,7 @@ export async function GET(_req: NextRequest, ctx: RouteContext<"/api/admin/expor
       ]),
     ]);
   } else if (kind === "customers") {
-    const c = await listCustomers({ limit: 100000 });
+    const c = await listCustomers({ limit: 1_000_000 });
     body = csv([["Name", "Email", "Phone", "Country", "Orders", "Total ordered USD", "Total paid USD", "First order", "Last order"], ...c.map((b) => [b.name, b.email, b.phone, b.country, b.orders, b.requested, b.paid, iso(b.firstOrder), iso(b.lastOrder)])]);
   } else if (kind === "subscribers") {
     const s = await listSubscribers();

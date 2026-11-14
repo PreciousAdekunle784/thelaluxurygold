@@ -18,17 +18,24 @@ CREATE TABLE IF NOT EXISTS orders (
 );
 CREATE INDEX IF NOT EXISTS orders_created ON orders (created_at);
 CREATE INDEX IF NOT EXISTS orders_email ON orders (email);
+CREATE INDEX IF NOT EXISTS orders_status_created ON orders (status, created_at);
+CREATE INDEX IF NOT EXISTS orders_day ON orders (day);
 CREATE TABLE IF NOT EXISTS page_views (
   id TEXT PRIMARY KEY, ts BIGINT NOT NULL, day TEXT NOT NULL, visitor_id TEXT NOT NULL, session_id TEXT,
   path TEXT NOT NULL, referrer TEXT, country TEXT, device TEXT, browser TEXT, is_new INTEGER NOT NULL DEFAULT 0
 );
 CREATE INDEX IF NOT EXISTS pv_ts ON page_views (ts);
-CREATE INDEX IF NOT EXISTS pv_day ON page_views (day);
+CREATE INDEX IF NOT EXISTS pv_day_visitor ON page_views (day, visitor_id, is_new);
+DROP INDEX IF EXISTS pv_day;
 CREATE INDEX IF NOT EXISTS pv_visitor ON page_views (visitor_id);
+CREATE TABLE IF NOT EXISTS traffic_daily (day TEXT PRIMARY KEY, visitors INTEGER NOT NULL, views INTEGER NOT NULL, computed_at BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS subscribers (email TEXT PRIMARY KEY, source TEXT, created_at BIGINT NOT NULL);
+CREATE INDEX IF NOT EXISTS subscribers_created ON subscribers (created_at);
 CREATE TABLE IF NOT EXISTS messages (
   id TEXT PRIMARY KEY, created_at BIGINT NOT NULL, name TEXT, email TEXT, phone TEXT, topic TEXT, message TEXT, is_read INTEGER NOT NULL DEFAULT 0
 );
+CREATE INDEX IF NOT EXISTS messages_created ON messages (created_at);
+CREATE INDEX IF NOT EXISTS messages_unread ON messages (is_read, created_at);
 CREATE TABLE IF NOT EXISTS private_codes (
   id TEXT PRIMARY KEY, code_hash TEXT UNIQUE NOT NULL, code_hint TEXT NOT NULL,
   name TEXT, email TEXT, reference TEXT, single_use INTEGER NOT NULL DEFAULT 0,
@@ -50,9 +57,9 @@ CREATE TABLE IF NOT EXISTS upload_chunks (
 `;
 
 /** Bump when the DDL above changes; the full migration then runs once. */
-export const SCHEMA_VERSION = "5";
+export const SCHEMA_VERSION = "6";
 
-const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits", "upload_chunks"];
+const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits", "upload_chunks", "traffic_daily"];
 
 /** Products created before the Private Collection have no `private` column yet (v4). */
 async function ensurePrivateColumn(db: Db) {

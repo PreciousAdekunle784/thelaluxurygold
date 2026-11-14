@@ -17,7 +17,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   const s = await shopper.newPage();
   const a = await admin.newPage();
   const errors = [];
-  a.on('pageerror', (e) => errors.push(a.url().replace(BASE, '') + ': ' + e.message.slice(0, 60)));
+  a.on('pageerror', (e) => errors.push(a.url().replace(BASE, '') + ': ' + e.message.slice(0, 400)));
 
   // ---------------------------------------------------------------- auth
   const r = await a.goto(BASE + '/admin/orders');
@@ -89,9 +89,15 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.waitForTimeout(800);
   ok('status change saved with note in history', (await a.locator('main').textContent()).includes('Paid by bank transfer'));
 
+  // Buyers are listed 50 per page (highest spenders first); a specific buyer is found with the search box.
   await a.goto(BASE + '/admin/customers', { waitUntil: 'load' });
-  await a.waitForTimeout(800);
-  const buyerRow = await a.locator(`tr:has-text("${BUYER}")`).textContent();
+  const buyerTotal = Number(((await a.locator('main p:has-text("Buyers") + p').first().textContent()) || '0').replace(/\D/g, ''));
+  ok('buyers page paginates large lists', buyerTotal <= 50 || (await a.locator('main a:has-text("Older →")').count()) === 1, `${buyerTotal} buyers`);
+  await a.fill('input[name=q]', BUYER);
+  await a.press('input[name=q]', 'Enter');
+  await a.waitForURL(/customers\?q=/);
+  // (scoped to <main>: while a page streams in, React briefly keeps a hidden copy of the new content at the end of <body>)
+  const buyerRow = await a.locator(`main tr:has-text("${BUYER}")`).textContent();
   ok('buyer listed with total paid', buyerRow.includes('$925'), buyerRow.replace(/\s+/g, ' ').slice(0, 120));
   await a.goto(BASE + '/admin', { waitUntil: 'load' });
   await a.waitForTimeout(800);

@@ -123,3 +123,15 @@ export function DownloadLink({ href, children, className }: { href: string; chil
     </a>
   );
 }
+
+/** "← Newer / Older →" links under a list (same look as the visit log and orders pagination). */
+export function Pager({ page, hasMore, href, note }: { page: number; hasMore: boolean; href: (page: number) => string; note?: ReactNode }) {
+  if (page <= 1 && !hasMore) return null;
+  return (
+    <div className="flex items-center justify-between gap-4 border-t border-line px-4 py-3 text-xs">
+      {page > 1 ? <Link href={href(page - 1)} className="underline underline-offset-4">← Newer</Link> : <span />}
+      {note && <span className="text-stone">{note}</span>}
+      {hasMore ? <Link href={href(page + 1)} className="underline underline-offset-4">Older →</Link> : <span />}
+    </div>
+  );
+}

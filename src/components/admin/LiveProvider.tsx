@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { createContext, useCallback, useContext, useEffect, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore, type ReactNode } from "react";
 import { AnimatePresence, LazyMotion, m } from "framer-motion";
 import { Bell, ShoppingBag, X } from "lucide-react";
 import { formatMoney } from "@/lib/format";
@@ -22,11 +22,17 @@ interface LiveState {
 
 const LiveContext = createContext<LiveState | null>(null);
 const POLL_MS = 8000;
+/** After failed polls, wait longer each time (up to a minute) instead of hammering a struggling server. */
+const MAX_BACKOFF_MS = 60_000;
+const REQUEST_TIMEOUT_MS = 15_000;
 
+// One audio context for the whole session: browsers cap how many can exist, and each holds audio resources.
+let audio: AudioContext | null = null;
 function chime() {
   try {
     const Ctx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-    const ctx = new Ctx();
+    const ctx = (audio ??= new Ctx());
+    if (ctx.state === "suspended") ctx.resume().catch(() => {});
     [880, 1320].forEach((f, i) => {
       const o = ctx.createOscillator();
       const g = ctx.createGain();
@@ -52,6 +58,8 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   const since = useRef<number>(0);
   const seenOrders = useRef<Set<string>>(new Set());
   const firstLoad = useRef(true);
+  const inFlight = useRef<AbortController | null>(null);
+  const failures = useRef(0);
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- read browser permission after mount
@@ -59,16 +67,25 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const poll = useCallback(async () => {
+    // Never stack requests: if the previous poll is still running (slow network or server), skip this tick.
+    if (inFlight.current) return;
+    const ctrl = new AbortController();
+    inFlight.current = ctrl;
+    const timer = window.setTimeout(() => ctrl.abort(), REQUEST_TIMEOUT_MS);
     try {
-      const res = await fetch(`/api/admin/live?since=${since.current || ""}`, { cache: "no-store" });
+      const res = await fetch(`/api/admin/live?since=${since.current || ""}`, { cache: "no-store", signal: ctrl.signal });
       if (res.status === 401) {
         window.location.assign(new URL("/admin/login", window.location.origin));
         return;
       }
+      if (!res.ok) throw new Error(`live ${res.status}`);
       const data = await res.json();
+      failures.current = 0;
       since.current = data.now - 1000;
       const fresh: LiveOrder[] = (data.orders as LiveOrder[]).filter((o) => !seenOrders.current.has(o.reference));
       fresh.forEach((o) => seenOrders.current.add(o.reference));
+      // Only orders from the last ~30 minutes can come back, so the remembered set never needs to grow far.
+      if (seenOrders.current.size > 500) seenOrders.current = new Set([...seenOrders.current].slice(-200));
       if (!firstLoad.current && fresh.length) {
         setToasts((t) => [...fresh, ...t].slice(0, 4));
         chime();
@@ -79,25 +96,48 @@ export function LiveProvider({ children }: { children: ReactNode }) {
       firstLoad.current = false;
       setState((s) => {
         const ids = new Set(s.feed.map((v) => v.id));
-        const feed = [...(data.views as LiveView[]).filter((v) => !ids.has(v.id)), ...s.feed].slice(0, 60);
-        const orders = [...fresh, ...s.orders].slice(0, 20);
-        return { now: data.now, live: data.live, feed, orders, pending: data.pending, unread: data.unread, connected: true };
+        const newViews = (data.views as LiveView[]).filter((v) => !ids.has(v.id));
+        const live = sameLive(s.live, data.live) ? s.live : (data.live as LiveView[]);
+        // Keep the same arrays when nothing new arrived, so lists that depend on them don't re-render.
+        const feed = newViews.length ? [...newViews, ...s.feed].slice(0, 60) : s.feed;
+        const orders = fresh.length ? [...fresh, ...s.orders].slice(0, 20) : s.orders;
+        return { now: data.now, live, feed, orders, pending: data.pending, unread: data.unread, connected: true };
       });
     } catch {
-      setState((s) => ({ ...s, connected: false }));
+      failures.current++;
+      setState((s) => (s.connected ? { ...s, connected: false } : s));
+    } finally {
+      window.clearTimeout(timer);
+      inFlight.current = null;
     }
   }, []);
 
   useEffect(() => {
-    poll();
-    const t = window.setInterval(() => {
-      if (document.visibilityState === "visible") poll();
-    }, POLL_MS);
-    const onVis = () => document.visibilityState === "visible" && poll();
-    document.addEventListener("visibilitychange", onVis);
+    let stopped = false;
+    let t = 0;
+    // A self-scheduling loop rather than setInterval: the next poll is planned only after the last one
+    // finished, and the wait grows after failures (8 s, 16 s, 32 s… up to a minute).
+    const loop = async () => {
+      if (document.visibilityState === "visible" && navigator.onLine !== false) await poll();
+      if (stopped) return;
+      const wait = failures.current ? Math.min(MAX_BACKOFF_MS, POLL_MS * 2 ** failures.current) : POLL_MS;
+      t = window.setTimeout(loop, wait);
+    };
+    loop();
+    const wake = () => {
+      if (document.visibilityState !== "visible") return;
+      window.clearTimeout(t);
+      failures.current = 0;
+      loop();
+    };
+    document.addEventListener("visibilitychange", wake);
+    window.addEventListener("online", wake);
     return () => {
-      window.clearInterval(t);
-      document.removeEventListener("visibilitychange", onVis);
+      stopped = true;
+      window.clearTimeout(t);
+      inFlight.current?.abort();
+      document.removeEventListener("visibilitychange", wake);
+      window.removeEventListener("online", wake);
     };
   }, [poll]);
 
@@ -107,14 +147,15 @@ export function LiveProvider({ children }: { children: ReactNode }) {
     return () => window.clearTimeout(t);
   }, [toasts]);
 
-  const enableNotifications = () => {
+  const enableNotifications = useCallback(() => {
     if (typeof Notification === "undefined") return;
     Notification.requestPermission().then((p) => setNotif(p === "granted"));
-  };
+  }, []);
+  const value = useMemo(() => ({ ...state, notificationsEnabled, enableNotifications }), [state, notificationsEnabled, enableNotifications]);
 
   return (
     <LazyMotion features={() => import("@/lib/motion-features").then((r) => r.default)}>
-    <LiveContext.Provider value={{ ...state, notificationsEnabled, enableNotifications }}>
+    <LiveContext.Provider value={value}>
       {children}
       <div className="pointer-events-none fixed bottom-5 right-5 z-[100] flex w-[340px] max-w-[calc(100vw-2.5rem)] flex-col gap-3" aria-live="assertive">
         <AnimatePresence>
@@ -145,6 +186,11 @@ export function LiveProvider({ children }: { children: ReactNode }) {
   );
 }
 
+/** Same visitors on the same pages as before? (then the list doesn't need to change) */
+function sameLive(a: LiveView[], b: LiveView[]) {
+  return a.length === b.length && a.every((v, i) => v.id === b[i].id);
+}
+
 const subscribe = () => () => {};
 /** false while hydrating, true afterwards — keeps live widgets identical to the server HTML during hydration. */
 function useHydrated() {
@@ -157,7 +203,7 @@ export function useLive(): LiveState {
   const ctx = useContext(LiveContext);
   const hydrated = useHydrated();
   if (!ctx) throw new Error("useLive must be used inside <LiveProvider>");
-  return hydrated ? ctx : { ...ctx, ...initialLive };
+  return useMemo(() => (hydrated ? ctx : { ...ctx, ...initialLive }), [ctx, hydrated]);
 }
 
 export function NotificationToggle() {

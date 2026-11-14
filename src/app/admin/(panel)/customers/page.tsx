@@ -2,22 +2,25 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { connection } from "next/server";
 import { Download, Search } from "lucide-react";
-import { Card, Empty, PageHeader, Stat, Table, adminBtnOutline, DownloadLink, countryLabel } from "@/components/admin/ui";
-import { listCustomers } from "@/lib/repo/orders";
+import { Card, Empty, PageHeader, Pager, Stat, Table, adminBtnOutline, DownloadLink, countryLabel } from "@/components/admin/ui";
+import { customerStats, listCustomers } from "@/lib/repo/orders";
 import { formatDateTime } from "@/lib/time";
 import { formatMoney } from "@/lib/format";
 
 export const instant = false;
 export const metadata: Metadata = { title: "Buyers" };
+const PAGE = 50;
 
 export default async function CustomersPage({ searchParams }: PageProps<"/admin/customers">) {
   await connection();
   const sp = await searchParams;
   const q = typeof sp.q === "string" ? sp.q.slice(0, 80) : "";
-  const buyers = await listCustomers({ q: q || undefined });
-  const paid = buyers.reduce((n, b) => n + b.paid, 0);
-  const requested = buyers.reduce((n, b) => n + b.requested, 0);
-  const repeat = buyers.filter((b) => b.orders > 1).length;
+  const page = Math.max(1, Number(sp.page) || 1);
+  // Totals are computed over every buyer in the database; the table shows one page at a time.
+  const [list, totals] = await Promise.all([listCustomers({ q: q || undefined, limit: PAGE + 1, offset: (page - 1) * PAGE }), customerStats({ q: q || undefined })]);
+  const buyers = list.slice(0, PAGE);
+  const { paid, requested, repeat } = totals;
+  const href = (p: number) => `/admin/customers?${new URLSearchParams({ ...(q ? { q } : {}), ...(p > 1 ? { page: String(p) } : {}) })}`.replace(/\?$/, "");
 
   return (
     <>
@@ -27,7 +30,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
         actions={<DownloadLink href="/api/admin/export/customers" className={adminBtnOutline}><Download size={14} /> Export CSV</DownloadLink>}
       />
       <div className="mb-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Stat accent label="Buyers" value={buyers.length.toLocaleString("en-US")} />
+        <Stat accent label="Buyers" value={totals.buyers.toLocaleString("en-US")} />
         <Stat label="Repeat buyers" value={repeat} hint="More than one order" />
         <Stat label="Total paid" value={formatMoney(paid)} />
         <Stat label="Total ordered" value={formatMoney(requested)} hint="Excluding cancelled orders" />
@@ -53,6 +56,7 @@ export default async function CustomersPage({ searchParams }: PageProps<"/admin/
             </tr>
           ))}
         </Table>
+        <Pager page={page} hasMore={list.length > PAGE} href={href} note={`Page ${page} of ${Math.max(1, Math.ceil(totals.buyers / PAGE))}`} />
       </Card>
     </>
   );
