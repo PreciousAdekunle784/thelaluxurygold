@@ -2,11 +2,12 @@
 
 import { useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { ArrowDown, ArrowUp, ImagePlus, Images, Loader2, Plus, Sparkles, Trash2, Upload, X } from "lucide-react";
 import type { Product, ProductVariant } from "@/lib/data/types";
 import { categories, collections, purities } from "@/lib/data/categories";
 import { MediaImage } from "@/components/ui/MediaImage";
-import { deleteProductAction, saveProductAction, setArchivedAction } from "@/app/admin/(panel)/products/actions";
+import { deleteProductAction, saveProductAction, setArchivedAction, suggestNameAction } from "@/app/admin/(panel)/products/actions";
+import { NameReview, type NamingState } from "./NameReview";
 import { IMAGE_ACCEPT, uploadImage } from "./upload-image";
 import { adminBtnOutline, adminBtnPrimary } from "./ui";
 import { cx } from "@/lib/format";
@@ -76,12 +77,61 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
   const [picker, setPicker] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
 
+  // ---- AI name suggestions: the AI suggests, the admin decides.
+  const [naming, setNaming] = useState<NamingState>({ status: "idle" });
+  // The product's name if it came from an approved suggestion; null when the admin typed it (manual names always win).
+  const [approvedName, setApprovedName] = useState<string | null>(null);
+  const suggested = useRef<string[]>([]); // every name suggested in this session, never suggested again
+  const nameRequest = useRef(0);
+
+  const suggestName = async (photo: string, regenerate = false) => {
+    const previous = naming.status === "ready" ? naming : naming.status !== "idle" ? naming.previous : undefined;
+    const kind = regenerate ? previous?.kind : undefined;
+    const ticket = ++nameRequest.current;
+    setNaming({ status: "loading", photo, previous: regenerate ? previous : undefined });
+    const res = await suggestNameAction({ media: photo, previous: suggested.current, kind }).catch(() => ({
+      ok: false as const,
+      error: "Name suggestions are unavailable right now. Try again, or type the name yourself.",
+      unavailable: false,
+    }));
+    if (ticket !== nameRequest.current) return; // a newer request (or another photo) took over
+    if (res.ok && !suggested.current.some((n) => n.toLowerCase() === res.name.toLowerCase())) {
+      suggested.current = [...suggested.current, res.name];
+      setNaming({ status: "ready", photo, name: res.name, kind: res.kind, kindLabel: res.kindLabel, category: res.category, features: res.features });
+    } else {
+      const error = res.ok ? "No new name could be found this time. Try again, or type the name yourself." : res.error;
+      setNaming({ status: "error", photo, error, unavailable: !res.ok && res.unavailable, previous: regenerate ? previous : undefined });
+    }
+  };
+
+  /** The admin approved a name (as suggested, or edited): it becomes the product name. */
+  const approveName = (name: string) => {
+    setP((x) => ({
+      ...x,
+      name,
+      slug: slugTouched ? x.slug : slugify(name),
+      images: x.images.map((img) => (img.alt.trim() ? img : { ...img, alt: name })),
+    }));
+    setApprovedName(name);
+    setErrors((e) => ({ ...e, name: "" }));
+  };
+
+  /** A new main photo for a product that has no name yet: suggest one straight away. */
+  const autoSuggest = (photo: string, hadImages: boolean) => {
+    if (!hadImages && !p.name.trim()) void suggestName(photo);
+  };
+
   const set = <K extends keyof Product>(k: K, v: Product[K]) => setP((x) => ({ ...x, [k]: v }));
   const variant = p.variants?.[0];
 
   const save = () =>
     startSave(async () => {
       setMessage(null);
+      if (!p.name.trim() && naming.status !== "idle") {
+        setErrors({ name: "Approve the suggested name, edit it, or type your own." });
+        setMessage({ kind: "error", text: "The product needs a name you have approved before it can be saved." });
+        return;
+      }
       const res = await saveProductAction({ ...p, description: description.split(/\n\s*\n/).map((s) => s.trim()).filter(Boolean) });
       if (!res.ok) {
         setErrors(res.fields ?? {});
@@ -100,11 +150,15 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
     setMessage(null);
     const list = Array.from(files);
     const failed: string[] = [];
+    let hadImages = p.images.length > 0;
     for (const [i, file] of list.entries()) {
       if (list.length > 1) setMessage({ kind: "ok", text: `Uploading ${i + 1} of ${list.length}\u2026` });
       const res = await uploadImage(file, "product");
-      if (res.ok) setP((x) => ({ ...x, images: [...x.images, { media: res.key, alt: x.name }] }));
-      else failed.push(res.error);
+      if (res.ok) {
+        setP((x) => ({ ...x, images: [...x.images, { media: res.key, alt: x.name }] }));
+        autoSuggest(res.key, hadImages); // the first photo of an unnamed product gets a name suggestion
+        hadImages = true;
+      } else failed.push(res.error);
     }
     setMessage(failed.length ? { kind: "error", text: failed.join(" ") } : list.length > 1 ? { kind: "ok", text: `${list.length} images added. Save to publish them.` } : null);
     setUploading(false);
@@ -124,18 +178,33 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
     <div className="pb-28">
       <div className="grid gap-6 xl:grid-cols-[1.5fr_1fr]">
         <div className="space-y-6">
+          <NameReview
+            naming={naming}
+            productName={p.name}
+            approvedName={approvedName}
+            category={p.category}
+            onApprove={approveName}
+            onRegenerate={() => naming.status !== "idle" && void suggestName(naming.photo, true)}
+            onSetCategory={(c) => set("category", c)}
+          />
           <Section title="Basics">
-            <Field label="Product name" error={errors.name}>
+            <Field label="Product name" error={errors.name || undefined}>
               <input
                 className="field-boxed"
                 value={p.name}
                 onChange={(e) => {
                   const name = e.target.value;
                   setP((x) => ({ ...x, name, slug: slugTouched ? x.slug : slugify(name) }));
+                  setApprovedName(null); // typed by the admin: their name, kept over any suggestion
                 }}
-                placeholder="e.g. Aurelia Classic Band"
+                placeholder="e.g. Aurelia Necklace"
               />
             </Field>
+            {naming.status === "idle" && p.images[0] && (
+              <button type="button" onClick={() => void suggestName(p.images[0].media)} className="-mt-2 flex items-center gap-1.5 text-xs underline underline-offset-4">
+                <Sparkles size={12} className="text-champagne" /> Suggest a name from the main photo
+              </button>
+            )}
             <Field label="Web address" error={errors.slug} hint={`laluxurygold.com/product/${p.slug || "…"}`}>
               <input className="field-boxed font-mono text-sm" value={p.slug} onChange={(e) => { setSlugTouched(true); set("slug", slugify(e.target.value)); }} />
             </Field>
@@ -333,7 +402,7 @@ export function ProductForm({ initial, archived = false, library }: { initial: P
                 <li key={key}>
                   <button
                     type="button"
-                    onClick={() => { setP((x) => ({ ...x, images: [...x.images, { media: key, alt: x.name }] })); setPicker(false); }}
+                    onClick={() => { setP((x) => ({ ...x, images: [...x.images, { media: key, alt: x.name }] })); setPicker(false); autoSuggest(key, p.images.length > 0); }}
                     className="group relative block aspect-[4/5] w-full overflow-hidden bg-sand outline-offset-2 hover:outline hover:outline-1 hover:outline-ink"
                     title={key}
                   >

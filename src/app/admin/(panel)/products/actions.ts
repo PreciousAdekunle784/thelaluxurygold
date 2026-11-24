@@ -1,13 +1,17 @@
 "use server";
 
 import { updateTag, revalidatePath, revalidateTag } from "next/cache";
-import { processUpload, sniffImageType, UnreadableImageError, WatermarkError } from "@/lib/server/images";
+import { imageForAnalysis, processUpload, sniffImageType, UnreadableImageError, WatermarkError } from "@/lib/server/images";
+import { KIND_CATEGORY, KIND_LABEL, PIECE_KINDS, suggestProductName, type PieceKind } from "@/lib/server/ai-naming";
+import { listProductRows } from "@/lib/repo/products";
+import { headers } from "next/headers";
+import { media } from "@/lib/data/media";
 import { ensureWatermarked, uploadIds } from "@/lib/server/media-watermark";
 import { WATERMARK_REVISION } from "@/lib/watermark/revision";
 import { requireAdmin } from "@/lib/auth/admin";
 import { CATALOGUE_TAG } from "@/lib/data/store-catalogue";
 import { deleteProduct, getProductRow, saveProduct, setArchived, slugTaken } from "@/lib/repo/products";
-import { saveMedia, saveUploadChunk, takeUploadChunks } from "@/lib/repo/misc";
+import { getMedia, getMediaOriginal, saveMedia, saveUploadChunk, takeUploadChunks } from "@/lib/repo/misc";
 import { builtInMediaKeys } from "@/lib/data/media";
 import { categories, collections, purities } from "@/lib/data/categories";
 import { newId } from "@/lib/db/client";
@@ -172,4 +176,56 @@ export async function uploadImageChunkAction(form: FormData): Promise<UploadResu
   const parts = await takeUploadChunks(uploadId);
   if (parts.length !== total) return { ok: false, error: "Part of the upload went missing. Please try again." };
   return storeUpload(Buffer.concat(parts), form.get("purpose"), String(form.get("name") ?? ""));
+}
+
+// ---------------------------------------------------------------- AI name suggestions
+
+export type NameSuggestionResult =
+  | { ok: true; name: string; kind: PieceKind; kindLabel: string; category: Product["category"] | null; features: string }
+  | { ok: false; error: string; unavailable?: boolean };
+
+/** The photo to analyse: an upload's ORIGINAL (no watermark), or a built-in product photo. */
+async function photoFor(key: string): Promise<Buffer | null> {
+  const upload = /^uploads\/(m[a-f0-9]{16})$/.exec(key);
+  if (upload) {
+    const original = await getMediaOriginal(upload[1]);
+    if (original) return original.bytes;
+    const served = await getMedia(upload[1]); // uploads from before originals were kept
+    return served?.bytes ?? null;
+  }
+  if (!builtInMediaKeys.includes(key)) return null;
+  // Built-in photos are static files served by the site itself.
+  const h = await headers();
+  const host = h.get("x-forwarded-host") ?? h.get("host");
+  if (!host) return null;
+  const proto = h.get("x-forwarded-proto") ?? (host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https");
+  const res = await fetch(`${proto}://${host}${media(key).src}`, { cache: "no-store" }).catch(() => null);
+  return res?.ok ? Buffer.from(await res.arrayBuffer()) : null;
+}
+
+/**
+ * Suggest a product name from the product's main photo. Only a suggestion: nothing is saved here, and the
+ * product form only uses it when the admin approves it.
+ *  - `previous`: names already suggested in this form session (never suggested again).
+ *  - `kind`: the type of piece found earlier, kept when regenerating.
+ */
+export async function suggestNameAction(input: { media: string; previous?: string[]; kind?: string }): Promise<NameSuggestionResult> {
+  await requireAdmin();
+  const key = String(input.media ?? "").slice(0, 120);
+  const previous = (Array.isArray(input.previous) ? input.previous : []).map((n) => String(n).trim().slice(0, 40)).filter(Boolean).slice(-30);
+  const kind = PIECE_KINDS.includes(input.kind as PieceKind) ? (input.kind as PieceKind) : undefined;
+
+  const photo = await photoFor(key);
+  if (!photo) return { ok: false, error: "That image couldn\u2019t be found. Upload it again, or type the name yourself." };
+  let jpeg: Buffer;
+  try {
+    jpeg = await imageForAnalysis(photo);
+  } catch {
+    return { ok: false, error: "That image couldn\u2019t be read for a name suggestion. Type the name yourself." };
+  }
+  // Existing product names are avoided too, so a suggestion never clashes with another product.
+  const existing = (await listProductRows({ includeArchived: true, visibility: "all" })).map((r) => r.product.name);
+  const result = await suggestProductName(jpeg, { avoid: [...previous, ...existing], kind });
+  if (!result.ok) return { ok: false, error: result.message, unavailable: result.reason === "unavailable" };
+  return { ok: true, name: result.name, kind: result.kind, kindLabel: KIND_LABEL[result.kind], category: KIND_CATEGORY[result.kind], features: result.features };
 }

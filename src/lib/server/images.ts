@@ -41,6 +41,19 @@ export async function processUpload(input: Buffer, opts: { large?: boolean; wate
   }
 }
 
+/**
+ * The photo as Claude should see it for naming: the unwatermarked original (any format we can read), upright,
+ * at most 1568 px on its long side, as a JPEG.
+ */
+export async function imageForAnalysis(input: Buffer) {
+  const px = await decodeForDisplay(input, true);
+  return sharp(px.data, { raw: { width: px.width, height: px.height, channels: px.channels } })
+    .resize({ width: 1568, height: 1568, fit: "inside", withoutEnlargement: true })
+    .flatten({ background: "#ffffff" })
+    .jpeg({ quality: 86 })
+    .toBuffer();
+}
+
 /** Decode, turn upright, fit inside the display size (never enlarged, proportions kept) and convert to sRGB pixels. */
 async function decodeForDisplay(input: Buffer, large: boolean): Promise<RawImage> {
   const box = large ? { width: 2800, height: 2800 } : { width: 1600, height: 2000 };

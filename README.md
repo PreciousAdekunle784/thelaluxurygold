@@ -74,6 +74,24 @@ licensed photo libraries were blocked by the network. The hero therefore uses a 
 campaign photo in **Admin → Store settings** whenever one is available. Full details, the asset list and the
 replace-before-launch checklist are in **[docs/IMAGE-ASSETS.md](docs/IMAGE-ASSETS.md)**.
 
+### AI product names
+
+When a new product's first photo is uploaded, the admin suggests a short, premium name for it (for example
+"Rosée Pendant"), using Claude (Anthropic's `claude-opus-5-5`) looking at the photo. **The AI only suggests; the
+admin decides.** The suggestion appears in a "Product name suggestion" card with the photo: **Use this name**,
+**Edit name** or **Regenerate**. Nothing goes into the product's name until the admin approves it, a name the admin
+types is never replaced unless they choose a suggestion instead, and a product can't be saved with an unapproved name.
+
+* Regenerate keeps the same photo and type of piece and never repeats a name from the same session; names already
+  used by other products are avoided too.
+* Names are checked on the server: 2–4 words, no filler words, and no purity, weight, metal or gemstone claims
+  (things a photo can't establish).
+* The photo analysed is the unwatermarked original; the watermarking of uploads is unchanged.
+* Requests go from the server only (`src/lib/server/ai-naming.ts`); the key is never sent to the browser.
+  Set `ANTHROPIC_API_KEY` in Vercel to turn it on. Without it, or if the service is down, the card says so and
+  products are named by hand as before. Refusal fallbacks are on (`fallbacks: "default"`).
+* For an existing product, use **Suggest a name from the main photo** under Product name.
+
 ### Watermark
 
 Every product image on the website carries the LA Luxury Gold monogram (the LG arch from `src/components/brand/Logo.tsx`)
@@ -125,6 +143,7 @@ Copy `.env.example` to `.env.local` and fill it in.
 | `NEXT_PUBLIC_NGN_PER_USD` | Optional: naira rate used until one is saved in Store settings (default 1550) |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | Optional public email |
 | `PAYSTACK_SECRET_KEY` | Paystack secret key (`sk_live_…`), server only. Enables "Pay now" at checkout |
+| `ANTHROPIC_API_KEY` | Optional: turns on AI product-name suggestions in Admin → Products (server only) |
 | `PRIVATE_ACCESS_SECRET` | Optional secret for fingerprinting Private Collection codes. If unset, a random one is generated and stored in the database. Changing it invalidates every issued code |
 | `ORDER_WEBHOOK_URL` | Optional: also forward each order as JSON (CRM, email automation, Make/Zapier, Sheets…) |
 | `NEWSLETTER_WEBHOOK_URL` | Receives newsletter sign-ups |
@@ -263,6 +282,8 @@ BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # ad
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/private-e2e.cjs    # Private Collection
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/upload-e2e.cjs     # image uploads in every format
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/watermark-e2e.cjs  # automatic watermarking (uses the same DATABASE_URL as the server)
+node tests/mock-anthropic.cjs &   # then start the site with ANTHROPIC_API_KEY=test-key ANTHROPIC_BASE_URL=http://localhost:4020
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/naming-e2e.cjs     # AI product names (against the mock Claude API)
 ```
 
 Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.
