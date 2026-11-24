@@ -163,6 +163,20 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
     await uploadPhoto();
     ok('a photo without jewellery gets no name, just a note', (await review.textContent()).includes('doesn’t seem to show a piece of jewellery') && (await review.locator('[data-testid=suggested-name]').count()) === 0);
 
+    // ---------------------------------------------------------------- Gemini: a model the key can't use falls back to the next
+    if (PROVIDER === 'gemini') {
+      await newProduct();
+      await mock('/__reset', {});
+      await mock('/__mode', { mode: 'model-404' });
+      await uploadPhoto();
+      const used = (await mock('/__requests')).map((r) => r.model);
+      ok('if the configured Gemini model is unavailable, the next model is used', !!(await suggestedName().catch(() => '')) && used[0] === 'gemini-3.8-flash' && used[1] === 'gemini-flash-latest', used.join(' → '));
+      await mock('/__mode', { mode: 'fail' });
+      await newProduct();
+      await uploadPhoto();
+      ok('a failure shows the provider\u2019s reason to the admin', /Gemini 500/.test(await review.textContent()));
+    }
+
     // ---------------------------------------------------------------- existing products: suggestions only on request
     await mock('/__mode', { mode: 'ok' });
     await a.goto(BASE + '/admin/products/p-ring-signet', { waitUntil: 'networkidle' });

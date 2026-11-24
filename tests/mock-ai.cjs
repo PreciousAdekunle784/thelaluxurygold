@@ -71,6 +71,8 @@ http
           text,
         });
         if (mode === 'fail') return send(res, 500, { error: { code: 500, message: 'Internal error encountered.', status: 'INTERNAL' } });
+        // a model this key can't use: the site should move on to the next model
+        if (mode === 'model-404' && gem[1] === 'gemini-3.8-flash') return send(res, 404, { error: { code: 404, message: `models/${gem[1]} is not found for API version v1, or is not supported for generateContent.`, status: 'NOT_FOUND' } });
         return send(res, 200, {
           candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer(text)) }] }, finishReason: 'STOP', index: 0 }],
           usageMetadata: { promptTokenCount: 1300, candidatesTokenCount: 40, totalTokenCount: 1340 },

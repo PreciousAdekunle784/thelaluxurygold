@@ -23,7 +23,8 @@ export interface NamingRequest {
   imageBase64: string;
   schema: Record<string, unknown>;
 }
-export type AskResult = { ok: true; json: string } | { ok: false; kind: "auth" | "busy" | "declined" | "error" };
+/** `detail`: the provider's short reason (never a key), shown to the admin so a problem can be fixed. */
+export type AskResult = { ok: true; json: string } | { ok: false; kind: "auth" | "busy" | "declined" | "error"; detail?: string };
 
 export type NamingProvider = "gemini" | "claude";
 export function namingProvider(): NamingProvider | null {
@@ -157,10 +158,11 @@ export async function suggestProductName(image: Buffer, opts: { avoid: string[];
 
     const answer = await ask({ system: SYSTEM, prompt: lines.join("\n"), imageBase64, schema: SCHEMA as unknown as Record<string, unknown> });
     if (!answer.ok) {
-      if (answer.kind === "auth") return { ok: false, reason: "unavailable", message: "Name suggestions are unavailable: the AI API key was not accepted. Type the name yourself." };
+      const why = answer.detail ? ` (${answer.detail})` : "";
+      if (answer.kind === "auth") return { ok: false, reason: "unavailable", message: `Name suggestions are unavailable: the AI API key was not accepted${why}. Type the name yourself.` };
       if (answer.kind === "busy") return { ok: false, reason: "failed", message: "Name suggestions are busy right now. Try again in a moment, or type the name yourself." };
       if (answer.kind === "declined") return { ok: false, reason: "failed", message: "No name could be suggested for this photo. Try again, or type the name yourself." };
-      return { ok: false, reason: "failed", message: "Name suggestions are unavailable right now. Try again, or type the name yourself." };
+      return { ok: false, reason: "failed", message: `Name suggestions are unavailable right now${why}. Try again, or type the name yourself.` };
     }
     let out: { is_jewellery: boolean; kind: PieceKind; visible_features: string; name: string };
     try {
