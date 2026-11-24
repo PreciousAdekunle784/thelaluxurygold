@@ -1,18 +1,36 @@
 import "server-only";
-import Anthropic from "@anthropic-ai/sdk";
 import type { Product } from "@/lib/data/types";
+import { askClaude, claudeConfigured } from "./ai-naming-claude";
+import { askGemini, geminiKey } from "./ai-naming-gemini";
 
 /**
  * AI product-name suggestions for the admin.
  *
- * Claude looks at the product photograph and proposes a short, premium name. It only ever SUGGESTS:
+ * An AI vision model looks at the product photograph and proposes a short, premium name. It only ever SUGGESTS:
  * nothing here writes to a product; the admin approves (or replaces) the name in the product form.
  *
- * Needs ANTHROPIC_API_KEY on the server (never sent to the browser). Without it, suggestions are simply
- * unavailable and products are named by hand as before.
+ * Provider (server only; keys are never sent to the browser):
+ *   GEMINI_API_KEY set     → Google Gemini (ai-naming-gemini.ts)
+ *   else ANTHROPIC_API_KEY → Anthropic Claude (ai-naming-claude.ts)
+ *   neither                → suggestions are off; products are named by hand as before.
+ * The brief, the output format and every check on the result are shared, so both behave the same.
  */
 
-const MODEL = "claude-opus-5-5";
+/** What one provider call needs, and what it returns. */
+export interface NamingRequest {
+  system: string;
+  prompt: string;
+  imageBase64: string;
+  schema: Record<string, unknown>;
+}
+export type AskResult = { ok: true; json: string } | { ok: false; kind: "auth" | "busy" | "declined" | "error" };
+
+export type NamingProvider = "gemini" | "claude";
+export function namingProvider(): NamingProvider | null {
+  if (geminiKey()) return "gemini";
+  if (claudeConfigured()) return "claude";
+  return null;
+}
 
 /** What kind of piece the photograph shows. */
 export const PIECE_KINDS = ["necklace", "pendant", "chain", "ring", "bracelet", "bangle", "cuff", "earrings", "set", "gold_bar", "other"] as const;
@@ -52,11 +70,8 @@ export type NameSuggestion =
   | { ok: false; reason: "unavailable" | "not_jewellery" | "failed"; message: string };
 
 export function namingConfigured() {
-  return !!(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
+  return namingProvider() !== null;
 }
-
-let client: Anthropic | null = null;
-const anthropic = () => (client ??= new Anthropic({ timeout: 60_000, maxRetries: 1 }));
 
 // Stable instructions (kept identical between requests so they can be served from the prompt cache).
 const SYSTEM = `You name fine jewellery for LA Luxury Gold, a Dubai gold jewellery house. You see one product photograph and propose one product name for it.
@@ -127,10 +142,12 @@ export function checkName(raw: string, avoid: string[]): { name: string } | { pr
  * type of piece (when regenerating). Tries a second time if the first suggestion breaks the rules.
  */
 export async function suggestProductName(image: Buffer, opts: { avoid: string[]; kind?: PieceKind }): Promise<NameSuggestion> {
-  if (!namingConfigured()) {
-    return { ok: false, reason: "unavailable", message: "Name suggestions aren’t set up on this site yet (an Anthropic API key is needed). Type the name yourself." };
+  const provider = namingProvider();
+  if (!provider) {
+    return { ok: false, reason: "unavailable", message: "Name suggestions aren\u2019t set up on this site yet (an AI API key is needed). Type the name yourself." };
   }
-  const data = image.toString("base64");
+  const ask = provider === "gemini" ? askGemini : askClaude;
+  const imageBase64 = image.toString("base64");
   let feedback = "";
   for (let attempt = 0; attempt < 2; attempt++) {
     const lines = ["Name the piece in this photograph."];
@@ -138,57 +155,27 @@ export async function suggestProductName(image: Buffer, opts: { avoid: string[];
     if (opts.avoid.length) lines.push(`Names that are already taken or were already suggested. Do not use any of them, or the same name-word with a different ending: ${opts.avoid.join("; ")}.`);
     if (feedback) lines.push(`Your previous suggestion could not be used because ${feedback}. Suggest a different name.`);
 
-    let message: Anthropic.Beta.BetaMessage;
-    try {
-      message = await anthropic().beta.messages.create({
-        model: MODEL,
-        max_tokens: 16000,
-        // If a safety classifier declines, the API retries on Anthropic's recommended fallback model.
-        betas: ["server-side-fallback-2026-07-01"],
-        fallbacks: "default",
-        system: [{ type: "text", text: SYSTEM, cache_control: { type: "ephemeral" } }],
-        messages: [
-          {
-            role: "user",
-            content: [
-              { type: "image", source: { type: "base64", media_type: "image/jpeg", data } },
-              { type: "text", text: lines.join("\n") },
-            ],
-          },
-        ],
-        output_config: { effort: "medium", format: { type: "json_schema", schema: SCHEMA } },
-      });
-    } catch (err) {
-      if (err instanceof Anthropic.AuthenticationError || err instanceof Anthropic.PermissionDeniedError) {
-        console.error("[ai-naming] API key rejected", err.status);
-        return { ok: false, reason: "unavailable", message: "Name suggestions are unavailable: the Anthropic API key was not accepted. Type the name yourself." };
-      }
-      if (err instanceof Anthropic.RateLimitError) {
-        return { ok: false, reason: "failed", message: "Name suggestions are busy right now. Try again in a moment, or type the name yourself." };
-      }
-      console.error("[ai-naming] request failed", err instanceof Anthropic.APIError ? `${err.status} ${err.message}` : err);
+    const answer = await ask({ system: SYSTEM, prompt: lines.join("\n"), imageBase64, schema: SCHEMA as unknown as Record<string, unknown> });
+    if (!answer.ok) {
+      if (answer.kind === "auth") return { ok: false, reason: "unavailable", message: "Name suggestions are unavailable: the AI API key was not accepted. Type the name yourself." };
+      if (answer.kind === "busy") return { ok: false, reason: "failed", message: "Name suggestions are busy right now. Try again in a moment, or type the name yourself." };
+      if (answer.kind === "declined") return { ok: false, reason: "failed", message: "No name could be suggested for this photo. Try again, or type the name yourself." };
       return { ok: false, reason: "failed", message: "Name suggestions are unavailable right now. Try again, or type the name yourself." };
     }
-
-    if (message.stop_reason === "refusal" || message.stop_reason === "max_tokens") {
-      console.error("[ai-naming] no usable answer:", message.stop_reason);
-      return { ok: false, reason: "failed", message: "No name could be suggested for this photo. Try again, or type the name yourself." };
-    }
-    const text = message.content.find((b): b is Anthropic.Beta.BetaTextBlock => b.type === "text")?.text ?? "";
     let out: { is_jewellery: boolean; kind: PieceKind; visible_features: string; name: string };
     try {
-      out = JSON.parse(text);
+      out = JSON.parse(answer.json);
     } catch {
       feedback = "the answer was not valid JSON";
       continue;
     }
     if (!out.is_jewellery) {
-      return { ok: false, reason: "not_jewellery", message: "This photo doesn’t seem to show a piece of jewellery, so no name was suggested. Type the name yourself." };
+      return { ok: false, reason: "not_jewellery", message: "This photo doesn\u2019t seem to show a piece of jewellery, so no name was suggested. Type the name yourself." };
     }
     const kind = opts.kind ?? (PIECE_KINDS.includes(out.kind) ? out.kind : "other");
-    const checked = checkName(out.name, opts.avoid);
+    const checked = checkName(String(out.name ?? ""), opts.avoid);
     if ("name" in checked) return { ok: true, name: checked.name, kind, features: String(out.visible_features ?? "").slice(0, 200) };
     feedback = checked.problem;
   }
-  return { ok: false, reason: "failed", message: "A suitable new name couldn’t be found this time. Try again, or type the name yourself." };
+  return { ok: false, reason: "failed", message: "A suitable new name couldn\u2019t be found this time. Try again, or type the name yourself." };
 }

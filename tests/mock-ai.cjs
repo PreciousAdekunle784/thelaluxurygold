@@ -1,6 +1,9 @@
-// A stand-in for the Claude Messages API, for tests/naming-e2e.cjs. Start the site with
+// A stand-in for the AI APIs used for product-name suggestions, for tests/naming-e2e.cjs. It answers, in their
+// real response formats, Google Gemini (POST /v1/models/<model>:generateContent) and Anthropic Claude
+// (POST /v1/messages), and records each request. Start the site with either
+//   GEMINI_API_KEY=test-key GEMINI_BASE_URL=http://localhost:4020
 //   ANTHROPIC_API_KEY=test-key ANTHROPIC_BASE_URL=http://localhost:4020
-// and run this file. It answers POST /v1/messages in the real response format and records each request.
+// and run this file.
 //   POST /__mode {"mode": "ok" | "fail" | "dup-first" | "not-jewellery"}   change behaviour
 //   GET  /__requests                                                      what the site sent (images summarised)
 //   GET  /__last-image                                                    the last image, as sent (JPEG)
@@ -12,6 +15,19 @@ let mode = 'ok';
 let requests = [];
 let lastImage = null;
 let dupServed = false;
+
+/** What the "model" answers: follows the request's do-not-use list and kept kind, like the real models. */
+function answer(text) {
+  const kind = /kind "([a-z_]+)"/.exec(text)?.[1] || 'pendant';
+  if (mode === 'not-jewellery') return { is_jewellery: false, kind: 'other', visible_features: 'a plain backdrop', name: 'Nothing Here' };
+  if (mode === 'dup-first' && !dupServed) {
+    dupServed = true;
+    return { is_jewellery: true, kind, visible_features: 'teardrop drop on a fine chain', name: 'Maison Signet Ring' }; // an existing product's name
+  }
+  const taken = (/already suggested\. Do not use any of them[^:]*: ([^\n]*)/.exec(text)?.[1] || '').toLowerCase();
+  const name = POOL.find((n) => !taken.includes(n.toLowerCase()) && !taken.includes(n.split(' ')[0].toLowerCase())) || 'Unused Pendant';
+  return { is_jewellery: true, kind, visible_features: 'teardrop drop on a fine cable chain', name };
+}
 
 const send = (res, status, body) => {
   res.writeHead(status, { 'content-type': 'application/json', 'request-id': 'req_mock' });
@@ -34,6 +50,35 @@ http
         res.writeHead(lastImage ? 200 : 404, { 'content-type': 'image/jpeg' });
         return res.end(lastImage || '');
       }
+      // ---------------------------------------------------------------- Gemini
+      const gem = /^\/v1(?:beta)?\/models\/([^:/]+):generateContent/.exec(req.url);
+      if (gem && req.method === 'POST') {
+        if (req.headers['x-goog-api-key'] !== 'test-key') return send(res, 400, { error: { code: 400, message: 'API key not valid. Please pass a valid API key.', status: 'INVALID_ARGUMENT' } });
+        const body = JSON.parse(raw);
+        const parts = body.contents?.[0]?.parts || [];
+        const img = parts.find((p) => p.inlineData);
+        const text = parts.filter((p) => typeof p.text === 'string').map((p) => p.text).join('\n');
+        if (img) lastImage = Buffer.from(img.inlineData.data, 'base64');
+        const gc = body.generationConfig || {};
+        requests.push({
+          provider: 'gemini',
+          model: gem[1],
+          apiKeyHeader: true,
+          format: gc.responseMimeType === 'application/json' && gc.responseJsonSchema ? 'json_schema' : gc.responseMimeType,
+          schemaFields: Object.keys(gc.responseJsonSchema?.properties || {}),
+          system: (body.systemInstruction?.parts || []).map((p) => p.text).join(''),
+          image: img ? { type: 'inline', media_type: img.inlineData.mimeType, bytes: Buffer.from(img.inlineData.data, 'base64').length } : null,
+          text,
+        });
+        if (mode === 'fail') return send(res, 500, { error: { code: 500, message: 'Internal error encountered.', status: 'INTERNAL' } });
+        return send(res, 200, {
+          candidates: [{ content: { role: 'model', parts: [{ text: JSON.stringify(answer(text)) }] }, finishReason: 'STOP', index: 0 }],
+          usageMetadata: { promptTokenCount: 1300, candidatesTokenCount: 40, totalTokenCount: 1340 },
+          modelVersion: gem[1],
+        });
+      }
+
+      // ---------------------------------------------------------------- Claude
       if (!req.url.startsWith('/v1/messages') || req.method !== 'POST') return send(res, 404, { type: 'error', error: { type: 'not_found_error', message: 'not found' } });
       // SDK 1.x sends the key as "Authorization: Bearer"; older SDKs used x-api-key
       const key = req.headers['x-api-key'] || (req.headers['authorization'] || '').replace(/^Bearer /, '');
@@ -45,6 +90,7 @@ http
       const text = content.filter((b) => b.type === 'text').map((b) => b.text).join('\n');
       if (image?.source?.data) lastImage = Buffer.from(image.source.data, 'base64');
       requests.push({
+        provider: 'claude',
         model: body.model,
         beta: req.headers['anthropic-beta'] || '',
         fallbacks: body.fallbacks,
@@ -58,20 +104,7 @@ http
 
       if (mode === 'fail') return send(res, 500, { type: 'error', error: { type: 'api_error', message: 'Internal server error' } });
 
-      const kindMatch = /kind "([a-z_]+)"/.exec(text);
-      const kind = kindMatch ? kindMatch[1] : 'pendant';
-      let out;
-      if (mode === 'not-jewellery') {
-        out = { is_jewellery: false, kind: 'other', visible_features: 'a plain backdrop', name: 'Nothing Here' };
-      } else if (mode === 'dup-first' && !dupServed) {
-        dupServed = true;
-        out = { is_jewellery: true, kind, visible_features: 'teardrop drop on a fine chain', name: 'Maison Signet Ring' }; // an existing product's name
-      } else {
-        // like the real model, follow the "do not use" list in the request
-        const taken = (/already suggested\. Do not use any of them[^:]*: ([^\n]*)/.exec(text)?.[1] || '').toLowerCase();
-        const name = POOL.find((n) => !taken.includes(n.toLowerCase()) && !taken.includes(n.split(' ')[0].toLowerCase())) || 'Unused Pendant';
-        out = { is_jewellery: true, kind, visible_features: 'teardrop drop on a fine cable chain', name };
-      }
+      const out = answer(text);
       send(res, 200, {
         id: `msg_mock_${requests.length}`,
         type: 'message',
@@ -84,4 +117,4 @@ http
       });
     });
   })
-  .listen(PORT, () => console.log(`mock Claude API on :${PORT}`));
+  .listen(PORT, () => console.log(`mock AI APIs (Gemini + Claude) on :${PORT}`));

@@ -1,13 +1,16 @@
-// AI product-name suggestions in the admin. Needs the mock Claude API (tests/mock-anthropic.cjs) and the site
-// started with ANTHROPIC_API_KEY=test-key ANTHROPIC_BASE_URL=http://localhost:4020 and ADMIN_PASSWORD set:
-//   node tests/mock-anthropic.cjs &
+// AI product-name suggestions in the admin, against the stand-in AI server (tests/mock-ai.cjs).
+//   node tests/mock-ai.cjs &
+// Gemini (default):  start the site with GEMINI_API_KEY=test-key GEMINI_BASE_URL=http://localhost:4020
 //   BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/naming-e2e.cjs
+// Claude:            start the site with ANTHROPIC_API_KEY=test-key ANTHROPIC_BASE_URL=http://localhost:4020
+//   PROVIDER=claude BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/naming-e2e.cjs
 // Creates test products (deleted at the end).
 const { chromium } = require('playwright');
 const sharp = require('sharp');
 const path = require('path');
 const BASE = process.env.BASE || 'http://localhost:3100';
 const MOCK = process.env.MOCK || 'http://localhost:4020';
+const PROVIDER = process.env.PROVIDER || 'gemini';
 const PASS = process.env.ADMIN_PASSWORD || 'test-admin-pass-123';
 const ROOT = path.join(__dirname, '..');
 const PHOTO = path.join(ROOT, 'assets/originals/products/goutte-teardrop-pendant-1.webp');
@@ -57,9 +60,14 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
 
     // what the site sent to the model
     const [req] = await mock('/__requests');
-    ok('request goes to Claude Opus 5.5 from the server, with the photo', req.model === 'claude-opus-5-5' && req.image?.media_type === 'image/jpeg', JSON.stringify(req.image));
+    if (PROVIDER === 'gemini') {
+      ok('request goes to Gemini (gemini-3.8-flash) from the server, with the photo', req.provider === 'gemini' && req.model === 'gemini-3.8-flash' && req.image?.media_type === 'image/jpeg', JSON.stringify(req.image));
+      ok('the Gemini key travels only server to Google (x-goog-api-key)', req.apiKeyHeader === true);
+    } else {
+      ok('request goes to Claude Opus 5.5 from the server, with the photo', req.provider === 'claude' && req.model === 'claude-opus-5-5' && req.image?.media_type === 'image/jpeg', JSON.stringify(req.image));
+    }
     ok('structured output (name, kind, visible features)', req.format === 'json_schema' && ['is_jewellery', 'kind', 'visible_features', 'name'].every((f) => req.schemaFields.includes(f)));
-    ok('refusal fallback enabled', req.fallbacks === 'default' && req.beta.includes('server-side-fallback-2026-07-01'));
+    if (PROVIDER === 'claude') ok('refusal fallback enabled', req.fallbacks === 'default' && req.beta.includes('server-side-fallback-2026-07-01'));
     ok('naming brief forbids purity/weight/gemstone claims and long descriptions', /purity or karat, weight/.test(req.system) && /two to four words/.test(req.system));
     ok('existing product names are avoided', req.text.includes('Maison Signet Ring'));
     // the photo analysed is the unwatermarked original, not the watermarked web image
