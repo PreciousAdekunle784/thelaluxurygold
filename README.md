@@ -93,6 +93,10 @@ types is never replaced unless they choose a suggestion instead, and a product c
   and every answer goes through the same checks. Set `GEMINI_API_KEY` in Vercel to turn it on. Without a key, with
   a rejected key, or if the service is down, the card says so and products are named by hand as before.
 * For an existing product, use **Suggest a name from the main photo** under Product name.
+* If a Gemini model is busy (Google's "high demand" 503, no answer within 15 s, or a 429 quota), it isn't retried:
+  the next model is asked at once, and the busy one is skipped for the next 15 minutes. While it rests, the model
+  that answered last is asked first. Further models come from Google's list of models available to the key. This
+  is remembered in the database, so it holds across server instances.
 
 ### Watermark
 

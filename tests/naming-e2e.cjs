@@ -164,32 +164,56 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
     await uploadPhoto();
     ok('a photo without jewellery gets no name, just a note', (await review.textContent()).includes('doesn’t seem to show a piece of jewellery') && (await review.locator('[data-testid=suggested-name]').count()) === 0);
 
-    // ---------------------------------------------------------------- Gemini: a model the key can't use falls back to the next
+    // ---------------------------------------------------------------- Gemini: a busy or unusable model is skipped
+    // (the site runs with GEMINI_REST_MS=4000: a busy model rests for 4 s instead of 15 minutes)
     if (PROVIDER === 'gemini') {
+      const rested = () => a.waitForTimeout(4500);
+      await rested();
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-503' });
       await uploadPhoto();
       const busy = (await mock('/__requests')).map((r) => r.model);
-      ok('if the Gemini model is overloaded (503), it is retried once, then the next model is used', !!(await suggestedName().catch(() => '')) && busy.join() === 'gemini-3.8-flash,gemini-3.8-flash,gemini-flash-latest', busy.join(' → '));
+      ok('if the Gemini model is overloaded (503), it is not retried: the next model is asked at once', !!(await suggestedName().catch(() => '')) && busy.join() === 'gemini-3.8-flash,gemini-flash-latest', busy.join(' → '));
+      await mock('/__reset', {});
+      await review.locator('button:has-text("Regenerate")').click();
+      await waitIdle();
+      const skipped = (await mock('/__requests')).map((r) => r.model);
+      ok('while it is busy, the busy model is skipped: the model that answered is asked first', !!(await suggestedName().catch(() => '')) && skipped.length > 0 && skipped.every((m) => m === 'gemini-flash-latest'), skipped.join(' → '));
+      await rested();
+      await newProduct();
+      await mock('/__reset', {});
+      await mock('/__mode', { mode: 'ok' });
+      await uploadPhoto();
+      const back = (await mock('/__requests')).map((r) => r.model);
+      ok('once its rest is over, the preferred model is asked first again', !!(await suggestedName().catch(() => '')) && back[0] === 'gemini-3.8-flash', back.join(' → '));
+      await rested();
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-504' });
+      const t504 = Date.now();
       await uploadPhoto();
       const late = (await mock('/__requests')).map((r) => r.model);
-      ok('if the Gemini model times out (504), the next model is used', !!(await suggestedName().catch(() => '')) && late.join() === 'gemini-3.8-flash,gemini-flash-latest', late.join(' → '));
+      ok('if the Gemini model times out (504), the next model is used', !!(await suggestedName().catch(() => '')) && late.join() === 'gemini-3.8-flash,gemini-flash-latest' && Date.now() - t504 < 15000, `${late.join(' → ')} in ${Date.now() - t504} ms`);
+      await rested();
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'all-busy' });
       await uploadPhoto();
       const listedRun = (await mock('/__requests')).map((r) => r.model);
       ok('if the usual models are all busy, another model from Google\u2019s list is used (retired ones skipped)', !!(await suggestedName().catch(() => '')) && listedRun.at(-1) === 'gemini-3.8-flash-lite' && !listedRun.includes('gemini-3.8-flash-image'), listedRun.join(' → '));
+      await mock('/__reset', {});
+      await review.locator('button:has-text("Regenerate")').click();
+      await waitIdle();
+      const direct = (await mock('/__requests')).map((r) => r.model);
+      ok('the next suggestion goes straight to the model that answered', !!(await suggestedName().catch(() => '')) && direct.length > 0 && direct.every((m) => m === 'gemini-3.8-flash-lite'), direct.join(' → '));
+      await rested();
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-404' });
       await uploadPhoto();
       const used = (await mock('/__requests')).map((r) => r.model);
-      ok('if the configured Gemini model is unavailable, the next model is used', !!(await suggestedName().catch(() => '')) && used[0] === 'gemini-3.8-flash' && used[1] === 'gemini-flash-latest', used.join(' → '));
+      ok('if the configured Gemini model is unavailable, the next model is used', !!(await suggestedName().catch(() => '')) && used[0] === 'gemini-3.8-flash' && used.length >= 2, used.join(' → '));
       await mock('/__mode', { mode: 'fail' });
       await newProduct();
       await uploadPhoto();
