@@ -20,7 +20,7 @@ const gemini = () =>
 /** Models to try, in order: GEMINI_MODEL (or the default), then Google's current Flash models (used when one is unavailable or busy). */
 const FALLBACK_MODELS = ["gemini-flash-latest", "gemini-2.5-flash"];
 // Models this key can't use at all (404 / not supported) are skipped from then on. A busy model (503) is
-// only skipped for that one request, so the preferred model is used again as soon as it recovers.
+// (or a temporary server error) is only skipped for that one request, so the preferred model is used again as soon as it recovers.
 const unusable = new Set<string>();
 
 const short = (m: string) =>
@@ -41,7 +41,8 @@ export async function askGemini(req: NamingRequest): Promise<AskResult> {
         last = res;
         continue;
       }
-      if (/Gemini 503\b|high demand|overloaded|unavailable/i.test(res.detail)) {
+      // temporary trouble on Google's side (5xx such as 503 "high demand" or 504 "deadline expired")
+      if (/Gemini 5\d\d\b|high demand|overloaded|unavailable|deadline/i.test(res.detail)) {
         last = res;
         continue;
       }

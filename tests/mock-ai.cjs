@@ -72,6 +72,7 @@ http
         });
         if (mode === 'fail') return send(res, 500, { error: { code: 500, message: 'Internal error encountered.', status: 'INTERNAL' } });
         // a model this key can't use: the site should move on to the next model
+        if (mode === 'model-504' && gem[1] === 'gemini-3.8-flash') return send(res, 504, { error: { code: 504, message: 'Deadline expired before operation could complete.', status: 'DEADLINE_EXCEEDED' } });
         if (mode === 'model-503' && gem[1] === 'gemini-3.8-flash') return send(res, 503, { error: { code: 503, message: 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', status: 'UNAVAILABLE' } });
         if (mode === 'model-404' && gem[1] === 'gemini-3.8-flash') return send(res, 404, { error: { code: 404, message: `models/${gem[1]} is not found for API version v1, or is not supported for generateContent.`, status: 'NOT_FOUND' } });
         return send(res, 200, {
