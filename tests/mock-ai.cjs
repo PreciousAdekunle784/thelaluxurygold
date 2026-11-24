@@ -51,6 +51,10 @@ http
         return res.end(lastImage || '');
       }
       // ---------------------------------------------------------------- Gemini
+      if (/^\/v1(?:beta)?\/models(\?|$)/.test(req.url) && req.method === 'GET') {
+        const m = (name, actions = ['generateContent', 'countTokens']) => ({ name: `models/${name}`, supportedGenerationMethods: actions }); // the REST field name
+        return send(res, 200, { models: [m('gemini-2.5-flash'), m('gemini-3.8-flash'), m('gemini-3.8-flash-lite'), m('gemini-3.8-pro'), m('text-embedding-005', ['embedContent']), m('gemini-3.8-flash-image')] });
+      }
       const gem = /^\/v1(?:beta)?\/models\/([^:/]+):generateContent/.exec(req.url);
       if (gem && req.method === 'POST') {
         if (req.headers['x-goog-api-key'] !== 'test-key') return send(res, 400, { error: { code: 400, message: 'API key not valid. Please pass a valid API key.', status: 'INVALID_ARGUMENT' } });
@@ -66,12 +70,16 @@ http
           apiKeyHeader: true,
           format: gc.responseMimeType === 'application/json' && gc.responseJsonSchema ? 'json_schema' : gc.responseMimeType,
           schemaFields: Object.keys(gc.responseJsonSchema?.properties || {}),
+          thinkingLevel: gc.thinkingConfig?.thinkingLevel,
           system: (body.systemInstruction?.parts || []).map((p) => p.text).join(''),
           image: img ? { type: 'inline', media_type: img.inlineData.mimeType, bytes: Buffer.from(img.inlineData.data, 'base64').length } : null,
           text,
         });
         if (mode === 'fail') return send(res, 500, { error: { code: 500, message: 'Internal error encountered.', status: 'INTERNAL' } });
         // a model this key can't use: the site should move on to the next model
+        // Google's retired model, as it answers for new keys
+        if (gem[1] === 'gemini-2.5-flash') return send(res, 404, { error: { code: 404, message: 'This model models/gemini-2.5-flash is no longer available to new users. Please update your code to use models/gemini-3.8-flash.', status: 'NOT_FOUND' } });
+        if (mode === 'all-busy' && (gem[1] === 'gemini-3.8-flash' || gem[1] === 'gemini-flash-latest')) return send(res, 503, { error: { code: 503, message: 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', status: 'UNAVAILABLE' } });
         if (mode === 'model-504' && gem[1] === 'gemini-3.8-flash') return send(res, 504, { error: { code: 504, message: 'Deadline expired before operation could complete.', status: 'DEADLINE_EXCEEDED' } });
         if (mode === 'model-503' && gem[1] === 'gemini-3.8-flash') return send(res, 503, { error: { code: 503, message: 'This model is currently experiencing high demand. Spikes in demand are usually temporary. Please try again later.', status: 'UNAVAILABLE' } });
         if (mode === 'model-404' && gem[1] === 'gemini-3.8-flash') return send(res, 404, { error: { code: 404, message: `models/${gem[1]} is not found for API version v1, or is not supported for generateContent.`, status: 'NOT_FOUND' } });

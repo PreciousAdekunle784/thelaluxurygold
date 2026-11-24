@@ -63,6 +63,7 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
     if (PROVIDER === 'gemini') {
       ok('request goes to Gemini (gemini-3.8-flash) from the server, with the photo', req.provider === 'gemini' && req.model === 'gemini-3.8-flash' && req.image?.media_type === 'image/jpeg', JSON.stringify(req.image));
       ok('the Gemini key travels only server to Google (x-goog-api-key)', req.apiKeyHeader === true);
+      ok('Gemini 3 models are asked for low thinking (quick answers)', req.thinkingLevel === 'LOW', String(req.thinkingLevel));
     } else {
       ok('request goes to Claude Opus 5.5 from the server, with the photo', req.provider === 'claude' && req.model === 'claude-opus-5-5' && req.image?.media_type === 'image/jpeg', JSON.stringify(req.image));
     }
@@ -170,13 +171,19 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
       await mock('/__mode', { mode: 'model-503' });
       await uploadPhoto();
       const busy = (await mock('/__requests')).map((r) => r.model);
-      ok('if the Gemini model is overloaded (503), the next model is used', !!(await suggestedName().catch(() => '')) && busy[0] === 'gemini-3.8-flash' && busy[1] === 'gemini-flash-latest', busy.join(' → '));
+      ok('if the Gemini model is overloaded (503), it is retried once, then the next model is used', !!(await suggestedName().catch(() => '')) && busy.join() === 'gemini-3.8-flash,gemini-3.8-flash,gemini-flash-latest', busy.join(' → '));
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-504' });
       await uploadPhoto();
       const late = (await mock('/__requests')).map((r) => r.model);
-      ok('if the Gemini model times out (504), the next model is used', !!(await suggestedName().catch(() => '')) && late[0] === 'gemini-3.8-flash' && late[1] === 'gemini-flash-latest', late.join(' → '));
+      ok('if the Gemini model times out (504), the next model is used', !!(await suggestedName().catch(() => '')) && late.join() === 'gemini-3.8-flash,gemini-flash-latest', late.join(' → '));
+      await newProduct();
+      await mock('/__reset', {});
+      await mock('/__mode', { mode: 'all-busy' });
+      await uploadPhoto();
+      const listedRun = (await mock('/__requests')).map((r) => r.model);
+      ok('if the usual models are all busy, another model from Google\u2019s list is used (retired ones skipped)', !!(await suggestedName().catch(() => '')) && listedRun.at(-1) === 'gemini-3.8-flash-lite' && !listedRun.includes('gemini-3.8-flash-image'), listedRun.join(' → '));
       await newProduct();
       await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-404' });
