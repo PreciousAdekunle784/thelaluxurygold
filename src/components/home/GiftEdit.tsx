@@ -42,14 +42,15 @@ export function GiftEdit({ products }: { products: Product[] }) {
           </div>
         </Link>
 
-        <Link href="/collections/sets" className="group relative block overflow-hidden bg-sand md:col-span-5">
-          <ImageReveal className="relative aspect-[5/4] md:aspect-[4/3]" delay={0.1}>
+        <Link href="/collections/sets" className={`group relative block overflow-hidden bg-sand md:col-span-5 ${gifts.length ? "" : "md:row-span-2"}`}>
+          {/* with no product tiles to show, the sets photo fills the full height beside the main image */}
+          <ImageReveal className={gifts.length ? "relative aspect-[5/4] md:aspect-[4/3]" : "relative aspect-[5/4] md:h-full md:aspect-auto"} delay={0.1}>
             <MediaImage mediaKey="collections/collection-sets" alt="A pendant and hoops in a lined gift box" sizes="(min-width: 768px) 40vw, 100vw" className="object-cover object-[50%_60%] transition-transform duration-[2000ms] ease-[var(--ease-luxe)] group-hover:scale-[1.05]" />
           </ImageReveal>
           <span className="absolute bottom-4 left-4 bg-ivory/90 px-3 py-2 text-[0.62rem] font-semibold uppercase tracking-[0.2em] text-ink">Jewellery sets</span>
         </Link>
 
-        <Reveal className="grid grid-cols-2 gap-4 md:col-span-5 md:gap-6" delay={0.15}>
+        {gifts.length > 0 && <Reveal className="grid grid-cols-2 gap-4 md:col-span-5 md:gap-6" delay={0.15}>
           {gifts.map((p) => {
             const img = p.images[1] ?? p.images[0];
             return (
@@ -59,7 +60,7 @@ export function GiftEdit({ products }: { products: Product[] }) {
               </Link>
             );
           })}
-        </Reveal>
+        </Reveal>}
       </div>
     </section>
   );

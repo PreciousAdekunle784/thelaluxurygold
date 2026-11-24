@@ -13,6 +13,7 @@ import { ProductCard } from "@/components/product/ProductCard";
 import { useEscape, useScrollLock } from "@/lib/hooks/ui";
 import { cx } from "@/lib/format";
 import { Button } from "@/components/ui/Button";
+import { defaultWhatsappMessage, whatsappLink } from "@/lib/whatsapp";
 
 /** Price bands in USD (the store's base currency); labels are shown in the shopper's currency. */
 const pricePresets: { min: number | null; max: number | null }[] = [
@@ -179,7 +180,17 @@ export function ShopView({ preset = {} }: { preset?: ShopPreset }) {
             </div>
           )}
 
-          {results.length === 0 ? (
+          {scope.length === 0 ? (
+            // Nothing in this part of the store right now (not a filter problem): no "clear filters" dead end.
+            <div className="flex flex-col items-center border border-dashed border-line px-6 py-24 text-center">
+              <Search size={30} strokeWidth={0.9} className="text-champagne" />
+              <p className="mt-6 font-display text-3xl">New pieces are being prepared</p>
+              <p className="mt-3 max-w-sm text-sm leading-relaxed text-stone">Our next pieces will appear here shortly. Our team can tell you what is available now and help you find a piece.</p>
+              <a href={whatsappLink(defaultWhatsappMessage)} target="_blank" rel="noopener noreferrer" className="mt-8 inline-flex h-12 items-center border border-ink px-7 text-[0.7rem] font-semibold uppercase tracking-[0.22em] transition-colors hover:bg-ink hover:text-ivory">
+                Ask us on WhatsApp
+              </a>
+            </div>
+          ) : results.length === 0 ? (
             <div className="flex flex-col items-center border border-dashed border-line px-6 py-24 text-center">
               <Search size={30} strokeWidth={0.9} className="text-champagne" />
               <p className="mt-6 font-display text-3xl">No pieces match your selection</p>
