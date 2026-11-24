@@ -16,7 +16,11 @@ import { JsonLd, breadcrumbJsonLd, productJsonLd } from "@/lib/seo";
 import { media } from "@/lib/data/media";
 
 export async function generateStaticParams() {
-  return (await getCatalogue()).map((p) => ({ slug: p.slug }));
+  const slugs = (await getCatalogue()).map((p) => ({ slug: p.slug }));
+  // With Cache Components, at least one value is required for build-time validation. If the store has no public
+  // products right now (all hidden, deleted or in the Private Collection), validate with a placeholder: the page
+  // answers "not found" for it, and products added later are rendered on first visit.
+  return slugs.length ? slugs : [{ slug: "__no-products__" }];
 }
 
 export async function generateMetadata({ params }: PageProps<"/product/[slug]">): Promise<Metadata> {
