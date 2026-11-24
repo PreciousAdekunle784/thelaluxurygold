@@ -17,24 +17,35 @@ const gemini = () =>
     httpOptions: { timeout: 60_000, ...(process.env.GEMINI_BASE_URL ? { baseUrl: process.env.GEMINI_BASE_URL } : {}) },
   }));
 
-/** Models to try, in order: GEMINI_MODEL (or the default), then Google's current Flash models. */
+/** Models to try, in order: GEMINI_MODEL (or the default), then Google's current Flash models (used when one is unavailable or busy). */
 const FALLBACK_MODELS = ["gemini-flash-latest", "gemini-2.5-flash"];
-let workingModel: string | null = null; // remembered once a model answers
+// Models this key can't use at all (404 / not supported) are skipped from then on. A busy model (503) is
+// only skipped for that one request, so the preferred model is used again as soon as it recovers.
+const unusable = new Set<string>();
 
 const short = (m: string) =>
   m.replace(/AIza[0-9A-Za-z_-]{20,}/g, "[key]").replace(/\s+/g, " ").replace(/^\{.*"message":\s*"([^"]+)".*$/, "$1").slice(0, 140);
 
 export async function askGemini(req: NamingRequest): Promise<AskResult> {
-  const candidates = [...new Set([workingModel, geminiModel(), ...FALLBACK_MODELS].filter((m): m is string => !!m))];
+  const all = [...new Set([geminiModel(), ...FALLBACK_MODELS])];
+  const candidates = all.filter((m) => !unusable.has(m));
+  if (!candidates.length) candidates.push(...all); // never end up with nothing to try
   let last: AskResult = { ok: false, kind: "error" };
   for (const model of candidates) {
     const res = await askModel(model, req);
-    // A model this key can't use (not found / not supported): try the next one.
-    if (!res.ok && res.kind === "error" && res.detail && /\b404\b|not found|not supported|unsupported model/i.test(res.detail)) {
-      last = res;
-      continue;
+    // A model this key can't use (not found / not supported) or one that is overloaded right now
+    // (503 "high demand"): try the next one.
+    if (!res.ok && res.kind === "error" && res.detail) {
+      if (/Gemini 404\b|not found|not supported|unsupported model/i.test(res.detail)) {
+        unusable.add(model);
+        last = res;
+        continue;
+      }
+      if (/Gemini 503\b|high demand|overloaded|unavailable/i.test(res.detail)) {
+        last = res;
+        continue;
+      }
     }
-    if (res.ok) workingModel = model;
     return res;
   }
   return last;

@@ -167,6 +167,12 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
     if (PROVIDER === 'gemini') {
       await newProduct();
       await mock('/__reset', {});
+      await mock('/__mode', { mode: 'model-503' });
+      await uploadPhoto();
+      const busy = (await mock('/__requests')).map((r) => r.model);
+      ok('if the Gemini model is overloaded (503), the next model is used', !!(await suggestedName().catch(() => '')) && busy[0] === 'gemini-3.8-flash' && busy[1] === 'gemini-flash-latest', busy.join(' → '));
+      await newProduct();
+      await mock('/__reset', {});
       await mock('/__mode', { mode: 'model-404' });
       await uploadPhoto();
       const used = (await mock('/__requests')).map((r) => r.model);
