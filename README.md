@@ -74,6 +74,28 @@ licensed photo libraries were blocked by the network. The hero therefore uses a 
 campaign photo in **Admin → Store settings** whenever one is available. Full details, the asset list and the
 replace-before-launch checklist are in **[docs/IMAGE-ASSETS.md](docs/IMAGE-ASSETS.md)**.
 
+### Watermark
+
+Every product image on the website carries the LA Luxury Gold monogram (the LG arch from `src/components/brand/Logo.tsx`)
+in its bottom-right corner: about 13.5% of the image width (smaller on wide, short images), 3% from the edges, at 40%
+opacity, with dark letters on light photos and light letters on dark ones. It is drawn into the pixels on the server
+(`src/lib/watermark/core.ts`); nothing in the admin needs setting.
+
+* **Uploads.** The admin uploads as before. The server stores the original file exactly as uploaded
+  (`media_originals`) and the watermarked WebP the site serves (`media`). If the watermark can't be applied, the
+  upload is refused, never stored without it. Saving a product re-checks that every uploaded image is watermarked.
+  The homepage hero (Store settings) is not watermarked.
+* **Existing uploads** (made before watermarking) are watermarked automatically the first time they are shown or their
+  product is saved; their stored image is first kept as the original. Watermarks are always made from the original,
+  so an image is never watermarked twice.
+* **Built-in product photos.** Originals are in `assets/originals/products/` (not public); `npm run media` writes the
+  watermarked copies to `public/images/laluxurygold/products/<name>.w1.webp`.
+* **Changing the logo or the look.** Re-run `npm run watermark:logo` (captures the monogram from the running site) if the
+  logo changed, bump `WATERMARK_REVISION` in `src/lib/watermark/revision.ts`, then run `npm run media`. Image addresses
+  include the revision, so no cached copy of the old version is shown; uploads are re-watermarked from their originals.
+* Originals are kept at full size in the database. On Supabase's free plan (500 MB) that is roughly 50–100 phone photos;
+  a paid plan, or exporting photos at about 2,000–3,000 px before uploading, leaves plenty of room.
+
 To replace an image, drop a new file at the same key under `public/images/laluxurygold/` (products 4:5), then run:
 
 ```bash
@@ -124,7 +146,7 @@ A private dashboard for running the store. Sign in at **`/admin`** with the pass
 | **Visitors** | Today / 7 / 30-day traffic and a full visit log: time, page, anonymous visitor ID, new or returning, country, device, browser and source. |
 | **Orders** | Every order with status tabs, search and CSV export. On the order page you see the items, totals, buyer contact (email, call, WhatsApp), delivery address and notes, and you can update the status with a note. |
 | **Buyers** | Everyone who has ordered, with order count, total ordered, total paid and last order. CSV export. |
-| **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Uploads accept any picture format (JPG, PNG, iPhone HEIC/HEIF, WebP, AVIF, GIF, TIFF, BMP, SVG) at any size: photos are resized and converted to WebP, and large files are sent in pieces so they stay under the hosting platform's request limit. Changes go live on the store immediately. |
+| **Products** | Create, edit, hide/show and delete products. You can edit the name, web address, category, purity, weight, price (or "price on request"), availability, description, specifications, options with per-option price differences, collections and labels. You can also upload images or pick existing ones and reorder them. Uploads accept any picture format (JPG, PNG, iPhone HEIC/HEIF, WebP, AVIF, GIF, TIFF, BMP, SVG) at any size: the original file is kept untouched, the site shows a resized WebP with the LA Luxury Gold watermark, and large files are sent in pieces so they stay under the hosting platform's request limit. Changes go live on the store immediately. |
 | **Private Access** | Invite customers to The Private Collection. Generate a unique code for a name, email or reference, optionally single-use and/or with an expiry date. Copy it or send it by WhatsApp or email. Then activate/deactivate, revoke, change the expiry or regenerate it, and see uses, active sessions, first use and last access. |
 | **Testimonials** | Add, edit, hide or delete client testimonials. The homepage section is hidden until one is published. |
 | **Store settings** | The naira-per-dollar exchange rate, and the homepage hero. By default the hero shows the campaign image; upload a photo (desktop, and optionally a portrait version for phones) to show it instead, or switch back at any time. |
@@ -240,6 +262,7 @@ BASE=http://localhost:3000 node tests/e2e.cjs                               # st
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/admin-e2e.cjs      # admin
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/private-e2e.cjs    # Private Collection
 BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/upload-e2e.cjs     # image uploads in every format
+BASE=http://localhost:3000 ADMIN_PASSWORD=... node tests/watermark-e2e.cjs  # automatic watermarking (uses the same DATABASE_URL as the server)
 ```
 
 Both suites require Playwright with Chromium. The admin suite creates and deletes a test product and places test orders, so run it against a development database, not production.

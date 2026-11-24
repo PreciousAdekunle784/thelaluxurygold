@@ -128,7 +128,7 @@ const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); co
   await a.waitForTimeout(800);
   await a.getByRole('textbox', { name: 'Product name', exact: true }).fill('Test Admin Ring');
   await a.locator('label:has-text("Price (USD)") input').fill('999');
-  await a.locator('input[type=file]').setInputFiles(path.join(__dirname, '..', 'public', 'images', 'laluxurygold', 'products', 'soleil-dome-3.webp'));
+  await a.locator('input[type=file]').setInputFiles(path.join(__dirname, '..', 'assets', 'originals', 'products', 'soleil-dome-3.webp'));
   await a.waitForSelector('span:has-text("Main")', { timeout: 20000 });
   ok('image upload works', true);
   await a.click('button:has-text("Create product")');

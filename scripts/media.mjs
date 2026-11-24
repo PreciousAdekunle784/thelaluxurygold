@@ -2,7 +2,8 @@
 /**
  * Media pipeline.
  *
- *   npm run media                     → rebuild src/lib/data/media.generated.ts from public/images
+ *   npm run media                     → watermark the product photos (scripts/watermark-images.mjs), then
+ *                                       rebuild src/lib/data/media.generated.ts from public/images
  *   npm run media -- --import <dir>   → convert JPG/PNG files in <dir> to WebP under public/images first
  *
  * Keys are paths relative to public/images/laluxurygold without extension, e.g. "products/aurelia-band-1".
@@ -38,7 +39,8 @@ if (importIdx !== -1) {
 const manifest = {};
 for (const f of (await walk(imagesDir)).sort()) {
   if (!/\.(webp|jpe?g|png|avif)$/i.test(f)) continue;
-  const key = path.relative(imagesDir, f).replace(/\\/g, "/").replace(/\.[a-z]+$/i, "");
+  // Watermarked product photos are named <name>.<revision>.webp; their key is just products/<name>.
+  const key = path.relative(imagesDir, f).replace(/\\/g, "/").replace(/\.[a-z]+$/i, "").replace(/\.w\d+$/, "");
   const meta = await sharp(f).metadata();
   const blur = await sharp(f).resize(16, Math.max(1, Math.round((16 * meta.height) / meta.width))).webp({ quality: 40 }).toBuffer();
   manifest[key] = [meta.width, meta.height, `data:image/webp;base64,${blur.toString("base64")}`];

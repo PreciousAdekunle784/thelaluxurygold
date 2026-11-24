@@ -1,8 +1,11 @@
 import { mediaManifest } from "./media.generated";
+import { WATERMARK_REVISION } from "@/lib/watermark/revision";
 
 /**
  * Media registry. Every image used on the site is referenced by a key, e.g.
- * "products/aurelia-band-1" → /public/images/laluxurygold/products/aurelia-band-1.webp.
+ * "collections/collection-rings" → /public/images/laluxurygold/collections/collection-rings.webp.
+ * Product photos are watermarked: "products/aurelia-band-1" → /images/laluxurygold/products/aurelia-band-1.w1.webp,
+ * generated from the original in assets/originals/products by `npm run media`.
  *
  * To replace imagery, drop a new file at the same path (keeping the aspect ratio),
  * then run `npm run media` to refresh dimensions and blur placeholders.
@@ -38,15 +41,18 @@ const LEGACY: Record<string, string> = {
 
 export function media(key: string): MediaAsset {
   if (LEGACY[key]) key = LEGACY[key];
-  // Images uploaded through the admin are stored in the database and served from /media/<id>.
-  if (key.startsWith("uploads/")) return { src: `/media/${key.slice(8)}`, width: 1200, height: 1500 };
+  // Images uploaded through the admin are stored in the database and served from /media/<id>/<revision>
+  // (product images watermarked; the revision in the address keeps caches from showing an older version).
+  if (key.startsWith("uploads/")) return { src: `/media/${key.slice(8)}/${WATERMARK_REVISION}`, width: 1200, height: 1500 };
   const entry = mediaManifest[key];
   if (!entry) {
     if (process.env.NODE_ENV !== "production") console.warn(`[media] Unknown media key: ${key}`);
     return { src: "/images/placeholder.svg", width: 1200, height: 1500 };
   }
   const [width, height, blurDataURL] = entry;
-  return { src: `/images/laluxurygold/${key}.webp`, width, height, blurDataURL };
+  // Product photos are shown watermarked (made from the originals in assets/originals/products).
+  const file = key.startsWith("products/") ? `${key}.${WATERMARK_REVISION}` : key;
+  return { src: `/images/laluxurygold/${file}.webp`, width, height, blurDataURL };
 }
 
 /** Built-in image keys (for the admin image picker). */

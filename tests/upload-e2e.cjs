@@ -14,7 +14,7 @@ const results = [];
 const ok = (name, cond, info = '') => { results.push({ name, pass: !!cond }); console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}${info ? '  — ' + info : ''}`); };
 
 async function makeFiles(dir) {
-  const src = path.join(__dirname, '..', 'public', 'images', 'laluxurygold', 'products', 'maison-signet-1.webp');
+  const src = path.join(__dirname, '..', 'assets', 'originals', 'products', 'maison-signet-1.webp');
   const base = sharp(src);
   // a noisy 6000×7500 photo, so the JPEG is far larger than one request allows
   const noise = await sharp({ create: { width: 6000, height: 7500, channels: 3, noise: { type: 'gaussian', mean: 128, sigma: 60 } } }).png().toBuffer();

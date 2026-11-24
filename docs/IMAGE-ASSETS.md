@@ -1,9 +1,13 @@
 # LA Luxury Gold — image library
 
 All imagery on the site lives in `public/images/laluxurygold/` and is referenced by key through the
-media registry (`src/lib/data/media.ts`), e.g. `products/maison-signet-1` →
-`/images/laluxurygold/products/maison-signet-1.webp`. Run `npm run media` after adding or replacing files
-to refresh dimensions and blur placeholders.
+media registry (`src/lib/data/media.ts`), e.g. `collections/collection-rings` →
+`/images/laluxurygold/collections/collection-rings.webp`.
+
+Product photos are published **watermarked** with the LA Luxury Gold monogram. Their originals are kept in
+`assets/originals/products/` (not served by the website), and `npm run media` writes the watermarked copies, e.g.
+`products/maison-signet-1` → `/images/laluxurygold/products/maison-signet-1.w1.webp`. Run `npm run media` after
+adding or replacing files to re-watermark product photos and refresh dimensions and blur placeholders.
 
 ## How these images were made
 
@@ -85,8 +89,8 @@ riviera-cable-bracelet, classic-hoops, petite-huggies, goutte-drop-earrings, min
 ## Replace before launch
 
 - [ ] **Product images (63 files):** replace with photographs of the actual pieces, then untick
-      "Images are studio renders" for each product. Upload in Admin → Products, or drop files at the same
-      paths (4:5, at least 1200 px wide) and run `npm run media`.
+      "Images are studio renders" for each product. Upload in Admin → Products (watermarked automatically), or
+      drop files at the same names in `assets/originals/products/` (4:5, at least 1200 px wide) and run `npm run media`.
 - [ ] **Signature campaign:** add a real campaign photograph (see above). This is optional; the render
       works as a campaign image.
 - [ ] Review the catalogue itself in the admin. Names, weights, sizes and prices are the starting
@@ -98,7 +102,7 @@ riviera-cable-bracelet, classic-hoops, petite-huggies, goutte-drop-earrings, min
 python3.13 -m venv .venv-studio && .venv-studio/bin/pip install bpy   # Blender 5.x as a Python module
 .venv-studio/bin/python tools/studio/render.py renders                 # all 83 images (~2–3 h on 4 CPU cores)
 .venv-studio/bin/python tools/studio/render.py renders --preview hero  # fast low-res composition check
-node tools/studio/optimise.cjs renders && npm run media
+node tools/studio/optimise.cjs renders && npm run media   # product renders go to assets/originals/products, then get watermarked
 ```
 
 Scenes are defined in `tools/studio/scenes.py`. Models, materials and lights are in `tools/studio/lib.py`.

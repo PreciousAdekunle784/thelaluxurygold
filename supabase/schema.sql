@@ -115,6 +115,19 @@ create table if not exists media (
   width        integer,
   height       integer,
   bytes        bytea not null,
+  created_at   bigint not null,
+  purpose      text not null default 'product',  -- 'product' (watermarked) or 'hero' (homepage, not watermarked)
+  watermark    text                               -- watermark revision in the served pixels, NULL = none
+);
+alter table media add column if not exists purpose text not null default 'product';
+alter table media add column if not exists watermark text;
+
+-- The exact file the admin uploaded, kept untouched so watermarked images can be regenerated.
+create table if not exists media_originals (
+  media_id     text primary key,
+  content_type text not null,
+  filename     text,
+  bytes        bytea not null,
   created_at   bigint not null
 );
 
@@ -174,7 +187,7 @@ create index if not exists messages_created    on messages (created_at);
 create index if not exists messages_unread     on messages (is_read, created_at);
 
 -- Tells the app the schema is up to date, so it never re-runs setup on cold starts.
-insert into meta (key, value) values ('schema_version', '6')
+insert into meta (key, value) values ('schema_version', '7')
 on conflict (key) do update set value = excluded.value;
 
 -- -----------------------------------------------------------------------------
@@ -192,6 +205,7 @@ alter table private_sessions enable row level security;
 alter table rate_limits      enable row level security;
 alter table upload_chunks    enable row level security;
 alter table traffic_daily    enable row level security;
+alter table media_originals  enable row level security;
 
 -- -----------------------------------------------------------------------------
 -- Optional: readable views for browsing data in the Supabase Table Editor.

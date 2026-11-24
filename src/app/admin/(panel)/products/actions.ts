@@ -1,7 +1,9 @@
 "use server";
 
 import { updateTag, revalidatePath, revalidateTag } from "next/cache";
-import { processUpload, UnreadableImageError } from "@/lib/server/images";
+import { processUpload, sniffImageType, UnreadableImageError, WatermarkError } from "@/lib/server/images";
+import { ensureWatermarked, uploadIds } from "@/lib/server/media-watermark";
+import { WATERMARK_REVISION } from "@/lib/watermark/revision";
 import { requireAdmin } from "@/lib/auth/admin";
 import { CATALOGUE_TAG } from "@/lib/data/store-catalogue";
 import { deleteProduct, getProductRow, saveProduct, setArchived, slugTaken } from "@/lib/repo/products";
@@ -48,6 +50,16 @@ export async function saveProductAction(input: Product): Promise<SaveResult> {
   const id = /^[\w-]{3,60}$/.test(input.id ?? "") ? input.id : newId("p-");
   if (!f.slug && (await slugTaken(slug, id))) f.slug = "Another product already uses this web address.";
   if (Object.keys(f).length) return { ok: false, error: "Please check the highlighted fields.", fields: f };
+
+  // Every uploaded image is published watermarked. Images uploaded before watermarking existed (or picked
+  // from the library) are watermarked now, from their preserved originals; if that fails, nothing is published.
+  const marks = await Promise.allSettled(uploadIds(images).map((m) => ensureWatermarked(m)));
+  if (marks.some((r) => r.status === "fulfilled" && !r.value))
+    return { ok: false, error: "One of the images no longer exists. Remove it and upload it again.", fields: { images: "An image is missing." } };
+  if (marks.some((r) => r.status === "rejected")) {
+    console.error("[watermark]", marks.filter((r) => r.status === "rejected").map((r) => (r as PromiseRejectedResult).reason));
+    return { ok: false, error: "The LA Luxury Gold watermark couldn\u2019t be added to one of the images, so nothing was published. Please try again.", fields: { images: "Watermarking failed." } };
+  }
 
   const existing = await getProductRow(id);
   const product: Product = {
@@ -102,12 +114,30 @@ type UploadResult = { ok: true; key: string } | { ok: false; error: string };
 const MAX_UPLOAD_BYTES = 100 * 1024 * 1024;
 const MAX_CHUNK_BYTES = 4 * 1024 * 1024;
 
-async function storeUpload(bytes: Buffer, purpose: FormDataEntryValue | null, name: string): Promise<UploadResult> {
+/**
+ * Store an upload: the original file exactly as received, plus the image the site shows. Product images
+ * (everything except the homepage hero) get the LA Luxury Gold watermark in their pixels; if that fails the
+ * upload is refused rather than stored without it.
+ */
+async function storeUpload(bytes: Buffer, purposeField: FormDataEntryValue | null, name: string): Promise<UploadResult> {
+  const purpose = purposeField === "hero" ? "hero" : "product";
   try {
-    const img = await processUpload(bytes, { large: purpose === "hero" });
-    const id = await saveMedia(img.data, "image/webp", img.width, img.height);
+    const img = await processUpload(bytes, { large: purpose === "hero", watermark: purpose === "product" });
+    const id = await saveMedia({
+      bytes: img.data,
+      contentType: "image/webp",
+      width: img.width,
+      height: img.height,
+      purpose,
+      watermark: img.watermarked ? WATERMARK_REVISION : null,
+      original: { bytes, contentType: sniffImageType(bytes), filename: name },
+    });
     return { ok: true, key: `uploads/${id}` };
   } catch (err) {
+    if (err instanceof WatermarkError) {
+      console.error("[upload] watermark failed", err);
+      return { ok: false, error: `The LA Luxury Gold watermark couldn\u2019t be added to \u201c${name.slice(0, 80) || "this image"}\u201d, so it wasn\u2019t uploaded. Please try again.` };
+    }
     if (!(err instanceof UnreadableImageError)) console.error("[upload]", err);
     const label = name ? `\u201c${name.slice(0, 80)}\u201d` : "That file";
     return { ok: false, error: `${label} couldn\u2019t be read as a picture. If it opens on your device, export or screenshot it as a JPG or PNG and try again.` };

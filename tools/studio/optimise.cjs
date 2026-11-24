@@ -1,12 +1,14 @@
 // Convert Cycles PNG renders into the site's image library (WebP).
 //   node tools/studio/optimise.cjs <render-dir>
-// Writes public/images/laluxurygold/<key>.webp, then run `npm run media` to refresh the manifest.
+// Writes public/images/laluxurygold/<key>.webp, except product photos, which go to assets/originals/products
+// (they are published watermarked). Then run `npm run media` to watermark them and refresh the manifest.
 const fs = require("fs");
 const path = require("path");
 const sharp = require("sharp");
 
 const src = path.resolve(process.argv[2] || "renders");
 const out = path.resolve(__dirname, "../../public/images/laluxurygold");
+const originals = path.resolve(__dirname, "../../assets/originals/products");
 
 function walk(d) {
   return fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
@@ -16,7 +18,7 @@ function walk(d) {
   let n = 0, bytes = 0;
   for (const f of walk(src).filter((f) => f.endsWith(".png"))) {
     const key = path.relative(src, f).replace(/\\/g, "/").replace(/\.png$/, "");
-    const dest = path.join(out, key + ".webp");
+    const dest = key.startsWith("products/") ? path.join(originals, key.slice(9) + ".webp") : path.join(out, key + ".webp");
     fs.mkdirSync(path.dirname(dest), { recursive: true });
     // campaign images are shown full-bleed; keep a little more quality there
     const q = key.startsWith("campaign/") ? 84 : 82;

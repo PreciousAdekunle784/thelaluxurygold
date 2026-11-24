@@ -51,17 +51,41 @@ CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT 
 CREATE TABLE IF NOT EXISTS media (
   id TEXT PRIMARY KEY, content_type TEXT NOT NULL, width INTEGER, height INTEGER, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL
 );
+CREATE TABLE IF NOT EXISTS media_originals (
+  media_id TEXT PRIMARY KEY, content_type TEXT NOT NULL, filename TEXT, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL
+);
 CREATE TABLE IF NOT EXISTS upload_chunks (
   upload_id TEXT NOT NULL, idx INTEGER NOT NULL, bytes ${blob} NOT NULL, created_at BIGINT NOT NULL, PRIMARY KEY (upload_id, idx)
 );
 `;
 
 /** Bump when the DDL above changes; the full migration then runs once. */
-export const SCHEMA_VERSION = "6";
+export const SCHEMA_VERSION = "7";
 
-const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits", "upload_chunks", "traffic_daily"];
+const RLS_TABLES = ["meta", "products", "orders", "page_views", "subscribers", "messages", "media", "private_codes", "private_sessions", "rate_limits", "upload_chunks", "traffic_daily", "media_originals"];
 
 /** Products created before the Private Collection have no `private` column yet (v4). */
+/**
+ * Watermarking (v7): each uploaded image records what it is for (`product` images carry the LA Luxury Gold
+ * watermark, the homepage `hero` does not) and which watermark revision its served pixels carry (NULL = none
+ * yet). Images uploaded before v7 are marked `hero` if the homepage uses them, otherwise `product`; their
+ * stored image becomes their preserved original the first time they are watermarked.
+ */
+async function ensureMediaColumns(db: Db) {
+  if (db.dialect === "postgres") {
+    await db.exec(
+      "SET LOCAL lock_timeout = '4s';\nALTER TABLE media ADD COLUMN IF NOT EXISTS purpose TEXT NOT NULL DEFAULT 'product';\nALTER TABLE media ADD COLUMN IF NOT EXISTS watermark TEXT;",
+    );
+  } else {
+    const cols = (await db.all<{ name: string }>("SELECT name FROM pragma_table_info('media')")).map((c) => c.name);
+    if (!cols.includes("purpose")) await db.exec("ALTER TABLE media ADD COLUMN purpose TEXT NOT NULL DEFAULT 'product'");
+    if (!cols.includes("watermark")) await db.exec("ALTER TABLE media ADD COLUMN watermark TEXT");
+  }
+  await db.run(
+    "UPDATE media SET purpose = 'hero' WHERE watermark IS NULL AND ('uploads/' || id) IN (SELECT value FROM meta WHERE key IN ('setting:heroDesktop', 'setting:heroMobile'))",
+  );
+}
+
 async function ensurePrivateColumn(db: Db) {
   if (db.dialect === "postgres") {
     await db.exec("SET LOCAL lock_timeout = '4s';\nALTER TABLE products ADD COLUMN IF NOT EXISTS private INTEGER NOT NULL DEFAULT 0;");
@@ -115,6 +139,7 @@ export async function migrate(db: Db) {
         await db.exec(`SET LOCAL lock_timeout = '4s';\nSET LOCAL statement_timeout = '30s';\n${ddl}\n${rls}`);
       }
       await ensurePrivateColumn(db);
+      await ensureMediaColumns(db);
       await setFlag(db, "schema_version", SCHEMA_VERSION);
     } catch (err) {
       // Another instance may be migrating at the same moment. If the tables already exist,

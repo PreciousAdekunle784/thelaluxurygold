@@ -7,10 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "media": "node scripts/media.mjs",
+    "media": "node scripts/watermark-images.mjs && node scripts/media.mjs",
     "typecheck": "tsc --noEmit",
     "test:e2e": "node tests/e2e.cjs",
-    "test:admin": "node tests/admin-e2e.cjs"
+    "test:admin": "node tests/admin-e2e.cjs",
+    "watermark:check": "node scripts/watermark-images.mjs --check",
+    "watermark:logo": "node scripts/watermark-logo.mjs"
   },
   "dependencies": {
     "framer-motion": "^14.9.0",

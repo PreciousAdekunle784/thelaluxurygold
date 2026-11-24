@@ -82,10 +82,31 @@ export async function messageCounts() {
 }
 
 // ---------------------------------------------------------------- uploaded media
-export async function saveMedia(bytes: Buffer, contentType: string, width: number, height: number) {
+export type MediaPurpose = "product" | "hero";
+
+/**
+ * Store an uploaded image: the exact file as uploaded (kept untouched in `media_originals`) and the image
+ * the site serves (watermarked for products). The original is written first, so a served image never
+ * exists without its original.
+ */
+export async function saveMedia(m: {
+  bytes: Buffer;
+  contentType: string;
+  width: number;
+  height: number;
+  purpose: MediaPurpose;
+  watermark: string | null;
+  original: { bytes: Buffer; contentType: string; filename?: string };
+}) {
   const db = await getDb();
   const id = newId("m");
-  await db.run("INSERT INTO media (id, content_type, width, height, bytes, created_at) VALUES ($1,$2,$3,$4,$5,$6)", [id, contentType, width, height, bytes, Date.now()]);
+  const now = Date.now();
+  await db.run("INSERT INTO media_originals (media_id, content_type, filename, bytes, created_at) VALUES ($1, $2, $3, $4, $5)", [
+    id, m.original.contentType, m.original.filename?.slice(0, 200) || null, m.original.bytes, now,
+  ]);
+  await db.run("INSERT INTO media (id, content_type, width, height, bytes, created_at, purpose, watermark) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)", [
+    id, m.contentType, m.width, m.height, m.bytes, now, m.purpose, m.watermark,
+  ]);
   return id;
 }
 
@@ -108,14 +129,57 @@ export async function takeUploadChunks(uploadId: string) {
   return rows.map((r) => Buffer.from(r.bytes));
 }
 
+/** The image the site serves for an upload, with what it is for and which watermark it carries. */
 export async function getMedia(id: string) {
   const db = await getDb();
-  const r = await db.get<{ content_type: string; bytes: Uint8Array | Buffer }>("SELECT content_type, bytes FROM media WHERE id = $1", [id]);
-  return r ? { contentType: r.content_type, bytes: Buffer.from(r.bytes) } : null;
+  const r = await db.get<{ content_type: string; bytes: Uint8Array | Buffer; purpose: string; watermark: string | null }>(
+    "SELECT content_type, bytes, purpose, watermark FROM media WHERE id = $1",
+    [id],
+  );
+  return r ? { contentType: r.content_type, bytes: Buffer.from(r.bytes), purpose: r.purpose as MediaPurpose, watermark: r.watermark } : null;
 }
 
+/** Which watermark an upload's served image carries (without loading the image). */
+export async function getMediaState(id: string) {
+  const db = await getDb();
+  const r = await db.get<{ purpose: string; watermark: string | null }>("SELECT purpose, watermark FROM media WHERE id = $1", [id]);
+  return r ? { purpose: r.purpose as MediaPurpose, watermark: r.watermark } : null;
+}
+
+/**
+ * Make sure an upload has a preserved original. Uploads made before watermarking existed only have the image
+ * they were saved as, so that image (still unwatermarked: `watermark IS NULL`) is copied as the original.
+ * Never copies an image that already carries a watermark, and never replaces an existing original.
+ */
+export async function preserveOriginal(id: string) {
+  const db = await getDb();
+  await db.run(
+    `INSERT INTO media_originals (media_id, content_type, filename, bytes, created_at)
+     SELECT id, content_type, NULL, bytes, $2 FROM media WHERE id = $1 AND watermark IS NULL
+     ON CONFLICT (media_id) DO NOTHING`,
+    [id, Date.now()],
+  );
+}
+
+export async function getMediaOriginal(id: string) {
+  const db = await getDb();
+  const r = await db.get<{ content_type: string; bytes: Uint8Array | Buffer; filename: string | null }>("SELECT content_type, bytes, filename FROM media_originals WHERE media_id = $1", [id]);
+  return r ? { contentType: r.content_type, bytes: Buffer.from(r.bytes), filename: r.filename } : null;
+}
+
+/** Replace the SERVED image of a product upload with its watermarked version (the original is never touched). */
+export async function setWatermarkedImage(id: string, img: { bytes: Buffer; width: number; height: number }, revision: string) {
+  const db = await getDb();
+  await db.run("UPDATE media SET bytes = $2, width = $3, height = $4, content_type = 'image/webp', watermark = $5 WHERE id = $1 AND purpose = 'product'", [
+    id, img.bytes, img.width, img.height, revision,
+  ]);
+}
+
+/** Product images for the admin's "Choose existing" picker (homepage hero images are left out). */
 export async function listMedia() {
   const db = await getDb();
-  const rows = await db.all<{ id: string; width: number; height: number; created_at: number }>("SELECT id, width, height, created_at FROM media ORDER BY created_at DESC LIMIT 300");
+  const rows = await db.all<{ id: string; width: number; height: number; created_at: number }>(
+    "SELECT id, width, height, created_at FROM media WHERE purpose = 'product' ORDER BY created_at DESC LIMIT 300",
+  );
   return rows.map((r) => ({ id: r.id, width: Number(r.width), height: Number(r.height), createdAt: Number(r.created_at) }));
 }
