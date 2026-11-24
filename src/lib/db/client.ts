@@ -143,7 +143,16 @@ async function postgresDb(url: string): Promise<Db> {
     // We use no custom or array types, so skip the type lookup a new connection would otherwise do
     // before its first query (one round trip saved on every cold start).
     fetch_types: false,
+    // One query at a time per connection; parallel queries use separate connections from the pool.
+    // postgres.js pipelines up to 100 queries on one connection by default, and through Supabase's
+    // transaction pooler (Supavisor) some pipelined queries never get an answer: pages running several
+    // queries at once (the admin dashboard and visitor statistics) waited forever. Measured on the live
+    // database: each query alone answered in 3-33 ms; six sent together, three never answered.
+    max_pipeline: 1,
   });
+  // Safety net: a query with no answer after this long fails instead of keeping a page waiting forever.
+  const QUERY_TIMEOUT_MS = 30_000;
+  const answer = <T,>(p: Promise<T>) => withTimeout(p, QUERY_TIMEOUT_MS, "database query");
   // Parameters are sent as PostgreSQL's "unknown" type (oid 705). The server then infers each type from
   // the query exactly as it does for an untyped parameter, but the driver no longer needs a separate
   // Describe round trip to ask for the types first: every query costs one network round trip, not two.
@@ -160,13 +169,13 @@ async function postgresDb(url: string): Promise<Db> {
   return {
     dialect: "postgres",
     async all(q, params) {
-      return fix(await sql.unsafe(q, norm(params))) as never;
+      return fix(await answer(sql.unsafe(q, norm(params)))) as never;
     },
     async get(q, params) {
-      return fix(await sql.unsafe(q, norm(params)))[0] as never;
+      return fix(await answer(sql.unsafe(q, norm(params))))[0] as never;
     },
     async run(q, params) {
-      await sql.unsafe(q, norm(params));
+      await answer(sql.unsafe(q, norm(params)));
     },
     async exec(q) {
       // Simple protocol: allows several statements in one round trip (one implicit transaction).
