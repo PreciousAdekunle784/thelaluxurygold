@@ -147,8 +147,7 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
       const darkImg = await raw(await (await a.request.get(`${BASE}/media/${uploaded['dark.jpg']}/${REV}`)).body());
       const pl = await plainDisplay(files['portrait.jpg']);
       const pd = await plainDisplay(files['dark.jpg']);
-      const signed = (s, p) => { const box = placement(s.width, s.height, aspect); let sum = 0, n = 0; for (let y = box.top; y < box.top + box.height; y++) for (let x = box.left; x < box.left + box.width; x++) { const i = (y * s.width + x) * 3; sum += s.data[i] + s.data[i + 1] + s.data[i + 2] - p.data[i] - p.data[i + 1] - p.data[i + 2]; n++; } return sum / n; };
-      ok('letters are darker than a light photo and lighter than a dark one (always legible)', signed(light, pl) < 0 && signed(darkImg, pd) > 0, `light ${signed(light, pl).toFixed(2)}, dark ${signed(darkImg, pd).toFixed(2)}`);
+      ok('the brand name shows on light photos and on dark ones (light letters, soft dark shadow)', diff(light, pl, placement(light.width, light.height, aspect)) > 1.5 && diff(darkImg, pd, placement(darkImg.width, darkImg.height, aspect)) > 1.5, `light ${diff(light, pl, placement(light.width, light.height, aspect)).toFixed(2)}, dark ${diff(darkImg, pd, placement(darkImg.width, darkImg.height, aspect)).toFixed(2)}`);
     }
 
     // ---------------------------------------------------------------- publish a product: the public site shows the watermarked image

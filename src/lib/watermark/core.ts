@@ -14,16 +14,20 @@ export const WATERMARK_STYLE = {
   widthRatio: 0.62,
   /** Never taller than this share of the shown height. */
   maxHeightRatio: 0.2,
-  /** Opacity of the letters: faint, so the jewellery stays the subject (dark letters show more, so they are fainter). */
-  opacity: { ink: 0.17, ivory: 0.24 },
+  /**
+   * Light (ivory) letters over a soft dark shadow: readable on any photo, light, dark or busy (jewellery against a
+   * white bust, sparkling stones), while staying soft so the jewellery remains the subject.
+   */
+  opacity: 0.68,
+  shadow: { opacity: 0.42, blurRatio: 0.09 },
   /** Never smaller than this, so it stays legible on small images. */
   minWidthPx: 120,
 } as const;
 
 export interface WatermarkLogos {
-  /** Wordmark with dark letters, for light photos. */
+  /** Wordmark in the dark ink tone: used, blurred, as the shadow. */
   ink: Buffer;
-  /** Wordmark with light letters, for dark photos. */
+  /** Wordmark in the light ivory tone: the letters. */
   ivory: Buffer;
 }
 
@@ -80,36 +84,38 @@ export function placement(imageWidth: number, imageHeight: number, logoAspect: n
 
 /**
  * Draw the watermark into the image and encode it as WebP (same size, same proportions, alpha kept).
- * The tone follows the photograph: dark letters where the middle of the photo is light, light letters where it is dark.
+ * Light letters over a soft dark shadow, so the name reads the same way on every photo.
  */
 export async function applyWatermark(img: RawImage, logos: WatermarkLogos, opts: { quality?: number } = {}) {
   const raw = { width: img.width, height: img.height, channels: img.channels };
   const logoMeta = await sharp(logos.ink).metadata();
   const aspect = (logoMeta.height ?? 1) / (logoMeta.width ?? 1);
   const p = placement(img.width, img.height, aspect);
-  const tone = (await areaIsDark(img, p)) ? "ivory" : "ink";
+  const tone = "ivory" as const;
 
-  const logo = await sharp(tone === "ivory" ? logos.ivory : logos.ink)
-    .resize({ width: p.width, height: p.height, fit: "fill", kernel: "lanczos3" }) // same proportions as the artwork
-    .ensureAlpha()
-    .linear([1, 1, 1, WATERMARK_STYLE.opacity[tone]], [0, 0, 0, 0]) // scale only the alpha channel: faint letters
+  const sized = (art: Buffer) => sharp(art).resize({ width: p.width, height: p.height, fit: "fill", kernel: "lanczos3" }).ensureAlpha(); // same proportions as the artwork
+  const letters = await sized(logos.ivory)
+    .linear([1, 1, 1, WATERMARK_STYLE.opacity], [0, 0, 0, 0]) // scale only the alpha channel: soft letters
     .png()
     .toBuffer();
 
+  // the shadow: the wordmark in the dark tone, blurred, with room around it for the blur to spread
+  const { shadow } = WATERMARK_STYLE;
+  const pad = Math.max(2, Math.round(p.height * 0.35));
+  const shadowLeft = Math.max(0, p.left - pad);
+  const shadowTop = Math.max(0, p.top - pad);
+  const blurred = await sized(logos.ink)
+    .extend({ top: p.top - shadowTop, bottom: pad, left: p.left - shadowLeft, right: pad, background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .blur(Math.max(0.6, p.height * shadow.blurRatio))
+    .linear([1, 1, 1, shadow.opacity], [0, 0, 0, 0])
+    .png()
+    .toBuffer();
+  const bm = await sharp(blurred).metadata();
+  const fits = shadowLeft + (bm.width ?? 0) <= img.width && shadowTop + (bm.height ?? 0) <= img.height;
+
   const out = await sharp(img.data, { raw })
-    .composite([{ input: logo, left: p.left, top: p.top }])
+    .composite([...(fits ? [{ input: blurred, left: shadowLeft, top: shadowTop }] : []), { input: letters, left: p.left, top: p.top }])
     .webp({ quality: opts.quality ?? 90, effort: 5, alphaQuality: 100 })
     .toBuffer({ resolveWithObject: true });
   return { data: out.data, width: out.info.width, height: out.info.height, placement: { ...p, tone } satisfies Placement };
-}
-
-/** Average brightness of the area the wordmark will cover (transparent areas count as the site's light backgrounds). */
-async function areaIsDark(img: RawImage, p: Omit<Placement, "tone">) {
-  const region = sharp(img.data, { raw: { width: img.width, height: img.height, channels: img.channels } })
-    .extract({ left: p.left, top: p.top, width: Math.min(p.width, img.width - p.left), height: Math.min(p.height, img.height - p.top) })
-    .flatten({ background: "#f7f3ec" });
-  const { channels } = await region.stats();
-  const [r, g, b] = channels.length >= 3 ? [channels[0].mean, channels[1].mean, channels[2].mean] : [channels[0].mean, channels[0].mean, channels[0].mean];
-  const luminance = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-  return luminance < 0.5;
 }
