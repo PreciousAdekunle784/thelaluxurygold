@@ -9,4 +9,5 @@
 // w2: the logo sat inside the part of the photo the website's portrait frames show.
 // w3: the brand name "LA LUXURY GOLD", faint and centred, replaces the corner monogram.
 // w4: the name is a little more visible: light letters over a soft dark shadow, readable on every photo.
-export const WATERMARK_REVISION = "w4";
+// w5: larger letters (86% of the shown width instead of 62%).
+export const WATERMARK_REVISION = "w5";

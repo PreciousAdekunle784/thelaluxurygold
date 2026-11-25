@@ -128,7 +128,7 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
       const widthShare = box.width / region.width;
       const offCentre = Math.max(Math.abs(box.left + box.width / 2 - s.width / 2), Math.abs(box.top + box.height / 2 - s.height / 2));
       ok(`${name}: brand name drawn into the pixels in the middle`, inLogo > elsewhere + 1.2 && offCentre <= 1, `change in logo area ${inLogo.toFixed(2)} vs elsewhere ${elsewhere.toFixed(2)}`);
-      ok(`${name}: brand name ${(widthShare * 100).toFixed(1)}% of the shown width, centred`, (widthShare >= 0.58 && widthShare <= 0.66) || box.width === WATERMARK_STYLE.minWidthPx || box.height <= region.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
+      ok(`${name}: brand name ${(widthShare * 100).toFixed(1)}% of the shown width, centred`, (widthShare >= 0.82 && widthShare <= 0.9) || box.width === WATERMARK_STYLE.minWidthPx || box.height <= region.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
       ok(`${name}: logo proportions preserved`, Math.abs(box.height / box.width - aspect) < 0.02);
       // 4. the brand name is inside what the site's 4:5 and 5:6 frames show (object-fit: cover, centred), never trimmed off
       const shown = (ar) => { const w = Math.min(s.width, s.height * ar), h = Math.min(s.height, s.width / ar); return { l: (s.width - w) / 2, t: (s.height - h) / 2, r: (s.width + w) / 2, b: (s.height + h) / 2 }; };
@@ -197,7 +197,12 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
     const [hero] = await q("SELECT id, purpose, watermark FROM media ORDER BY created_at DESC LIMIT 1");
     const heroServed = await raw(await (await a.request.get(`${BASE}/media/${hero.id}/${REV}`)).body());
     const heroPlain = await raw(await sharp(files['landscape.webp']).resize({ width: 2800, height: 2800, fit: 'inside', withoutEnlargement: true }).toBuffer());
-    ok('homepage hero upload is not watermarked', hero.purpose === 'hero' && hero.watermark == null && diff(heroServed, heroPlain, placement(heroServed.width, heroServed.height, aspect)) < 1.2);
+    // the same photo uploaded as a product image (watermarked) changes far more there than compression alone does
+    const heroBox = diff(heroServed, heroPlain, placement(heroServed.width, heroServed.height, aspect));
+    const asProduct = await raw(await (await a.request.get(`${BASE}/media/${uploaded['landscape.webp']}/${REV}`)).body());
+    const asProductPlain = await plainDisplay(files['landscape.webp']);
+    const marked = diff(asProduct, asProductPlain, placement(asProduct.width, asProduct.height, aspect));
+    ok('homepage hero upload is not watermarked', hero.purpose === 'hero' && hero.watermark == null && heroBox < marked / 4, `where a watermark would go ${heroBox.toFixed(2)} (compression only), a watermarked copy ${marked.toFixed(2)}`);
     ok('hero images are not offered as product images', !(await (await a.request.get(`${BASE}/admin/products/new`)).text()).includes(hero.id));
     // put the homepage back as it was
     await a.locator('button:has-text("Use the campaign image")').first().click().catch(() => {});

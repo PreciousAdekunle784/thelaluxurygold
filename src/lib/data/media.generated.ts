@@ -139,7 +139,7 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/arc-cuff-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABwAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQC7AB3hTztns4AA/o8WX5IgD4jJ4JhnXK5OWykU7ByZ2rrKct9NFjsAAA=="
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC7AB3hTztns4AA/o8WX5IgD4jJ4JhnXbLgCE+kQbtzJxWrQ/OVJ3lAAA=="
   ],
   "products/arc-cuff-3": [
     1200,
@@ -154,27 +154,27 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/aurelia-band-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQCsACIFyI5y1OuYAP7DNSit8bGwV5HsXyVSNZobAUZ5Wr6qd8wZCudAAA=="
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCsACIFyI5y1OuYAP7DNSit8bGwV5HsXyVSNZobAUZ5Wr6qd8wZCudAAA=="
   ],
   "products/aurelia-band-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAADwAwCdASoQABQAPu1kqU2ppaQiMAgBMB2JZQCdAB4QtGHtb8Z8XdVAAP6vcHEgxnSKSD2JblkaMbrQ49vWvf+PYTolbxj1QO5afCOrUPVBmurhAQcq8BGoDf5pdTe+dmn+exVin6ILOsQlWAA="
+    "data:image/webp;base64,UklGRngAAABXRUJQVlA4IGwAAADwAwCdASoQABQAPu1kqU2ppaQiMAgBMB2JZQCdAB4QtGHtb8Z8XdVAAP6vcHEgxnSKSD2JblkaMbrQ49vWvf+ITolbxj1QO5afCOrUPVBmurhAQcq8BGoDf5pdTe+dmn+exVin6ILOsQlWAAA="
   ],
   "products/cast-gold-bar-100g-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAACQAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQCdACHgAG7ClxVAAP7C7VcCql5ZifDX2Tg89mXnrI+cSwp4EWTgAAA="
+    "data:image/webp;base64,UklGRkwAAABXRUJQVlA4IEAAAACQAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQCdACHgAH1xaFAAAP7C7VcCq54qMJAXv7BiaIBpvXNeVEeDqcAA"
   ],
   "products/cast-gold-bar-100g-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAABwAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZQDE2CHfyy2u6uwA/vQZ6OCTo/hEylLLeLjiojd3mYKyef8ZkNzQFNBVYmDSI3UHDJauw7NMgAAA"
+    "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAABwAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZQDE2CHfyy2u6uwA/vQZ6OCTpLO7JXiyH27wEbt8FHBJoXVmjpJnExL8GOzzjw3lGJnfKWWZAAAA"
   ],
   "products/cast-gold-bar-100g-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAADwAwCdASoQABQAPu1kqk4ppaQiMAgBMB2JYwCw7CHaRgoHSSYNJuwwAP6ufuVCzBZEADVcrEhM9fLCcjprEADhI+MLzYfkaTMS0OB/Uhj/d7imNrcmOoXeBbh2+hQIBD0gAA=="
+    "data:image/webp;base64,UklGRm4AAABXRUJQVlA4IGIAAAAQBACdASoQABQAPu1iqk4ppaQiMAgBMB2JYwCw7CHaRly5DM9oWbsMAAD+rn7lQswWRAA1XKxITPXywnI6axAA4SPk0QcgkQMiQhhKD9yWf24G5rRAnyBZ7ud8uP8syysIAA=="
   ],
   "products/classic-hoops-1": [
     1200,
@@ -184,7 +184,7 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/classic-hoops-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRjwAAABXRUJQVlA4IDAAAACwAgCdASoQABQAPu1iqU2ppaQiMAgBMB2JaQAAeyAA/vD86XtXr7dy7xhSVn0AAAA="
+    "data:image/webp;base64,UklGRjoAAABXRUJQVlA4IC4AAACwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JaQAAeyAA/vD86nb5J/buCD2GB4AA"
   ],
   "products/classic-hoops-3": [
     1200,
@@ -194,42 +194,42 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/corda-twist-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAABwAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZQC2yCHc3fGXvAAA/sMdOI+rQASPaW+KlSipVtXhwo29ev42LgfxDfWF+AAA"
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACQAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZQC2yCHc3drT9JaAAP7DHTiPqzS6ihZTzLNI8ni/d4UijPxDtyveUcAAAA=="
   ],
   "products/corda-twist-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JQBOgBDoIrQKAAP6jd/uZMeu2tfSs70Fae2oyr5coq2qQtAcTHo0yJuw79QNsqOUwAA=="
+    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JQBOgBDoIrQKAAP6jd/uZMeu2tfSs70Fae2oyr5coq2qQtAcTHo0yJuw79QNsqenAAA=="
   ],
   "products/corda-twist-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRoAAAABXRUJQVlA4IHQAAADQAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JYwCw7BbeqG1PpgcG70AA/q/qnNaxsJmS8gCxDz2Pq+BzNVPIjHXSVsOdWKT7buJr1h6UbVXsaAewd+WudDreuuSzxpnDolFFGVxp5gN6MUMv2wuXByGkoAAAAA=="
+    "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAADQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCw7BbeqG1PpgcG70AA/q/qnNaxsJmS8gCxDz2Pq+BzNVPIjHXSVsMvNeG8OfFUVc5HoCNyWrGtNCEZI59psywpVDe5gPWSWToATfcG/5FEdYKDvtU6YAA="
   ],
   "products/corde-rope-chain-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC+SDKUAAD+6qyMJ9/37nIqhvKumhKBEFMrXMYjolWx5e0za38VDIjwAA=="
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC+SDKUAAD+6qyMJ9/37nIqhvKumhKBEFMrW+HNnxON9JUNeL5rVGAAAA=="
   ],
   "products/corde-rope-chain-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwAAW+jUrmAGlmiAAP70Hdg7+JwddRyoRo8zwI6y5zIRDi2qu9azzgJut/LwkxM1f9UAL8RgAA=="
+    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACQAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZwAAW+jUrmAXfjgAAP70Hdg7+JwddRyoRo8zwI6y5zJn2c2MJkkpm3e53aTBL/1B0/FkEB18AA=="
   ],
   "products/corde-rope-chain-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwC7ACHfs8aab2UAAP6uHP9cC5U8XUuW4ptfyh6WnPLJL1rbVn580H6mMQXqcAA="
+    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwC7ACHfs8aavEwAAP6uHP/tSnGPRDQCxCm5+Y3JC9Km7HE/QMcHQBtNkPxluQAAAA=="
   ],
   "products/goutte-drop-earrings-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwC7AC0kAAD+63ILjVo6MivoJ1ET0JPCMNdOAAA="
+    "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADQAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwAAifQAAP7rcguNWjoyK+gnUROUavhgHAAA"
   ],
   "products/goutte-drop-earrings-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADQAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQAAhAwAAP7uE4ttO1+l7sIvoPi5Ogb0AAAA"
+    "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADQAgCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQAAhAwAAP7uE4ttO2Cb8nSX/uT9Lq0S4EAA"
   ],
   "products/goutte-drop-earrings-3": [
     1200,
@@ -239,7 +239,7 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/goutte-teardrop-pendant-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAgCdASoQABQAPu1iqU2ppaQiMAgBMB2JZwAAic/xgAD+67p6vuNNVcUAhf5EAdwhQAAA"
+    "data:image/webp;base64,UklGRkAAAABXRUJQVlA4IDQAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwAAic/xgAD+67p6vuNNVcUAhf5EAdwhQAAA"
   ],
   "products/goutte-teardrop-pendant-2": [
     1200,
@@ -254,12 +254,12 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/halo-bangle-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACQAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZwC/OCHgXnrtn8AAAP7C8QPHPDwCZBE13YcPy4cf70VKkoWgyI80SDBEdlWZxsD2yKBJMRTAAA=="
+    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAACQAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZwC2yCHgXnrtn8AAAP7C8QPHPDwCZBE13YcPy4cf70VKkoWQyM9n2SFjJl+0MJb43gUnGnIAAA=="
   ],
   "products/halo-bangle-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAAAwAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JTMgAB2jHxAgAAP7uSakkmDgaDfO/cn6SsIdGOGktcAAA"
+    "data:image/webp;base64,UklGRkQAAABXRUJQVlA4IDgAAAAQAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JTK3AB2f/GAAA/u5JmbNFUDFp+g+Ljf9OmwbSFwUAAA=="
   ],
   "products/halo-bangle-3": [
     1200,
@@ -274,12 +274,12 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/maison-signet-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkYAAABXRUJQVlA4IDoAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JaQAAW+xIA/uaAAD+9CKDXgEfHV3P/mwGR/T0gDxoGwAA"
+    "data:image/webp;base64,UklGRkgAAABXRUJQVlA4IDwAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JaQAAW+xHnxXUBAAA/vQig14BHx1dzoclGiCoJo540DYAAAA="
   ],
   "products/maison-signet-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAAAQBACdASoQABQAPu1iqk2ppaQiMAgBMB2JYwCdACFy/HMnS/Z0j+R1RAD89MaDqUOduSZn3hwEaBQXdDsjPDD8KugViuRdb+iSj8jEomOtyjbe5OAfBenA+o1qyLqLv9u4/2pyDinuWLCFqETpXVAgAAA="
+    "data:image/webp;base64,UklGRn4AAABXRUJQVlA4IHIAAAAQBACdASoQABQAPu1kqU2ppaQiMAgBMB2JYwCdACFy/HMnS/Z0j+R1RAD89MaDqUOduSZn3hwEaBQXdDsjPDD8KugViuRdb+iSj8jEomOtyjbe5OAfBenA+o1qyLqLv9u4/2pyDinuWLCFqETpXVAgAAA="
   ],
   "products/medaille-coin-pendant-1": [
     1200,
@@ -289,27 +289,27 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/medaille-coin-pendant-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAAAQAwCdASoQABQAPu1kqk4ppaQiMAgBMB2JYwAAg+Vd3vgA/u/9k/BltqkKy8uJ1lbB2bgb/Sw6tOUZHOwh7UWxKMWQAA=="
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAAAQAwCdASoQABQAPu1kqk4ppaQiMAgBMB2JYwAAg+Vd3vgA/vAApx+rSaPHK6M90CUOClhX48iUhposzP7lTOinfauAAA=="
   ],
   "products/medaille-coin-pendant-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAADwAwCdASoQABQAPu1iqk2ppaQiMAgBMB2JYwC7ACHfuEo4mpisO/iwAP6uHPNDYvJ7h3FTKm0sOwMhSCSjcG4mln1AKrNbMhLMwovboO9ojeehmtXBN2ogAAA="
+    "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQAwCdASoQABQAPu1oqk6ppiQiMAgBMB2JZQAAW+sgvvIfDxBXqiAA/q4c80Ni8nuHcVMqbSw7AyFIJKNwh09jCS9ohr637564Nv9tCiN5nPtgAEAAAA=="
   ],
   "products/minted-gold-bar-10g-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADQAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQAAifQAAP7raOb81SOv5eqwaTTIQAAAAA=="
+    "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADQAgCdASoQABQAPu1iqU2ppaQiMAgBMB2JZQAAifQAAP7raOb81SOv5eqwaTTIQAAAAA=="
   ],
   "products/minted-gold-bar-10g-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoQABQAPu1iqU2ppaQjMAgBMB2JZQCdAC0kAAD+3wJbdf8Xck4S1M7e/Jt2PUME2AA="
+    "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoQABQAPu1iqU2ppaOjMAgBMB2JZQCdAC0kAAD+3wJbdf8Xck4S1M7e/Jt2PUR0QAA="
   ],
   "products/minted-gold-bar-10g-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdACG/mApiUGf8AOJxhsrVrezDUXXG0trcUPXU+GCiuc+jvsH/fEJOwW8DeiB8sqAfSv46fP1gfB0uAA=="
+    "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdACG/qCC8UxcEQADicYbK1a3sw1F1xtLa3FDniVR+Tt+JKCREdR7OmlrRLHRqpte8EDjIBaBeQPg6XAAA"
   ],
   "products/minted-gold-bar-20g-1": [
     1200,
@@ -319,42 +319,42 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/minted-gold-bar-20g-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwAAW+nlQR2UwAD+9BwtIgukJ79C7dBugICPAUiGuiYfg2ZOBTXOdI4hILTa9vRmdwgA"
+    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwAAW+nlQRmrzAD+9BwtIgukJ79C7dBugCeTMBOJtilS+8Ht237vAgNpCaLAyn0ZncIA"
   ],
   "products/minted-gold-bar-20g-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAADQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCdMoADT7Ywi4gNioAA/oYFHrb9+d9WvK5LktO9q7zK++HbZVCHtdq1qrFDle+pR/8hPFfBLb482TAAAA=="
+    "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCdACHqXDhQ30HYAP6GBR62/fnfVryuS5LKez3sB6HKV3JKPtdq19qtgvVkWw0TBBG1TrM5HZw32QAAAA=="
   ],
   "products/minted-gold-bar-50g-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCsAC2OAAD+6xBE3iOk1E2J9t/r+xjVQFb7bAA="
+    "data:image/webp;base64,UklGRkIAAABXRUJQVlA4IDYAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCsAC2OAAD+6xBE3iNjxaCt5/RkJmew7rJBAAA="
   ],
   "products/minted-gold-bar-50g-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JQBdgBDjvhG9SyCgAAP5QzYIIyqfBiZMIpqrXEYaGPNRiQk+gga40m1dRogEuQUIAAA=="
+    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAAAwAwCdASoQABQAPu1kqU2ppaQiMAgBMB2JQBdgBZ5yWqgAAP7fDaLWyl57lEnCA39PSlDu3wFyfpM0T4H9CRCoNaGmfshAzNGgAA=="
   ],
   "products/minted-gold-bar-50g-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JQBOmUABp9rLXMsueiAD+5GntYcxeb3MrrCIENuO1Zg5DN5B6bN+st2qM+ICkL1dWP+DenPTQSflQCima2gAA"
+    "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAADQAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JQBOmUABp9rLXPeVTpIAA/uRp7WHMXm9zK6wiBDbjtWYOQzeQemzfrLdqn8fOZLIVqD5zxcucF35z/tei6IAA"
   ],
   "products/minted-gold-bar-5g-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRj4AAABXRUJQVlA4IDIAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwC7ADKUAAD+62jqSKdgZYUsN+zR+QAAAA=="
+    "data:image/webp;base64,UklGRjwAAABXRUJQVlA4IDAAAADwAgCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwC7ADKUAAD+62jqR+mE02ry/SDVgAA="
   ],
   "products/minted-gold-bar-5g-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwDLLCHfw4CHrxLAAP70Ge//Pti2alCWvf5dsjsRZ0u3HXjHFPrcnCi3yHgA"
+    "data:image/webp;base64,UklGRlYAAABXRUJQVlA4IEoAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwDLLCHfydq4WMAA/vQZ8AL07LSrml0wm3xEPQjYH/4a0QUJoroTADJ/Oh48ITEAAA=="
   ],
   "products/minted-gold-bar-5g-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRl4AAABXRUJQVlA4IFIAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdACG//YmNdAkgAP6USanh3DbBwOpudLhu5dqa4jOjYct1UngMvqcqaMJ59+HMXO/A99nHQlQA"
+    "data:image/webp;base64,UklGRmAAAABXRUJQVlA4IFQAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdACG//YmNdAkgAP6USanh3DbBwOpudLhu5dqa4jOjYct1UngMvqc/DFIs7sWQuV8P08ygoh/AAAA="
   ],
   "products/petite-huggies-1": [
     1200,
@@ -364,12 +364,12 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/petite-huggies-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAABwAwCdASoQABQAPu1iqU2ppaOjMAgBMB2JZQCdAB6nq32T4AAA8qN9fOvW/vbvgSlKzFU9BTsCgQKvOf8YqkJ+Ej4JZ6dHeJ/Tst7NAAA="
+    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAACQAwCdASoQABQAPu1iqU2ppaOjMAgBMB2JZQCo9B6nrnFf5hqAAPKjfXzr1v7274EpXHoqo+oxAA4eAXnROFUfb78N71GsVPjXgAAA"
   ],
   "products/petite-huggies-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAADQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JQBOmUABhsoIF8Vf4XwAA/q8kaIJM5eCEX1vZysZSWxX2PGwD1ap4gvWUqwzRletgn/KC9Rb2TBxY2p1STwWn0piV7492U2vjVBXlp8rhHY4bfcYoHnjVrFICwAAA"
+    "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAADwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCdMoADDZQQL4q/wvgAAP6vJGiCTOXghF9b2crGUlsV9jxsA9WqeIL1lKsM0ZXrYJ/ygvUW9kwcWNqdUk8Fp9KYle+PdlNr41QV5afK4R2OG33GKB541axSAsAA"
   ],
   "products/riviera-cable-bracelet-1": [
     1200,
@@ -379,12 +379,12 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/riviera-cable-bracelet-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC7ACHPOo4uF0AA/vDD/6S55vA+d+kQuwfTfB2bRmjE6yebBrtJnhm/JUv98d4p6YAA"
+    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC7ACHPOBAlhmbkAAD+8MP/pLnm8EDduo3HqqaUbHmRMIdjcE4qr/2XeVftaxj7QAAA"
   ],
   "products/riviera-cable-bracelet-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRloAAABXRUJQVlA4IE4AAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwCw7CHZuIf21/PQAP6uctyUyqRRKTCvI3C3OkK8IwdxalZ0qYmP/MNDXtTzO6GYyKjQAAA="
+    "data:image/webp;base64,UklGRlgAAABXRUJQVlA4IEwAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwCw7CHZuInshdSoAAD+rnLclMqkUSkwryNwsMz1WQ4HsDU1UDyGgZ7xZNm578t5QAAA"
   ],
   "products/riviera-cable-chain-1": [
     1200,
@@ -399,47 +399,47 @@ export const mediaManifest: Record<string, [number, number, string]> = {
   "products/riviera-cable-chain-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAABwAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZwCdACHfzG3/bcAA/q4aXv2CVbrz6AFyMguoWoE//7K+Ao6XCYB7tXHan8AA"
+    "data:image/webp;base64,UklGRlIAAABXRUJQVlA4IEYAAABwAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZwCdACHfrGTWJkAA/q4Ykz/9FjYlUCqz6ACUC6pEkwIAFHS4TAPdq47U/gAA"
   ],
   "products/riviera-set-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAADwAwCdASoQABQAPu1iqU2ppaQiMAgBMB2JZwC7AB8kvCdUhjpS7OUAAP7D8Uc/yM3EHyBq7N77dqrLAOYxSoaz/nP2rZo+eAA="
+    "data:image/webp;base64,UklGRlQAAABXRUJQVlA4IEgAAADwAwCdASoQABQAPu1iqk2ppaQiMAgBMB2JZwC7AB8kvCdUhjpS7OUAAP7D8Uc/yM3EHyBq7N77dqrLAOYxSoaz/nP2rZo+eAA="
   ],
   "products/riviera-set-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmQAAABXRUJQVlA4IFgAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdMoADUh9Fy80AgAD+vJ0YEtWFtjanSTsFjp1kECcE9R3C/GHa8KWNB3EPcQCak2U5MytDSY+JxIRjIAAA"
+    "data:image/webp;base64,UklGRmIAAABXRUJQVlA4IFYAAACQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQCdMoADUh80lx9kAP68nRgS1YW2NqdJOwWOnWQQJwT1HcL8R/IxB7tWp9BIPsRPuUQ+QXVBH7aKDjLgAA=="
   ],
   "products/riviera-set-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRoIAAABXRUJQVlA4IHYAAAAQBACdASoQABQAPu1iqU2ppaOiMAgBMB2JYwC7AYxE4TYvu26thMmlgAD+j5e2PP0Ko4hhINxxf/6Xif6022Leu+b1gndywZU/RIRbAiCcUWYn+gkNMxehUfRdzBcCBjlv2/6dqaV01O18d11ko6IF9nBFAAAA"
+    "data:image/webp;base64,UklGRoQAAABXRUJQVlA4IHgAAABQBACdASoQABQAPu1iqU2ppaOiMAgBMB2JYwC7AYwc4Ta0jev9TdZsThAAAP6Pl0pcWP5Si89S4VleOYs5+2jxektgfkv+GD/OoDDG2BEE2XANyJ7/tXY14iTxY9Yqe3TcyLhRLM88tJ+YtwM/JQTXa7cmKOigAAA="
   ],
   "products/soleil-dome-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRmYAAABXRUJQVlA4IFoAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCo9BtsFb1vYIAA/rN2bMPWaS33nucsIxV/WSRznmpxdrwJzlnxxHRWhVqOuftY7fO/7DW69tp0t/uzI37CAAA="
+    "data:image/webp;base64,UklGRmgAAABXRUJQVlA4IFwAAABQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JYwCdABtr9KkIgAD+s3Zsw9ZpLfee5ywjFX9ZJHOeanF2+CoPQ+J8sOKkXaJ76U4tfRAvh0qnqQMky6R1O9rZPNOAAA=="
   ],
   "products/soleil-dome-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADwAwCdASoQABQAPu1iqk4ppaQiMAgBMB2JZQCw7CIgPzYELm1nF5+AAP7sGmb3ldj21H9pslgMxGwIY5ETGgbqdj0pvxJBwJIjwpt0Kn4AAA=="
+    "data:image/webp;base64,UklGRlwAAABXRUJQVlA4IFAAAADwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC7ACIgPzYEoxg3838AAP7sGmb3ldj21H9pslgMxGwn++fDJrH/pK7GKebZrDMBwpt0UdwAAA=="
   ],
   "products/soleil-dome-3": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAAAQBACdASoQABQAPu1iqU2ppaQiMAgBMB2JQBOgMXDRB6M3uuXMHVOtYAD2sMOAYUPIst0sCOIcvOUS1lMx6wsKYnHs/j9bJaK0pSmCVFdQgVpvlWEUq8ofEOebVn8W8A6OSM+cXf/Wp87srkzPi4ZOAf0MV1dkb9qQ4h2qgAA="
+    "data:image/webp;base64,UklGRooAAABXRUJQVlA4IH4AAAAQBACdASoQABQAPu1iqU2ppaQiMAgBMB2JQBOgMXDRB6M3uuXMHVOtYAD2sMOAYUPIst0sCOIcvOUS1lMx6wsKYnHs/j9bJaK0pSmCVFdQgVpvlWEUq8ofEOebVn8W715Gxnzi7/61PndlcmZ8XDJwD+hiursjftSHEO1UAAA="
   ],
   "products/soleil-halo-set-1": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwC+SCHf5B9NNoAA/sLtT9mtuAlrrMP/1vXYh2X/TtxP5R8mOe0qEgAAAA=="
+    "data:image/webp;base64,UklGRk4AAABXRUJQVlA4IEIAAABwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZwC+SCHf5B85XoAA/sLtT9mtuAlrrMP/qflDtt8W/3OUarexYaeU2AA="
   ],
   "products/soleil-halo-set-2": [
     1200,
     1500,
-    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAACwAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC06CHekFcK2TMKAAD+8Mhl37CDiGe1i8V8Xhn61xN1ZAmVP5xDCn3AAA=="
+    "data:image/webp;base64,UklGRlAAAABXRUJQVlA4IEQAAADQAwCdASoQABQAPu1iqU2ppaOiMAgBMB2JZQC06CHekFelUxkg8cAA/vDIZd+wg4kVGJ371KTJ1wm6sgTKn2gYMgAAAA=="
   ],
   "products/soleil-halo-set-3": [
     1200,

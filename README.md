@@ -102,7 +102,7 @@ types is never replaced unless they choose a suggestion instead, and a product c
 
 Every product image on the website carries the brand name, **LA LUXURY GOLD**, set in the wordmark's own lettering
 (Cormorant Garamond capitals with the logo's wide spacing, as in `Wordmark` in `src/components/brand/Logo.tsx`), softly
-visible and centred: about 62% of the width the site shows, in light letters (68% opacity) over a soft dark shadow, so
+visible and centred: about 86% of the width the site shows, in light letters (68% opacity) over a soft dark shadow, so
 it reads the same way on light, dark and busy photos. The site shows product photos in portrait frames (4:5, and 5:6 for the main photo on wide
 screens) filled edge to edge, so the name is sized to the part of the photo those frames show and is never trimmed off.
 It is drawn into the pixels on the server

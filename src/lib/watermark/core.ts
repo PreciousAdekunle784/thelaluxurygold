@@ -10,8 +10,8 @@ import sharp from "sharp";
 
 /** The watermark's look (kept here, not in the admin: there is nothing to configure). */
 export const WATERMARK_STYLE = {
-  /** Wordmark width as a share of the width the website shows (see visibleRegion). */
-  widthRatio: 0.62,
+  /** Wordmark width as a share of the width the website shows (see visibleRegion): most of it, so the letters are large. */
+  widthRatio: 0.86,
   /** Never taller than this share of the shown height. */
   maxHeightRatio: 0.2,
   /**
@@ -64,7 +64,7 @@ export function visibleRegion(imageWidth: number, imageHeight: number) {
 }
 
 /**
- * Where the wordmark goes for an image of this size: centred, about 62% of the width the website shows (see
+ * Where the wordmark goes for an image of this size: centred, about 86% of the width the website shows (see
  * visibleRegion), so the whole name is visible in every frame. The wordmark keeps its own proportions.
  */
 export function placement(imageWidth: number, imageHeight: number, logoAspect: number): Omit<Placement, "tone"> {
