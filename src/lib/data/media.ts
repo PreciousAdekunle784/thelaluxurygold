@@ -4,7 +4,7 @@ import { WATERMARK_REVISION } from "@/lib/watermark/revision";
 /**
  * Media registry. Every image used on the site is referenced by a key, e.g.
  * "collections/collection-rings" → /public/images/laluxurygold/collections/collection-rings.webp.
- * Product photos are watermarked: "products/aurelia-band-1" → /images/laluxurygold/products/aurelia-band-1.w1.webp,
+ * Product photos are watermarked: "products/aurelia-band-1" → /images/laluxurygold/products/aurelia-band-1.w2.webp,
  * generated from the original in assets/originals/products by `npm run media`.
  *
  * To replace imagery, drop a new file at the same path (keeping the aspect ratio),

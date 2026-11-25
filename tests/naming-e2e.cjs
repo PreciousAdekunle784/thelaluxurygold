@@ -130,7 +130,7 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
     await shop.waitForTimeout(600);
     ok('public product page shows the approved name', (await shop.locator('h1').first().textContent()).includes('Rosée Test Pendant'));
     const src = await shop.locator('main img').first().evaluate((i) => decodeURIComponent(i.currentSrc || i.src));
-    ok('public page shows the watermarked image (watermarking still automatic)', /\/media\/m[a-f0-9]{16}\/w1/.test(src), src.slice(0, 90));
+    ok('public page shows the watermarked image (watermarking still automatic)', /\/media\/m[a-f0-9]{16}\/w\d+/.test(src), src.slice(0, 90));
     const img = await shop.request.get(src);
     ok('watermarked image loads', img.status() === 200);
     await shop.close();

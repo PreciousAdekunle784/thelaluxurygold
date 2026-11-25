@@ -45,17 +45,41 @@ export interface Placement {
 }
 
 /**
- * Where the logo goes for an image of this size: bottom-right, about 13.5% of the width (smaller on
- * very wide images), with a ~3% margin. The logo keeps its own proportions.
+ * The website shows product photos in portrait frames that are filled edge to edge (CSS object-fit: cover,
+ * centred): 4:5 on product cards and the product page, 5:6 for the main photo on wide screens. A photo of
+ * another shape is trimmed to fit (a tall phone photo loses its top and bottom, a wide one its sides), so a logo
+ * in the photo's own corner would be trimmed away. This is the centred part of the photo that every one of those
+ * frames shows.
+ */
+export const DISPLAY_FRAMES = [4 / 5, 5 / 6] as const;
+
+export function visibleRegion(imageWidth: number, imageHeight: number) {
+  const narrowest = Math.min(...DISPLAY_FRAMES); // limits the width shown of wide photos
+  const widest = Math.max(...DISPLAY_FRAMES); // limits the height shown of tall photos
+  const width = Math.min(imageWidth, Math.round(imageHeight * narrowest));
+  const height = Math.min(imageHeight, Math.round(imageWidth / widest));
+  return { left: Math.floor((imageWidth - width) / 2), top: Math.floor((imageHeight - height) / 2), width, height };
+}
+
+/**
+ * Where the logo goes for an image of this size: at the bottom-right of the part the website shows (see
+ * visibleRegion: for photos already in portrait 4:5 that is the whole photo), about 13.5% of that width
+ * (smaller on very wide areas), with a ~3% margin. The logo keeps its own proportions.
  */
 export function placement(imageWidth: number, imageHeight: number, logoAspect: number): Omit<Placement, "tone"> {
   const s = WATERMARK_STYLE;
-  let width = Math.max(s.minWidthPx, Math.round(imageWidth * s.widthRatio));
-  if (width * logoAspect > imageHeight * s.maxHeightRatio) width = Math.max(s.minWidthPx, Math.round((imageHeight * s.maxHeightRatio) / logoAspect));
+  const r = visibleRegion(imageWidth, imageHeight);
+  let width = Math.max(s.minWidthPx, Math.round(r.width * s.widthRatio));
+  if (width * logoAspect > r.height * s.maxHeightRatio) width = Math.max(s.minWidthPx, Math.round((r.height * s.maxHeightRatio) / logoAspect));
   width = Math.min(width, imageWidth);
   const height = Math.round(width * logoAspect);
-  const margin = Math.round(Math.min(imageWidth, imageHeight) * s.marginRatio);
-  return { width, height, left: Math.max(0, imageWidth - margin - width), top: Math.max(0, imageHeight - margin - height) };
+  const margin = Math.round(Math.min(r.width, r.height) * s.marginRatio);
+  return {
+    width,
+    height,
+    left: Math.max(0, r.left + r.width - margin - width),
+    top: Math.max(0, r.top + r.height - margin - height),
+  };
 }
 
 /**

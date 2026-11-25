@@ -101,8 +101,11 @@ types is never replaced unless they choose a suggestion instead, and a product c
 ### Watermark
 
 Every product image on the website carries the LA Luxury Gold monogram (the LG arch from `src/components/brand/Logo.tsx`)
-in its bottom-right corner: about 13.5% of the image width (smaller on wide, short images), 3% from the edges, at 40%
-opacity, with dark letters on light photos and light letters on dark ones. It is drawn into the pixels on the server
+at the bottom right: about 13.5% of the width (smaller on wide, short images), 3% from the edges, at 40%
+opacity, with dark letters on light photos and light letters on dark ones. The site shows product photos in portrait
+frames (4:5, and 5:6 for the main photo on wide screens) filled edge to edge, so a tall phone photo loses its top and
+bottom and a wide one its sides; the logo is therefore placed at the bottom-right of the part those frames show, not in
+the photo's own corner, so it is never trimmed off. It is drawn into the pixels on the server
 (`src/lib/watermark/core.ts`); nothing in the admin needs setting.
 
 * **Uploads.** The admin uploads as before. The server stores the original file exactly as uploaded

@@ -50,7 +50,7 @@ function diff(a, b, box) {
 const plainDisplay = async (original) => raw(await sharp(original).rotate().resize({ width: 1600, height: 2000, fit: 'inside', withoutEnlargement: true }).toBuffer());
 
 (async () => {
-  const { placement, WATERMARK_STYLE } = await import('../src/lib/watermark/core.ts');
+  const { placement, visibleRegion, WATERMARK_STYLE } = await import('../src/lib/watermark/core.ts');
   const { WATERMARK_REVISION: REV } = await import('../src/lib/watermark/revision.ts');
   const logoMeta = await sharp(path.join(ROOT, 'src/lib/watermark/monogram-ink.png')).metadata();
   const aspect = logoMeta.height / logoMeta.width;
@@ -64,6 +64,8 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
     'small.jpeg': await sharp(src).resize(600, 750).jpeg().toBuffer(),
     'square.png': await sharp(src).resize(900, 900, { fit: 'cover' }).png().toBuffer(),
     'landscape.webp': await sharp(dark).resize(2400, 1200, { fit: 'cover' }).webp({ quality: 92 }).toBuffer(),
+    'phone-tall.jpg': await sharp(src).resize(1125, 2000, { fit: 'cover' }).jpeg({ quality: 90 }).toBuffer(), // 9:16 phone photo
+    'wide.jpg': await sharp(src).resize(1600, 900, { fit: 'cover' }).jpeg({ quality: 90 }).toBuffer(), // 16:9
     'transparent.png': await sharp(src).resize(800, 1000).ensureAlpha(0.6).png().toBuffer(),
     'camera-4000x5000.jpg': await sharp(noise).jpeg({ quality: 95 }).toBuffer(), // > 3 MB → uploaded in pieces
     'dark.jpg': await sharp(dark).jpeg({ quality: 92 }).toBuffer(),
@@ -121,11 +123,17 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
       const box = placement(s.width, s.height, aspect);
       const inLogo = diff(s, p, box);
       const elsewhere = diff(s, p, { left: 0, top: 0, width: Math.round(s.width * 0.6), height: Math.round(s.height * 0.6) });
-      const widthShare = box.width / s.width;
-      const margin = s.width - box.left - box.width;
+      // sizes are measured within the part of the photo the website's portrait frames show
+      const region = visibleRegion(s.width, s.height);
+      const widthShare = box.width / region.width;
+      const margin = region.left + region.width - box.left - box.width;
       ok(`${name}: logo drawn into the pixels at bottom-right`, inLogo > elsewhere + 1.2, `change in logo area ${inLogo.toFixed(2)} vs elsewhere ${elsewhere.toFixed(2)}`);
-      ok(`${name}: logo size ${(widthShare * 100).toFixed(1)}% of width, margin ${margin}px`, (widthShare >= 0.12 && widthShare <= 0.15) || box.height <= s.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
+      ok(`${name}: logo size ${(widthShare * 100).toFixed(1)}% of the shown width, margin ${margin}px`, (widthShare >= 0.12 && widthShare <= 0.15) || box.height <= region.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
       ok(`${name}: logo proportions preserved`, Math.abs(box.height / box.width - aspect) < 0.02);
+      // 4. the logo is inside what the site's 4:5 and 5:6 frames show (object-fit: cover, centred), never trimmed off
+      const shown = (ar) => { const w = Math.min(s.width, s.height * ar), h = Math.min(s.height, s.width / ar); return { l: (s.width - w) / 2, t: (s.height - h) / 2, r: (s.width + w) / 2, b: (s.height + h) / 2 }; };
+      const inside = [4 / 5, 5 / 6].every((ar) => { const f = shown(ar); return box.left >= f.l && box.top >= f.t && box.left + box.width <= f.r && box.top + box.height <= f.b; });
+      ok(`${name}: logo stays visible in the website's portrait frames`, inside, `${s.width}×${s.height}, logo at ${box.left},${box.top}`);
     }
 
     // transparency preserved
