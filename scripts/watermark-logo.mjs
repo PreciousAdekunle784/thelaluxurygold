@@ -1,19 +1,19 @@
 #!/usr/bin/env node
 /**
- * Renders the existing LA Luxury Gold logo (the LG monogram in its arch, `Monogram` in
- * src/components/brand/Logo.tsx) to transparent PNGs used as the image watermark.
+ * Renders the LA Luxury Gold wordmark ("LA LUXURY GOLD", `Wordmark` in src/components/brand/Logo.tsx) to
+ * transparent PNGs used as the image watermark.
  *
- * The logo is not redrawn here: the script opens a page of the running site, takes the
- * monogram exactly as the site renders it (same SVG, same Cormorant letters, same champagne
- * arch) and captures it on a transparent background, in the site's two logo tones:
+ * The wordmark is not redrawn by hand: the script opens a page of the running site and sets the brand name
+ * exactly as the site's wordmark does (the site's own Cormorant Garamond display font, weight 500, letter
+ * spacing 0.26em, capitals), then captures it on a transparent background in the site's two logo tones:
  *   ink   (dark letters)  — for light photographs
  *   ivory (light letters) — for dark photographs
  *
  *   npm run build && npx next start -p 3100     # in another terminal
  *   BASE=http://localhost:3100 node scripts/watermark-logo.mjs
  *
- * Writes src/lib/watermark/monogram-{ink,ivory}.png and src/lib/watermark/logo.generated.ts.
- * Re-run it if the logo changes, then bump WATERMARK_REVISION in src/lib/watermark/core.ts.
+ * Writes src/lib/watermark/wordmark-{ink,ivory}.png and src/lib/watermark/logo.generated.ts.
+ * Re-run it if the wordmark changes, then bump WATERMARK_REVISION in src/lib/watermark/revision.ts.
  */
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
@@ -23,46 +23,45 @@ import sharp from "sharp";
 // Playwright is a test tool (installed globally here), so it is loaded with require rather than declared as a dependency.
 const { chromium } = createRequire(import.meta.url)("playwright");
 const BASE = process.env.BASE || "http://localhost:3100";
-const WIDTH = 1024; // master size; the watermark is always scaled DOWN from this
+const FONT_PX = 200; // master size (about 2,400 px wide); the watermark is always scaled DOWN from this
 const outDir = path.resolve(import.meta.dirname, "..", "src", "lib", "watermark");
 
 const browser = await chromium.launch();
-const page = await browser.newPage({ viewport: { width: 1400, height: 1500 }, deviceScaleFactor: 1 });
-// The admin sign-in page shows the monogram on its own (no session needed).
+const page = await browser.newPage({ viewport: { width: 3200, height: 600 }, deviceScaleFactor: 1 });
+// Any page of the site has the display font loaded; the sign-in page is the lightest (no session needed).
 await page.goto(`${BASE}/admin/login`, { waitUntil: "load" });
-await page.waitForSelector("svg[viewBox='0 0 64 80']");
 
 const out = {};
 for (const tone of ["ink", "ivory"]) {
   await page.evaluate(
-    async ({ tone, width }) => {
-      const source = document.querySelector("svg[viewBox='0 0 64 80']");
-      const logo = source.cloneNode(true);
+    async ({ tone, size }) => {
       const color = getComputedStyle(document.documentElement).getPropertyValue(tone === "ink" ? "--color-ink" : "--color-ivory").trim();
-      logo.setAttribute("class", "");
-      logo.setAttribute("id", "wm-logo");
-      logo.style.cssText = `display:block;width:${width}px;height:${(width * 80) / 64}px;color:${color}`;
-      // Keep only the logo on a transparent page (fonts and CSS variables stay loaded).
-      document.body.replaceChildren(logo);
+      const mark = document.createElement("span");
+      mark.id = "wm-logo";
+      mark.textContent = "LA LUXURY GOLD";
+      // the Wordmark's own typography: display font, medium weight, 0.26em tracking (the last letter's tracking trimmed)
+      mark.style.cssText = `display:inline-block;font-family:var(--font-display);font-weight:500;font-size:${size}px;line-height:1.2;letter-spacing:0.26em;margin-right:-0.26em;padding:0.2em 0.3em;white-space:nowrap;color:${color}`;
+      document.body.replaceChildren(mark);
       for (const el of [document.documentElement, document.body]) el.style.cssText = "background:transparent;margin:0;padding:0;min-height:0";
+      await document.fonts.load(`500 ${size}px ${getComputedStyle(mark).fontFamily}`).catch(() => {});
       await document.fonts.ready;
     },
-    { tone, width: WIDTH },
+    { tone, size: FONT_PX },
   );
   const png = await page.locator("#wm-logo").screenshot({ omitBackground: true });
-  // Trim the empty margin around the strokes so the size maths uses the visible logo.
+  // Trim the empty margin around the letters so the size maths uses the visible wordmark.
   const trimmed = await sharp(png).trim({ threshold: 0 }).png({ compressionLevel: 9 }).toBuffer();
   const meta = await sharp(trimmed).metadata();
-  await writeFile(path.join(outDir, `monogram-${tone}.png`), trimmed);
+  await writeFile(path.join(outDir, `wordmark-${tone}.png`), trimmed);
   out[tone] = trimmed.toString("base64");
-  console.log(`monogram-${tone}.png ${meta.width}×${meta.height}, ${(trimmed.length / 1024).toFixed(1)} KB`);
+  console.log(`wordmark-${tone}.png ${meta.width}×${meta.height}, ${(trimmed.length / 1024).toFixed(1)} KB`);
 }
 await browser.close();
 
 await writeFile(
   path.join(outDir, "logo.generated.ts"),
-  `// Generated by scripts/watermark-logo.mjs from the site's own Monogram — do not edit by hand.\n` +
-    `// Transparent PNGs of the LA Luxury Gold LG monogram (ink letters for light photos, ivory for dark ones).\n` +
-    `export const monogramInk = "${out.ink}";\nexport const monogramIvory = "${out.ivory}";\n`,
+  `// Generated by scripts/watermark-logo.mjs from the site's own wordmark typography — do not edit by hand.\n` +
+    `// Transparent PNGs of "LA LUXURY GOLD" (ink letters for light photos, ivory for dark ones).\n` +
+    `export const wordmarkInk = "${out.ink}";\nexport const wordmarkIvory = "${out.ivory}";\n`,
 );
 console.log("wrote src/lib/watermark/logo.generated.ts");

@@ -21,8 +21,8 @@ const root = path.resolve(import.meta.dirname, "..");
 const originalsDir = path.join(root, "assets", "originals", "products");
 const outDir = path.join(root, "public", "images", "laluxurygold", "products");
 const logos = {
-  ink: await readFile(path.join(root, "src", "lib", "watermark", "monogram-ink.png")),
-  ivory: await readFile(path.join(root, "src", "lib", "watermark", "monogram-ivory.png")),
+  ink: await readFile(path.join(root, "src", "lib", "watermark", "wordmark-ink.png")),
+  ivory: await readFile(path.join(root, "src", "lib", "watermark", "wordmark-ivory.png")),
 };
 const check = process.argv.includes("--check");
 

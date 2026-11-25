@@ -100,12 +100,12 @@ types is never replaced unless they choose a suggestion instead, and a product c
 
 ### Watermark
 
-Every product image on the website carries the LA Luxury Gold monogram (the LG arch from `src/components/brand/Logo.tsx`)
-at the bottom right: about 13.5% of the width (smaller on wide, short images), 3% from the edges, at 40%
-opacity, with dark letters on light photos and light letters on dark ones. The site shows product photos in portrait
-frames (4:5, and 5:6 for the main photo on wide screens) filled edge to edge, so a tall phone photo loses its top and
-bottom and a wide one its sides; the logo is therefore placed at the bottom-right of the part those frames show, not in
-the photo's own corner, so it is never trimmed off. It is drawn into the pixels on the server
+Every product image on the website carries the brand name, **LA LUXURY GOLD**, set in the wordmark's own lettering
+(Cormorant Garamond capitals with the logo's wide spacing, as in `Wordmark` in `src/components/brand/Logo.tsx`), faint
+and centred: about 62% of the width the site shows, at low opacity (dark letters at 17% on light photos, light letters
+at 24% on dark ones). The site shows product photos in portrait frames (4:5, and 5:6 for the main photo on wide
+screens) filled edge to edge, so the name is sized to the part of the photo those frames show and is never trimmed off.
+It is drawn into the pixels on the server
 (`src/lib/watermark/core.ts`); nothing in the admin needs setting.
 
 * **Uploads.** The admin uploads as before. The server stores the original file exactly as uploaded
@@ -117,7 +117,7 @@ the photo's own corner, so it is never trimmed off. It is drawn into the pixels 
   so an image is never watermarked twice.
 * **Built-in product photos.** Originals are in `assets/originals/products/` (not public); `npm run media` writes the
   watermarked copies to `public/images/laluxurygold/products/<name>.w1.webp`.
-* **Changing the logo or the look.** Re-run `npm run watermark:logo` (captures the monogram from the running site) if the
+* **Changing the logo or the look.** Re-run `npm run watermark:logo` (captures the wordmark from the running site) if the
   logo changed, bump `WATERMARK_REVISION` in `src/lib/watermark/revision.ts`, then run `npm run media`. Image addresses
   include the revision, so no cached copy of the old version is shown; uploads are re-watermarked from their originals.
 * Originals are kept at full size in the database. On Supabase's free plan (500 MB) that is roughly 50–100 phone photos;

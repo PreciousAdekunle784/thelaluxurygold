@@ -52,7 +52,7 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
 (async () => {
   const { placement, visibleRegion, WATERMARK_STYLE } = await import('../src/lib/watermark/core.ts');
   const { WATERMARK_REVISION: REV } = await import('../src/lib/watermark/revision.ts');
-  const logoMeta = await sharp(path.join(ROOT, 'src/lib/watermark/monogram-ink.png')).metadata();
+  const logoMeta = await sharp(path.join(ROOT, 'src/lib/watermark/wordmark-ink.png')).metadata();
   const aspect = logoMeta.height / logoMeta.width;
 
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'llg-wm-'));
@@ -117,23 +117,23 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
       // 2. served image: same proportions as the original, never enlarged
       const scale = Math.min(1, 1600 / oMeta.width, 2000 / oMeta.height);
       ok(`${name}: served at the original's proportions`, meta.width === Math.round(oMeta.width * scale) && meta.height === Math.round(oMeta.height * scale), `${oMeta.width}×${oMeta.height} → ${meta.width}×${meta.height} ${meta.format}`);
-      // 3. the watermark is in the pixels, bottom-right, at the specified size; the rest of the image is unchanged
+      // 3. the watermark is in the pixels, in the middle, at the specified size; the rest of the image is unchanged
       const s = await raw(served);
       const p = await plainDisplay(original);
       const box = placement(s.width, s.height, aspect);
       const inLogo = diff(s, p, box);
-      const elsewhere = diff(s, p, { left: 0, top: 0, width: Math.round(s.width * 0.6), height: Math.round(s.height * 0.6) });
+      const elsewhere = diff(s, p, { left: 0, top: 0, width: s.width, height: Math.round(s.height * 0.3) }); // top of the photo: no watermark there
       // sizes are measured within the part of the photo the website's portrait frames show
       const region = visibleRegion(s.width, s.height);
       const widthShare = box.width / region.width;
-      const margin = region.left + region.width - box.left - box.width;
-      ok(`${name}: logo drawn into the pixels at bottom-right`, inLogo > elsewhere + 1.2, `change in logo area ${inLogo.toFixed(2)} vs elsewhere ${elsewhere.toFixed(2)}`);
-      ok(`${name}: logo size ${(widthShare * 100).toFixed(1)}% of the shown width, margin ${margin}px`, (widthShare >= 0.12 && widthShare <= 0.15) || box.height <= region.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
+      const offCentre = Math.max(Math.abs(box.left + box.width / 2 - s.width / 2), Math.abs(box.top + box.height / 2 - s.height / 2));
+      ok(`${name}: brand name drawn into the pixels in the middle`, inLogo > elsewhere + 1.2 && offCentre <= 1, `change in logo area ${inLogo.toFixed(2)} vs elsewhere ${elsewhere.toFixed(2)}`);
+      ok(`${name}: brand name ${(widthShare * 100).toFixed(1)}% of the shown width, centred`, (widthShare >= 0.58 && widthShare <= 0.66) || box.width === WATERMARK_STYLE.minWidthPx || box.height <= region.height * WATERMARK_STYLE.maxHeightRatio + 1, `${box.width}×${box.height} (logo proportions ${(box.height / box.width).toFixed(3)} vs ${aspect.toFixed(3)})`);
       ok(`${name}: logo proportions preserved`, Math.abs(box.height / box.width - aspect) < 0.02);
-      // 4. the logo is inside what the site's 4:5 and 5:6 frames show (object-fit: cover, centred), never trimmed off
+      // 4. the brand name is inside what the site's 4:5 and 5:6 frames show (object-fit: cover, centred), never trimmed off
       const shown = (ar) => { const w = Math.min(s.width, s.height * ar), h = Math.min(s.height, s.width / ar); return { l: (s.width - w) / 2, t: (s.height - h) / 2, r: (s.width + w) / 2, b: (s.height + h) / 2 }; };
       const inside = [4 / 5, 5 / 6].every((ar) => { const f = shown(ar); return box.left >= f.l && box.top >= f.t && box.left + box.width <= f.r && box.top + box.height <= f.b; });
-      ok(`${name}: logo stays visible in the website's portrait frames`, inside, `${s.width}×${s.height}, logo at ${box.left},${box.top}`);
+      ok(`${name}: brand name stays visible in the website's portrait frames`, inside, `${s.width}×${s.height}, logo at ${box.left},${box.top}`);
     }
 
     // transparency preserved
@@ -148,7 +148,7 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
       const pl = await plainDisplay(files['portrait.jpg']);
       const pd = await plainDisplay(files['dark.jpg']);
       const signed = (s, p) => { const box = placement(s.width, s.height, aspect); let sum = 0, n = 0; for (let y = box.top; y < box.top + box.height; y++) for (let x = box.left; x < box.left + box.width; x++) { const i = (y * s.width + x) * 3; sum += s.data[i] + s.data[i + 1] + s.data[i + 2] - p.data[i] - p.data[i + 1] - p.data[i + 2]; n++; } return sum / n; };
-      ok('logo is darker than a light photo and lighter than a dark one (always visible)', signed(light, pl) < 0 && signed(darkImg, pd) > 0, `light ${signed(light, pl).toFixed(2)}, dark ${signed(darkImg, pd).toFixed(2)}`);
+      ok('letters are darker than a light photo and lighter than a dark one (always legible)', signed(light, pl) < 0 && signed(darkImg, pd) > 0, `light ${signed(light, pl).toFixed(2)}, dark ${signed(darkImg, pd).toFixed(2)}`);
     }
 
     // ---------------------------------------------------------------- publish a product: the public site shows the watermarked image
@@ -211,7 +211,7 @@ const plainDisplay = async (original) => raw(await sharp(original).rotate().resi
     ok('unwatermarked originals are not downloadable from the website', unwatermarked.status() === 404, String(unwatermarked.status()));
     const builtIn = await raw(await (await a.request.get(`${BASE}/images/laluxurygold/products/maison-signet-1.${REV}.webp`)).body());
     const builtInOriginal = await raw(path.join(ROOT, 'assets/originals/products/maison-signet-1.webp'));
-    ok('built-in watermark matches uploads (same logo, size, place)', diff(builtIn, builtInOriginal, placement(1200, 1500, aspect)) > 1.2 && diff(builtIn, builtInOriginal, { left: 0, top: 0, width: 700, height: 900 }) < 1.5);
+    ok('built-in watermark matches uploads (same logo, size, place)', diff(builtIn, builtInOriginal, placement(1200, 1500, aspect)) > 1.2 && diff(builtIn, builtInOriginal, { left: 0, top: 0, width: 1200, height: 600 }) < 1.5);
   } catch (e) {
     ok('test run finished without exceptions', false, e.message.split('\n')[0]);
   } finally {

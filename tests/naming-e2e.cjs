@@ -76,10 +76,10 @@ const mock = async (p, body) => (await fetch(MOCK + p, body ? { method: 'POST', 
       const sent = await sharp(Buffer.from(await (await fetch(MOCK + '/__last-image')).arrayBuffer())).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       const orig = await sharp(PHOTO).resize(sent.info.width, sent.info.height).removeAlpha().raw().toBuffer({ resolveWithObject: true });
       const { placement } = await import('../src/lib/watermark/core.ts');
-      const box = placement(sent.info.width, sent.info.height, 1.4);
+      const box = placement(sent.info.width, sent.info.height, 131 / 2311); // the wordmark's proportions
       let d = 0, n = 0;
       for (let y = box.top; y < box.top + box.height; y++) for (let x = box.left; x < box.left + box.width; x++) { const i = (y * sent.info.width + x) * 3; d += Math.abs(sent.data[i] - orig.data[i]) + Math.abs(sent.data[i + 1] - orig.data[i + 1]) + Math.abs(sent.data[i + 2] - orig.data[i + 2]); n += 3; }
-      ok('the AI analyses the original photo (no watermark in it)', d / n < 2.5, `difference in watermark corner ${(d / n).toFixed(2)}`);
+      ok('the AI analyses the original photo (no watermark in it)', d / n < 2.5, `difference where the watermark goes ${(d / n).toFixed(2)}`);
     }
 
     // ---------------------------------------------------------------- regenerate: different names, never repeated, same kind

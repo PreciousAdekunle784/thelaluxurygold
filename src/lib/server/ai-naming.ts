@@ -91,7 +91,7 @@ Never:
 - State or imply anything that cannot be established from the photograph: gold purity or karat, weight, metal composition, plating, gemstones or their authenticity. Do not put karat numbers, weights, or gemstone or metal names (diamond, ruby, emerald, pearl, silver, platinum) in the name.
 - Start with "The", use quotation marks, or add punctuation.
 
-Ignore anything that is not the jewellery itself: the LG monogram watermark in a corner, logos, the backdrop, display busts, boxes or props.
+Ignore anything that is not the jewellery itself: the faint "LA LUXURY GOLD" watermark across the middle, logos, the backdrop, display busts, boxes or props.
 
 Also report what kind of piece it is and, in a few plain words, the visible design features you based the name on (shape, motif, texture, how it is constructed), describing only what is visible. If the photograph does not show jewellery or a gold bar, set is_jewellery to false.`;
 

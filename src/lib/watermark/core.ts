@@ -1,5 +1,6 @@
 /**
- * The LA Luxury Gold watermark: the brand's LG monogram, composited into an image's pixels.
+ * The LA Luxury Gold watermark: the brand name ("LA LUXURY GOLD" in the wordmark's Cormorant lettering), faint and
+ * centred, composited into an image's pixels.
  *
  * Shared by the upload pipeline (server) and scripts/watermark-images.mjs (built-in photos), so every
  * product image gets exactly the same treatment. No imports besides sharp, so Node can run this file
@@ -9,22 +10,20 @@ import sharp from "sharp";
 
 /** The watermark's look (kept here, not in the admin: there is nothing to configure). */
 export const WATERMARK_STYLE = {
-  /** Logo width as a share of the image width (the brief: about 12–15%). */
-  widthRatio: 0.135,
-  /** Never taller than this share of the image height (keeps it modest on wide, short images). */
-  maxHeightRatio: 0.22,
-  /** Distance from the right and bottom edges, as a share of the image's shorter side (about 3%). */
-  marginRatio: 0.03,
-  /** Opacity of the logo (about 40%). */
-  opacity: 0.4,
-  /** Never smaller than this, so it stays recognisable on small images. */
-  minWidthPx: 24,
+  /** Wordmark width as a share of the width the website shows (see visibleRegion). */
+  widthRatio: 0.62,
+  /** Never taller than this share of the shown height. */
+  maxHeightRatio: 0.2,
+  /** Opacity of the letters: faint, so the jewellery stays the subject (dark letters show more, so they are fainter). */
+  opacity: { ink: 0.17, ivory: 0.24 },
+  /** Never smaller than this, so it stays legible on small images. */
+  minWidthPx: 120,
 } as const;
 
 export interface WatermarkLogos {
-  /** Monogram with dark letters, for light backgrounds. */
+  /** Wordmark with dark letters, for light photos. */
   ink: Buffer;
-  /** Monogram with light letters, for dark backgrounds. */
+  /** Wordmark with light letters, for dark photos. */
   ivory: Buffer;
 }
 
@@ -47,9 +46,8 @@ export interface Placement {
 /**
  * The website shows product photos in portrait frames that are filled edge to edge (CSS object-fit: cover,
  * centred): 4:5 on product cards and the product page, 5:6 for the main photo on wide screens. A photo of
- * another shape is trimmed to fit (a tall phone photo loses its top and bottom, a wide one its sides), so a logo
- * in the photo's own corner would be trimmed away. This is the centred part of the photo that every one of those
- * frames shows.
+ * another shape is trimmed to fit (a tall phone photo loses its top and bottom, a wide one its sides). This is
+ * the centred part of the photo that every one of those frames shows; the wordmark is sized to fit inside it.
  */
 export const DISPLAY_FRAMES = [4 / 5, 5 / 6] as const;
 
@@ -62,41 +60,39 @@ export function visibleRegion(imageWidth: number, imageHeight: number) {
 }
 
 /**
- * Where the logo goes for an image of this size: at the bottom-right of the part the website shows (see
- * visibleRegion: for photos already in portrait 4:5 that is the whole photo), about 13.5% of that width
- * (smaller on very wide areas), with a ~3% margin. The logo keeps its own proportions.
+ * Where the wordmark goes for an image of this size: centred, about 62% of the width the website shows (see
+ * visibleRegion), so the whole name is visible in every frame. The wordmark keeps its own proportions.
  */
 export function placement(imageWidth: number, imageHeight: number, logoAspect: number): Omit<Placement, "tone"> {
   const s = WATERMARK_STYLE;
   const r = visibleRegion(imageWidth, imageHeight);
   let width = Math.max(s.minWidthPx, Math.round(r.width * s.widthRatio));
-  if (width * logoAspect > r.height * s.maxHeightRatio) width = Math.max(s.minWidthPx, Math.round((r.height * s.maxHeightRatio) / logoAspect));
-  width = Math.min(width, imageWidth);
-  const height = Math.round(width * logoAspect);
-  const margin = Math.round(Math.min(r.width, r.height) * s.marginRatio);
+  if (width * logoAspect > r.height * s.maxHeightRatio) width = Math.round((r.height * s.maxHeightRatio) / logoAspect);
+  width = Math.max(1, Math.min(width, imageWidth));
+  const height = Math.max(1, Math.min(imageHeight, Math.round(width * logoAspect)));
   return {
     width,
     height,
-    left: Math.max(0, r.left + r.width - margin - width),
-    top: Math.max(0, r.top + r.height - margin - height),
+    left: Math.max(0, Math.round(r.left + (r.width - width) / 2)),
+    top: Math.max(0, Math.round(r.top + (r.height - height) / 2)),
   };
 }
 
 /**
  * Draw the watermark into the image and encode it as WebP (same size, same proportions, alpha kept).
- * The logo tone follows the photograph: dark letters where the corner is light, light letters where it is dark.
+ * The tone follows the photograph: dark letters where the middle of the photo is light, light letters where it is dark.
  */
 export async function applyWatermark(img: RawImage, logos: WatermarkLogos, opts: { quality?: number } = {}) {
   const raw = { width: img.width, height: img.height, channels: img.channels };
   const logoMeta = await sharp(logos.ink).metadata();
   const aspect = (logoMeta.height ?? 1) / (logoMeta.width ?? 1);
   const p = placement(img.width, img.height, aspect);
-  const tone = (await cornerIsDark(img, p)) ? "ivory" : "ink";
+  const tone = (await areaIsDark(img, p)) ? "ivory" : "ink";
 
   const logo = await sharp(tone === "ivory" ? logos.ivory : logos.ink)
-    .resize({ width: p.width, kernel: "lanczos3" }) // height follows: proportions preserved
+    .resize({ width: p.width, height: p.height, fit: "fill", kernel: "lanczos3" }) // same proportions as the artwork
     .ensureAlpha()
-    .linear([1, 1, 1, WATERMARK_STYLE.opacity], [0, 0, 0, 0]) // scale only the alpha channel: ~40% opacity
+    .linear([1, 1, 1, WATERMARK_STYLE.opacity[tone]], [0, 0, 0, 0]) // scale only the alpha channel: faint letters
     .png()
     .toBuffer();
 
@@ -107,8 +103,8 @@ export async function applyWatermark(img: RawImage, logos: WatermarkLogos, opts:
   return { data: out.data, width: out.info.width, height: out.info.height, placement: { ...p, tone } satisfies Placement };
 }
 
-/** Average brightness of the area the logo will cover (transparent areas count as the site's light backgrounds). */
-async function cornerIsDark(img: RawImage, p: Omit<Placement, "tone">) {
+/** Average brightness of the area the wordmark will cover (transparent areas count as the site's light backgrounds). */
+async function areaIsDark(img: RawImage, p: Omit<Placement, "tone">) {
   const region = sharp(img.data, { raw: { width: img.width, height: img.height, channels: img.channels } })
     .extract({ left: p.left, top: p.top, width: Math.min(p.width, img.width - p.left), height: Math.min(p.height, img.height - p.top) })
     .flatten({ background: "#f7f3ec" });
